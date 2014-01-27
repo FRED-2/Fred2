@@ -79,7 +79,7 @@ class EpitopeSelection(object):
                     if hla not in alleles_I:
                         alleles_I[hla] = set()
                     if score >= self.__alleleProb[hla].get_metadata('bindingThresh')[0]:
-                        binder=True
+                        binder = True
                         alleles_I[hla].add(seq)
                     
                     imm[seq,hla] = score
