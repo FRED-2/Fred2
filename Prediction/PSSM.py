@@ -79,19 +79,19 @@ class Syfpeithi(MetadataLogger):
             rows.append(line)
             #~ print line
 
-  def predict(self, Peptide, Matrix):
-    if Matrix in self.matrices:
-      return self.matrices[Matrix].predict(Peptide)
+  def predict(self, peptide, allele_name):
+    if allele_name in self.matrices:
+      return self.matrices[allele_name].predict(peptide)
     else:
-      message =  "No such Matrix: " + Matrix + "."
+      message =  "No such allele_name: " + allele_name + "."
       raise Exception(message)
       return None
 
-  def percent_max(self, score, Matrix):
-    if Matrix in self.matrices:
-      return self.matrices[Matrix].percent_max(score)
+  def percent_max(self, score, allele_name):
+    if allele_name in self.matrices:
+      return self.matrices[allele_name].percent_max(score)
     else:
-      message =  "No such Matrix: " + Matrix + "."
+      message =  "No such allele_name: " + allele_name + "."
       raise Exception(message)
       return None
 
@@ -104,4 +104,28 @@ class Syfpeithi(MetadataLogger):
 
 class BIMAS(MetadataLogger):
   pass
+  
+#~ #codesnippet for transforming old FRED hardcoded dict-list-dict matrices
+  #~ import csv
+  #~ with open('/tmp/test.tsv', 'w') as fp:
+    #~ for k in syfpeithi_matrices:
+      #~ fp.write( k+'\n')
+      #~ aas = syfpeithi_matrices[k][1].keys()
+      #~ aas.sort()
+      #~ for a in aas:
+        #~ fp.write( a +'\t')
+        #~ for i,v in enumerate(syfpeithi_matrices[k]):
+          #~ fp.write( str(syfpeithi_matrices[k][i][a]) +'\t')
+        #~ fp.write('\n') 
+      #~ fp.write('\n')  
+    #~ for k in syfpeithi_matrices2:
+      #~ fp.write( k+'\n')
+      #~ aas = syfpeithi_matrices2[k][1].keys()
+      #~ aas.sort()
+      #~ for a in aas:
+        #~ fp.write( a +'\t')
+        #~ for i,v in enumerate(syfpeithi_matrices2[k]):
+          #~ fp.write( str(syfpeithi_matrices2[k][i][a]) +'\t')
+        #~ fp.write('\n') 
+      #~ fp.write('\n')   
   
