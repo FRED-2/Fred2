@@ -1,6 +1,10 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+import re
+import warnings
+import glob
+import csv
 
 from Fred2.Core.Peptide import Peptide, PeptideSet
 from Fred2.Core import MetadataLogger
@@ -8,9 +12,7 @@ from Fred2.Core import MetadataLogger
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_protein
 
-import re, warnings
-import glob
-import csv
+
 
 class PSSM(dict):
   """

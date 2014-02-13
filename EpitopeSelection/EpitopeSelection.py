@@ -23,8 +23,8 @@
 from __future__ import division
 from coopr.pyomo import *
 from coopr.opt import SolverFactory
-from Fred2.core.Peptide import PeptideSet
-from Fred2.core.Allele import AlleleSet, Allele
+from Fred2.Core.Peptide import PeptideSet
+from Fred2.Core.Allele import AlleleSet, Allele
 
 
 class EpitopeSelectionException(Exception):
