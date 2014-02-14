@@ -23,8 +23,8 @@
 from __future__ import division
 from coopr.pyomo import *
 from coopr.opt import SolverFactory
-from Fred2.Core.Peptide import PeptideSet
-from Fred2.Core.Allele import AlleleSet, Allele
+from Core.Peptide import PeptideSet
+from Core.Allele import AlleleSet, Allele
 
 
 class EpitopeSelectionException(Exception):
@@ -46,7 +46,7 @@ class EpitopeSelection(object):
         classdocs
     '''
     
-    def __init__(self, peptideSet, alleleSet, k=10, solver="glpsol",verbosity=0):
+    def __init__(self, peptideSet, alleleSet, k=10, solver="glpsol", verbosity=0):
         '''
             Constructor
             
@@ -68,8 +68,8 @@ class EpitopeSelection(object):
         #Variable, Set and Parameter preparation
         alleles_I = {}
         variations = []
-        epi_var={}
-        imm ={}
+        epi_var= {}
+        imm = {}
           
         for seq, peps in self.__peptideSet.items():
             for p in peps:
@@ -82,13 +82,13 @@ class EpitopeSelection(object):
                         binder = True
                         alleles_I[hla].add(seq)
                     
-                    imm[seq,hla] = score
+                    imm[seq, hla] = score
                 
                 #run through the variation list and generate the variation list and epi_var dict
                 for v in p.get_metadata('variation'):
                     vari = v
                     variations.append(vari)
-                    epi_var[vari]=set()
+                    epi_var[vari] = set()
                     if binder:
                         epi_var.setdefault(vari, set()).add(seq)
         
@@ -127,40 +127,40 @@ class EpitopeSelection(object):
         model.Obj = Objective(rule=lambda mode: sum( model.x[e] * sum( model.p[a]*model.i[e,a] for a in model.A ) for e in model.E ),sense = maximize)
                                                   
                                                   
-       #Obligatory Constraint (number of selected epitopes)
-       model.NofSelectedEpitopesCov = Constraint(rule=lambda model: sum(model.x[e] for e in model.E) <= model.k)
+        #Obligatory Constraint (number of selected epitopes)
+        model.NofSelectedEpitopesCov = Constraint(rule=lambda model: sum(model.x[e] for e in model.E) <= model.k)
                                                   
-       #optional constraints (in basic model they are disabled)
-       model.IsAlleleCovConst = Constraint(model.A, rule=lambda model,a: sum(model.x[e] for e in model.A_I[a]) >= model.y[a])
-       model.MinAlleleCovConst = Constraint(rule=lambda model: sum(model.y[a] for a in model.A) >= model.t_allele)
-       model.AntigenCovConst = Constraint(model.Q, rule=lambda model,q: sum( model.x[e] for e in model.E_var[q] ) >= model.t_var)
-       model.EpitopeConsConst = Constraint(model.E, rule=lambda model,e: (1 - model.c[e])*model.x[e] <= 1 - model.t_c)
+        #optional constraints (in basic model they are disabled)
+        model.IsAlleleCovConst = Constraint(model.A, rule=lambda model,a: sum(model.x[e] for e in model.A_I[a]) >= model.y[a])
+        model.MinAlleleCovConst = Constraint(rule=lambda model: sum(model.y[a] for a in model.A) >= model.t_allele)
+        model.AntigenCovConst = Constraint(model.Q, rule=lambda model,q: sum( model.x[e] for e in model.E_var[q] ) >= model.t_var)
+        model.EpitopeConsConst = Constraint(model.E, rule=lambda model,e: (1 - model.c[e])*model.x[e] <= 1 - model.t_c)
                                                   
-       #generate instance
-       self.__instance = model.create()
-       if self.__verbosity > 0:
-           print "MODEL INSTANCE"
-           self.__instance.pprint ()
+        #generate instance
+        self.__instance = model.create()
+        if self.__verbosity > 0:
+            print "MODEL INSTANCE"
+            self.__instance.pprint ()
                                                   
-       #deactivate additional constraints and variables
-       #params
-       self.__instance.c.deactivate()
-       self.__instance.t_c.deactivate()
-       self.__instance.t_allele.deactivate()
-       self.__instance.t_var.deactivate()
+        #deactivate additional constraints and variables
+        #params
+        self.__instance.c.deactivate()
+        self.__instance.t_c.deactivate()
+        self.__instance.t_allele.deactivate()
+        self.__instance.t_var.deactivate()
                                                   
-       #constraints
-       self.__instance.IsAlleleCovConst.deactivate()
-       self.__instance.MinAlleleCovConst.deactivate()
-       self.__instance.AntigenCovConst.deactivate()
-       self.__instance.EpitopeConsConst.deactivate()
+        #constraints
+        self.__instance.IsAlleleCovConst.deactivate()
+        self.__instance.MinAlleleCovConst.deactivate()
+        self.__instance.AntigenCovConst.deactivate()
+        self.__instance.EpitopeConsConst.deactivate()
                                                   
-       #variables
-       self.__instance.y.deactivate()
+        #variables
+        self.__instance.y.deactivate()
     
     
     
-   def __calcEpitopeConservation(self):
+   def __calc_epitope_conservation(self):
         '''
             Calculates the conservation of an epitopes.
             Conservation is defined as the fraction of variation the epitope can descent from
@@ -306,13 +306,13 @@ class EpitopeSelection(object):
         self.__instance.EpitopeConsConst.deactivate()
     
     def solve(self):
-        '''
+        """
             invokes the selected solver and solves the problem.
             
             @return returns the optimal epitopes
             @rtype PeptideSet
             @exception EpitopeSelectionException: if the solver raised a problem or the solver is not accessible via the PATH environmental variable.
-        '''
+        """
         if self.__changed:
             try:
                 self.__instance.x.reset()

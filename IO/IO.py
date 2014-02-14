@@ -8,10 +8,10 @@ import re
 
 from itertools import izip
 
-from Fred2.Core.Variant import Variant, VariantSet
-from Fred2.Core.Transcript import Transcript, TranscriptSet
-from Fred2.Core.Allele import Allele, AlleleSet
-from Fred2.Core.Peptide import Peptide, PeptideSet
+from Core.Variant import Variant, VariantSet
+from Core.Transcript import Transcript, TranscriptSet
+from Core.Allele import Allele, AlleleSet
+from Core.Peptide import Peptide, PeptideSet
 
 
 
