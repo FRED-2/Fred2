@@ -1,4 +1,4 @@
-'''
+"""
     Created on Apr 11, 2013
     
     This class implements the epitope selection functionality
@@ -18,7 +18,7 @@
     Jean-Paul Watson and David L. Woodruff. Springer, 2012.
     
     @author: Benjamin Schubert
-'''
+"""
 
 from __future__ import division
 from coopr.pyomo import *
@@ -28,9 +28,9 @@ from Core.Allele import AlleleSet, Allele
 
 
 class EpitopeSelectionException(Exception):
-    '''
+    """
         classdocs
-    '''
+    """
     
     def __init__(self, expr, msg):
         '''
@@ -40,14 +40,13 @@ class EpitopeSelectionException(Exception):
         self.msg = msg
 
 
-
 class EpitopeSelection(object):
-    '''
+    """
         classdocs
-    '''
+    """
     
     def __init__(self, peptideSet, alleleSet, k=10, solver="glpsol", verbosity=0):
-        '''
+        """
             Constructor
             
             @param peptideSet: PeptideSet with all informations
@@ -55,7 +54,7 @@ class EpitopeSelection(object):
             depending on a selected population
             @param k (int): the number of epitopes to select
             @param solver (String): the solver to be used (default glpsol)
-        '''
+        """
         
         self.__solver = SolverFactory(solver)
         self.__verbosity=verbosity
@@ -158,17 +157,16 @@ class EpitopeSelection(object):
         #variables
         self.__instance.y.deactivate()
     
-    
-    
+
    def __calc_epitope_conservation(self):
-        '''
+        """
             Calculates the conservation of an epitopes.
             Conservation is defined as the fraction of variation the epitope can descent from
             
             @return returns a dictionary with key epitope-seq and value conservation (float)
             @rtype dict[string]=float
             @exception EpitopeSelectionException: if an peptide object does not have the metadata field 'variation'9
-        '''
+        """
         var = []
         cons = {}
         for eps in self.__peptideSet.values():
@@ -176,7 +174,7 @@ class EpitopeSelection(object):
                 try:
                     var.extend(ep.get_metadata('variation'))
                 except:
-                    raise OptiTopeException("internal function", "Peptide %s has no metadata field 'variation'."%(ep.sequence))
+                    raise EpitopeSelectionException("internal function", "Peptide %s has no metadata field 'variation'."%(ep.sequence))
         total = float(len(set(var)))
         
         for seq,ep in self.__peptideSet.items():
@@ -186,15 +184,14 @@ class EpitopeSelection(object):
             except:
                 raise EpitopeSelectionException("internal function", "Peptide %s has no metadata field 'variation'."%(ep.sequence))
         return cons
-
     
     def set_k(self,k):
-        '''
+        """
             sets the number of epitopes to select
             @param k: the number of epitopes
             @type k: int
             @exception OptiTopeException: if the input variable is not in the same domain as the parameter
-        '''
+        """
         tmp = self.__instance.k.value
         try:
             getattr(self.__instance, str(self.__instance.k)).set_value(int(k))
@@ -206,12 +203,12 @@ class EpitopeSelection(object):
     
     
     def activate_allele_coverage_const(self, minCoverage):
-        '''
+        """
             enables the allele Coverage Constraint
             
             @param minCoverage (float): percentage of alleles which have to be covered
             @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
-            '''
+        """
         #parameter
         mc = self.__instance.t_allele.value
         
@@ -234,9 +231,9 @@ class EpitopeSelection(object):
                                     'Please check your specified minimum coverage parameter to be in the range of 0.0 and 1.0.')
     
     def deactivate_allele_coverage_const(self):
-        '''
+        """
             deactivates the allele coverage constraint
-        '''
+        """
         
         #parameter
         self.__changed = True
@@ -251,13 +248,13 @@ class EpitopeSelection(object):
     
     
     def activate_antigen_coverage_const(self, t_var):
-        '''
+        """
             activates the variation coverage constraint
             @param t_var: the number of epitopes which have to come from each variation
             @type t_var: int
             @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
             
-        '''
+        """
         tmp = self.__instance.t_var.value
         try:
             self.__instance.t_var.activate()
@@ -272,21 +269,21 @@ class EpitopeSelection(object):
             raise EpitopeSelectionException("activate_antigen_coverage_const", "An error has occurred during activation of the coverage constraint. Please make sure your input is an integer.")
     
     def deactivate_antigen_coverage_const(self):
-        '''
+        """
             deactivates the variation coverage constraint
-        '''
+        """
         self.__changed = True
         self.__instance.t_var.deactivate()
         self.__instance.AntigenCovConst.deactivate()
     
     
     def activate_epitope_conservation_const(self,t_c):
-        '''
+        """
             activates the epitope conservation constraint
             @param t_c: the percentage of conservation an epitope has to have.
             @type t_c: float [0.0,1.0]
             @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
-        '''
+        """
         if t_c < 0 or  t_c > 1:
             raise EpitopeSelectionException("activate_epitope_conservation_const", "The conservation threshold is out of its numerical bound. It has to be between 0.0 and 1.0.")
         
@@ -297,9 +294,9 @@ class EpitopeSelection(object):
         self.__instance.EpitopeConsConst.activate()
     
     def deactivate_epitope_conservation_const(self):
-        '''
+        """
             deactivates epitope conservation constraint
-        '''
+        """
         self.__changed = True
         self.__instance.c.deactivate()
         self.__instance.t_c.deactivate()
@@ -339,10 +336,3 @@ class EpitopeSelection(object):
                 raise EpitopeSelectionException("solve", "An Error has occurred during solving. Please check your settings and if the solver is registered in PATH environment variable.")
         else:
             return self.__result    
-
-
-
-
-
-
-

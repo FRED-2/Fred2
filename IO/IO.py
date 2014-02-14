@@ -14,14 +14,14 @@ from Core.Allele import Allele, AlleleSet
 from Core.Peptide import Peptide, PeptideSet
 
 
-
 def write_peptide_file(pepset, pepfile):
-	with open(pepfile, 'w') as f:
-		for pepseq in pepset:
-			f.write(pepseq + '\n')
+    with open(pepfile, 'w') as f:
+        for pepseq in pepset:
+            f.write(pepseq + '\n')
+
 
 def import_allele_list(file):
-    '''
+    """
         reads a csv file containing alleles their population probabilities and binding affinity thresholds
         The content should look like this:
         
@@ -30,22 +30,23 @@ def import_allele_list(file):
         
         @param file (String): the location of the allele list
         @return alleleSet: an alleleSet containing those informations
-    '''
-    
+    """
+
     alleleSet = AlleleSet()
     with open(file, "r") as f:
-        
+
         for l in f:
             allele,prob,thr = l.strip().split(",")
             a = Allele(allele)
             a.log_metadata("prob",float(prob))
             a.log_metadata("bindingThresh",float(thr))
             alleleSet[allele]=a
-            
+
     return alleleSet
 
+
 def import_epitope_list(file):
-    '''
+    """
         reads a csv file containing epitopes, their binding affinity prediction for all alleles in the allele list
         The content should look like this:
         
@@ -56,31 +57,31 @@ def import_epitope_list(file):
         @param file (String): the location of the epitope list
         @return peptideSet: a peptideSet containing all listed epitopes containing binding-affinity and variation information
         
-    '''
+    """
     peptideSet = PeptideSet()
-    
+
     with open(file, "r") as f:
-        
+
         alleles = f.readline().strip().split(",")[4:]
-        
+
         for l in f:
             splits = l.strip().split(",")
             affinities = splits[4:]
-            
+
             if splits[0] not in peptideSet:
                 p = Peptide(splits[0],None)
             else:
                 p = peptideSet[splits[0]][0]
             p.log_metadata("variation",splits[1]+"-"+splits[2])
-            
+
             for allele, affinity in izip(alleles, affinities):
                 p.log_metadata("affinity",(splits[3],allele,float(affinity)))
-                
+
             peptideSet.add_peptide(p)
-            
+
     return peptideSet
-    
-      
+
+
 def import_annovar_tsv(annovar_file, sample_id, refseq_lookup_handle, max_lines=100000):
 
     complement = maketrans('atgcATGC', 'tacgTACG')

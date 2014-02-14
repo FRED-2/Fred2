@@ -52,7 +52,6 @@ class PeptideSet(MetadataLogger, OrderedDict):
             else:
                 del self[pepseq]
 
-
     def merge(self, other_pepset):
         for pepseq, peplist in other_pepset.iteritems():
             if pepseq in self:
