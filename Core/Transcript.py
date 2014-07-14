@@ -5,68 +5,58 @@
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_nucleotide
 from Protein import Protein, ProteinSet
-from Variant import Variant, VariantSet
+from Variant import Variant
 from Base import MetadataLogger, FrameshiftNode
 import warnings
+import logging
 import itertools
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna
+
+
+def variant_2_transcript(lov, refseq_db = None):
+    """
+    :param lov: list of variants or some iterable container with variants
+    :param refseq_db: (IO.RefSeqDB) lookup facilitator and agglomerator
+    :return: list of transcripts
+    """
+    #check if all have genes
+    #get RefSeq IDs for all genes and other info
+    #
+
+    # found in pool, so attributes not looked up but linked
+    #     if transcript_id in refseq_db:
+    #         self.gene = refseq_db[transcript_id].gene
+    #         self.strand = refseq_db[transcript_id].strand
+    #         self.cds = refseq_db[transcript_id].cds
+    #         self.sequence = refseq_db[transcript_id].sequence
+    #     else:  # not found in pool, gotta lookup in db
+    #         warnings.warn('lookup gene')  # TODO
+    return None
 
 
 class Transcript(MetadataLogger):
 
-    # We store the first instance of any Transcript object with a particular transcript ID in a pool,
-    # from which we'll extract their constant attributes in subsequent instantiations of new Transcript objects.
-    # This saves us redundant database lookups and memory, as the second/third... instance's
-    # attributes point to the exact same objects in memory as the first one's.
-    # A nicer way would be a VariantsOnTranscript class, which would link a constant Transcript
-    # object to the positionally keyed Variantsets dict, but it doesn't fit our object model.
-    _transcript_pool = {}
-
-    def __init__(self, transcript_id, **kwargs):
+    def __init__(self, transcript_id, transcript_seq):
         """
-        @param transcript_id: (String) Transcript ID
-        @param lookup_fn: (function) Optional function object for fetching
-        transcript information. The function is called w/ transcript_id as the
-        only argument and is expected to return a dict keyed by database columns
-
-        TODO manual parameters
+        :param transcript_id: (String) Transcript RefSeqID
+        :param transcript_seq: (Bio.Seq) Transcript RefSeq sequence
         """
         MetadataLogger.__init__(self)
         self.id = transcript_id
+        # cast our sequence into a Bio.Seq object with the correct alphabet if needed
+        self.sequence = Seq(transcript_seq, generic_dna) if not isinstance(transcript_seq, Seq) else transcript_seq
 
-        # found in pool, so attributes not looked up but linked
-        if transcript_id in Transcript._transcript_pool:
-            same = Transcript._transcript_pool[transcript_id]
-            self.gene = same.gene
-            self.strand = same.strand
-            self.cds = same.cds
-            self.sequence = same.sequence
-            self.variantsets = {}
-        else:  # not found in pool, gotta lookup in db or deal with arguments
-            fields = kwargs['lookup_fn'](self.id) if 'lookup_fn' in kwargs else kwargs
-            # TODO, exception class for "no transcript" failure
-            assert fields, "No match or no sequence in database for %s" % transcript_id
-            self.gene = fields['gene']
-            self.strand = fields['strand']
-            self.cds = (fields['cds_relstart'], fields['cds_relend'])
-            self.sequence = Seq(fields['sequence'].upper(), generic_nucleotide)
-            self.variantsets = {}  # pos1: variantset1, pos2: variantset2
-                # with positions relative to the transcript CDS start position
-            Transcript._transcript_pool[transcript_id] = self
+        self.variantset = list()
 
     def __len__(self):
         return len(self.sequence)
 
-    def add_variantset(self, pos, variantset):
-        assert pos[0] <= pos[1], 'Nonsensical VariantSet position (end < start)'
-        assert self.cds[0] + pos[1] <= len(self), 'VariantSet position runs off transcript'
-        self.variantsets[pos] = variantset
+    def add_variant(self, variant):
+        self.variantset.append(variant)
 
-    def extend_variantsets(self, other_variantsets):
-        for pos, vset in other_variantsets.iteritems():
-            if pos in self.variantsets:
-                self.variantsets[pos].merge(vset)
-            else:
-                self.add_variantset(pos, vset)
+    def extend_variants(self, other):
+        self.variantset.extend(other)
 
     def translate_with_fs(self, frameshifts=None):
         # frameshifts is a dict in {pos: Variant} form. NOT VariantSet! We are translating
@@ -300,15 +290,28 @@ class Transcript(MetadataLogger):
 
 class TranscriptSet(dict, MetadataLogger):
 
-    def __init__(self, transcripts=None):
+    def __init__(self, elements=None, refseq_db=None):
 
-        if transcripts == None:
-            transcripts = {}  # NOT in function definition! dict is mutable.
+        if elements == None:
+            elements = {}  # NOT in function definition! dict is mutable.
         else:
-            assert all((isinstance(t, Transcript) for t in transcripts.itervalues())), (
+            assert all((isinstance(t, Transcript) for t in elements.itervalues())), (
                 'Non-transcript element found in TranscriptSet-initializing dictionary')
-        dict.__init__(self, transcripts)
+        dict.__init__(self, elements)
         MetadataLogger.__init__(self)
+
+        #elements is a refseqID
+        #TODO
+
+        #elements is a RefSeqDB.get_transcript result
+        #TODO
+
+        #elements is variant set
+        genes = set([g for g.gene in elements])
+        for g in genes:
+            ts = TranscriptSet(refseq_db.get_transcript(g))
+            ts.addVariants(elements.filter(g))
+            self.update(ts)
 
     def add_transcript(self, transcript):
         if transcript.id not in self:

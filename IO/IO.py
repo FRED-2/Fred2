@@ -34,7 +34,7 @@ def check_min_req_GSvar(row):
                 and "end" in row.keys()
                 and "ref" in row.keys()
                 and "obs" in row.keys()
-                and "coding" in row.keys()
+                and "coding_and_splicing_details" in row.keys()
                 and "variant_details" in row.keys()):
         return True
     return False
@@ -51,7 +51,6 @@ def read_GSvar(filename):
     with open(filename, 'rb') as tsvfile:
         tsvreader = csv.DictReader((row for row in tsvfile if not row.startswith('##')), dialect='excel-tab')
         for row in tsvreader:
-            ld_var.append(row)
             if not check_min_req_GSvar(row):
                 logging.warn("readGSvar: Omitted row! Mandatory columns not present in: \n"+str(row))
                 #https://docs.python.org/2/library/warnings.html
@@ -103,6 +102,16 @@ def read_vcf(filename):
         list_records.append(record_dict)
     return list_records, metadata_dict
 
+
+def parse_annovar_annotation(annotation, details):
+    """
+    parses a annotation string from ANNOVAR, needs the variant details of annovar as well
+    as the annotation string has different formatting for the variants.
+    :param annotation: the ANNOVAR annotation string
+    :param details: the ANNOVAR variant details
+    :return:
+    """
+    return None
 
 def import_allele_list(file):
     """
@@ -382,7 +391,7 @@ class RefSeqDB():
         rq = rq.replace('@chr@', str(chrom)).replace('@start@', str(start)).replace('@stop@', str(stop))
         header = "external_gene_id\tensembl_gene_id\tensembl_transcript_id\tensembl_peptide_id\trefseq_mrna\trefseq_peptide"
         tsvreader = csv.DictReader((header+'\n'+urllib2.urlopen(rq).read()).splitlines(), dialect='excel-tab')
-        return ((chrom, start, stop), [x for x in tsvreader if x['refseq_mrna']])
+        return ((chrom, start, stop), [x for x in tsvreader if x['refseq_mrna']])  # TODO make _1_ definitive response
 
 
 class UniprotDB():

@@ -6,8 +6,8 @@ import warnings
 import glob
 import csv
 
-from Fred2.Core.Peptide import Peptide, PeptideSet
-from Fred2.Core import MetadataLogger
+from Core.Peptide import Peptide, PeptideSet
+from Core.Base import MetadataLogger
 
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_protein

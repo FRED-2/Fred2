@@ -5,7 +5,8 @@ These classes represent allele and allele sets, and are equally design as the pe
 
 @author: Benjamin Schubert
 """
-from Fred2.Prediction import PSSM
+import warnings
+from Prediction import PSSM
 from Base import MetadataLogger
 from collections import OrderedDict
 
