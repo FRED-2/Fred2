@@ -10,12 +10,9 @@ import logging
 import operator
 from itertools import izip
 
-import MySQLdb
 import vcf
 
-from Bio import SwissProt
-
-from Core.Variant import Variant, VariantSet
+from Core.Variant import Variant
 from Core.Transcript import Transcript, TranscriptSet
 from Core.Allele import Allele, AlleleSet
 from Core.Peptide import Peptide, PeptideSet
@@ -112,6 +109,7 @@ def parse_annovar_annotation(annotation, details):
     :return:
     """
     return None
+
 
 def import_allele_list(file):
     """
@@ -298,134 +296,4 @@ def write_peptide_file(pepset, pepfile):
     with open(pepfile, 'w') as f:
         for pepseq in pepset:
             f.write(pepseq + '\n')
-
-
-class RefSeqDB():
-    def __init__(self, usr, host, pwd, db):
-        """
-        used to fetch sequences from given RefSeq id's either from BioMart if no credentials given else from a MySQLdb
-        :param usr: db user e.g. = 'ucsc_annot_query'
-        :param host: db host e.g. = "pride"
-        :param pwd: pw for user e.g. = 'an0q3ry'
-        :param db: db on host e.g. = "hg18_ucsc_annotation"
-        """
-        if usr and host and pwd and db:
-            self.connection = MySQLdb.connect(user=usr, host=host, passwd=pwd, db=db)
-        else:
-            self.connection = None
-
-    def get_product_sequence(self, product_refseq):
-        """
-        fetches product sequence for the given id
-        :param product_refseq: given refseq id
-        :return: tuple of id and transcript sequence as strings
-        """
-        if self.connection:
-            cur = self.connection.cursor()
-            #query = "SELECT * FROM sbs_ncbi_mrna WHERE id='%s';"%('5')
-            query = "SELECT refseq,seq FROM hg19_ucsc_annotation.refLink INNER JOIN sbs_ncbi_protein on protAcc=refseq WHERE mrnaAcc='%s';" % (
-                product_refseq)  # gives NP plus prot seq
-            #mysql -h genome-mysql.cse.ucsc.edu -u genome -D hg19 -N -A -e 'SELECT refseq,seq FROM hg19_ucsc_annotation.refLink INNER JOIN sbs_ncbi_protein on protAcc=refseq WHERE mrnaAcc='NM_002486';'
-            try:
-                cur.execute(query)
-                result = cur.fetchall()
-                if result:
-                    product_refseq = result[0][0]
-                    product_sequence = result[0][1]
-                else:
-                    warnings.warn("An Error occured while executing query: " + query + "\n")
-                    return None
-            except MySQLdb.Error, message:
-                warnings.warn(
-                    "An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
-                return None
-            return (product_refseq, product_sequence)
-        else:
-            rq = "http://biomart.org/biomart/martservice?query=%3C?xml%20version=%221.0%22%20encoding=%22UTF-8%22?%3E%3C!DOCTYPE%20Query%3E%3CQuery%20virtualSchemaName%20=%20%22default%22%20formatter%20=%20%22FASTA%22%20header%20=%20%220%22%20uniqueRows%20=%20%220%22%20count%20=%20%22%22%20datasetConfigVersion%20=%20%220.6%22%20%3E%3CDataset%20name%20=%20%22hsapiens_gene_ensembl%22%20interface%20=%20%22default%22%20%3E%3CFilter%20name%20=%20%refseq_mrna%22%20value%20=%20%22@XXX@%22/%3E%3CAttribute%20name%20=%20%22peptide%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_gene_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_transcript_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_peptide_id%22%20/%3E%20%3CAttribute%20name%20=%20%22refseq_mrna%22%20/%3E%20%3C/Dataset%3E%3C/Query%3E"
-            urllib2.urlopen(rq).read()
-            rq = rq.replace('@XXX@', product_refseq)
-            return (product_refseq, ''.join(urllib2.urlopen(rq).read().split('\n')[1:]))
-        return None
-
-    def get_transcript_sequence(self, transcript_refseq):
-        """
-        fetches transcript sequence for the given id
-        :param transcript_refseq:
-        :return: tuple of id and product sequence as string
-        """
-        if self.connection:
-            cur = self.connection.cursor()
-            #query = "SELECT * FROM sbs_ncbi_mrna WHERE id='%s';"%('5')
-            query = "SELECT refseq,seq FROM hg19_ucsc_annotation.sbs_ncbi_mrna WHERE refseq LIKE '" + transcript_refseq + "%'"
-            try:
-                cur.execute(query)
-                result = cur.fetchall()
-                if result:
-                    transcript_refseq = result[0][0]
-                    transcript_sequence = result[0][1]
-                    if len(result) > 1:
-                        warnings.warn("Ambiguous transcript refseq query: " + transcript_refseq + "\n")
-                else:
-                    warnings.warn("An Error occured while executing query: " + query + "\n")
-                    return None
-            except MySQLdb.Error, message:
-                warnings.warn("An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
-                return None
-            return (transcript_refseq, transcript_sequence)
-        else:
-            rq = "http://biomart.org/biomart/martservice?query=%3C?xml%20version=%221.0%22%20encoding=%22UTF-8%22?%3E%3C!DOCTYPE%20Query%3E%3CQuery%20virtualSchemaName%20=%20%22default%22%20formatter%20=%20%22TSV%22%20header%20=%20%220%22%20uniqueRows%20=%20%220%22%20count%20=%20%22%22%20datasetConfigVersion%20=%20%220.6%22%20%3E%20%3CDataset%20name%20=%20%22hsapiens_gene_ensembl%22%20interface%20=%20%22default%22%20%3E%20%3CFilter%20name%20=%20%22refseq_mrna%22%20value%20=%20%22@XXX@%22/%3E%20%3CAttribute%20name%20=%20%22ensembl_gene_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_transcript_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_peptide_id%22%20/%3E%20%3CAttribute%20name%20=%20%22refseq_mrna%22%20/%3E%20%3C/Dataset%3E%3C/Query%3E"
-            rq = rq.replace('@XXX@', transcript_refseq)
-            return (transcript_refseq, ''.join(urllib2.urlopen(rq).read().split('\n')[1:]))
-        return None
-
-    def get_variant_gene(self, chrom, start, stop):
-        """
-        fetches the important db ids and names for given chromosomal location
-        :param chrom: integer value of the chromosome in question
-        :param start: integer value of the variation start position on given chromosome
-        :param stop: integer value of the variation stop position on given chromosome
-        :return: tuple of location and list of dicts
-        """
-
-        rq = "http://biomart.org/biomart/martservice?query=%3C?xml%20version=%221.0%22%20encoding=%22UTF-8%22?%3E%3C!DOCTYPE%20Query%3E%3CQuery%20virtualSchemaName%20=%20%22default%22%20formatter%20=%20%22TSV%22%20header%20=%20%220%22%20uniqueRows%20=%20%220%22%20count%20=%20%22%22%20datasetConfigVersion%20=%20%220.6%22%20%3E%3CDataset%20name%20=%20%22hsapiens_gene_ensembl%22%20interface%20=%20%22default%22%20%3E%3CFilter%20name%20=%20%22chromosome_name%22%20value%20=%20%22@chr@%22/%3E%3CFilter%20name%20=%20%22end%22%20value%20=%20%22@stop@%22/%3E%3CFilter%20name%20=%20%22start%22%20value%20=%20%22@start@%22/%3E%3CAttribute%20name%20=%20%22external_gene_id%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_gene_id%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_transcript_id%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_peptide_id%22%20/%3E%3CAttribute%20name%20=%20%22refseq_mrna%22%20/%3E%3CAttribute%20name%20=%20%22refseq_peptide%22%20/%3E%3C/Dataset%3E%3C/Query%3E"
-        rq = rq.replace('@chr@', str(chrom)).replace('@start@', str(start)).replace('@stop@', str(stop))
-        header = "external_gene_id\tensembl_gene_id\tensembl_transcript_id\tensembl_peptide_id\trefseq_mrna\trefseq_peptide"
-        tsvreader = csv.DictReader((header+'\n'+urllib2.urlopen(rq).read()).splitlines(), dialect='excel-tab')
-        return ((chrom, start, stop), [x for x in tsvreader if x['refseq_mrna']])  # TODO make _1_ definitive response
-
-
-class UniprotDB():
-    def load(self, file, sprot="sprot"):
-        if sprot != "trembl":
-            sprot = "sprot"
-
-        try:
-            sprot_handle = open(file, 'r')
-        except:
-            nuf = self.file_pre + sprot + "_" + file + self.file_suf
-            try:
-                sprot_handle = open(nuf, 'r')
-            except:
-                es = "file or species " + file + " not found! Pelase check that the uniprot file exists!"
-                raise IOError(es)
-
-        self.sprot_map = [[record.gene_name, record.sequence] for record in SwissProt.parse(sprot_handle)]
-
-    def __init__(self, dbdir=None):
-        self.file_suf = '.dat'
-        if dbdir:
-            self.file_pre = str(dbdir) + '/uniprot_'
-        else:
-            self.file_pre = '/share/databases/uniprot/knowledgebase/taxonomic_divisions/uniprot_'
-
-        self.sprot_map = []
-
-    def getGeneSprot(self, gene):
-        result = list()
-        if not self.sprot_map:
-            warnings.warn("db empty! Pelase check that the uniprot file gets loaded!")
-        for rec in self.sprot_map:
-            if gene in rec[0]:
-                result.append(rec[1])
-        return result
 

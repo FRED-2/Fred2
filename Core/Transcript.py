@@ -47,7 +47,7 @@ class Transcript(MetadataLogger):
         # cast our sequence into a Bio.Seq object with the correct alphabet if needed
         self.sequence = Seq(transcript_seq, generic_dna) if not isinstance(transcript_seq, Seq) else transcript_seq
 
-        self.variantset = list()
+        self.variants = list()
 
     def __len__(self):
         return len(self.sequence)
