@@ -63,7 +63,7 @@ class RefSeqDB():
                 warnings.warn(
                     "An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
                 return None
-            return (product_refseq, product_sequence)
+            return [{product_refseq: product_sequence}]
         else:
             filter = None
             if product_refseq.startswith('NP_'):
