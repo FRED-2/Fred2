@@ -24,8 +24,20 @@ class Variant(MetadataLogger):
     def __repr__(self):  # TODO, just to have something for now
         return ' '.join([self.type, self.sample_id, self.metadata['genotype'][0]])
 
+    def __str__(self):  # TODO, just to have something for now
+        return ' '.join([self.type, self.sample_id, self.metadata['genotype'][0]])
+
     def __len__(self):
         return len(self.observed)
+
+    def __eq__(self, other):
+        return self.gene == other.gene
+
+    def __lt__(self, other):
+        return self.gene < other.gene
+
+    #vl.sort(key=lambda x: x.gene, reverse=True) a list of variants vl could be sorted like that or
+    #sorted(vl, key=attrgetter('age')) or for multiple criteria http://stackoverflow.com/a/1516449
 
     # equality check does NOT take sample_id into account and it's a feature.
     # Abscract filter class will make it disappear soon though.

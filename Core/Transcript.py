@@ -1,51 +1,35 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-
-from Bio.Seq import Seq
-from Bio.Alphabet import generic_nucleotide
-from Protein import Protein, ProteinSet
-from Variant import Variant
-from Base import MetadataLogger, FrameshiftNode
 import warnings
 import logging
 import itertools
+from operator import itemgetter, attrgetter
+
 from Bio.Seq import Seq
-from Bio.Alphabet import generic_dna
+from Bio.Alphabet import generic_nucleotide
+from Bio.Seq import Seq
+from Bio.Alphabet import generic_rna
 
-
-def variant_2_transcript(lov, refseq_db = None):
-    """
-    :param lov: list of variants or some iterable container with variants
-    :param refseq_db: (IO.RefSeqDB) lookup facilitator and agglomerator
-    :return: list of transcripts
-    """
-    #check if all have genes
-    #get RefSeq IDs for all genes and other info
-    #
-
-    # found in pool, so attributes not looked up but linked
-    #     if transcript_id in refseq_db:
-    #         self.gene = refseq_db[transcript_id].gene
-    #         self.strand = refseq_db[transcript_id].strand
-    #         self.cds = refseq_db[transcript_id].cds
-    #         self.sequence = refseq_db[transcript_id].sequence
-    #     else:  # not found in pool, gotta lookup in db
-    #         warnings.warn('lookup gene')  # TODO
-    return None
+from Protein import Protein, ProteinSet
+from Variant import Variant
+from Base import MetadataLogger, FrameshiftNode
 
 
 class Transcript(MetadataLogger):
 
-    def __init__(self, transcript_id, transcript_seq):
+    def __init__(self, transcript_id, transcript_seq, protein_id=None, protein_seq=None):
         """
+
         :param transcript_id: (String) Transcript RefSeqID
         :param transcript_seq: (Bio.Seq) Transcript RefSeq sequence
+        :param protein_id:
+        :param protein_seq:
         """
         MetadataLogger.__init__(self)
         self.id = transcript_id
         # cast our sequence into a Bio.Seq object with the correct alphabet if needed
-        self.sequence = Seq(transcript_seq, generic_dna) if not isinstance(transcript_seq, Seq) else transcript_seq
+        self.sequence = Seq(transcript_seq, generic_rna) if not isinstance(transcript_seq, Seq) else transcript_seq
 
         self.variants = list()
 
@@ -57,6 +41,11 @@ class Transcript(MetadataLogger):
 
     def extend_variants(self, other):
         self.variantset.extend(other)
+
+    def integrate_variants(self):
+        self.variantsets.sort(key=attrgetter('start'))
+        #TODO read transcript position from variant metadataloggers annovar annotation
+        #TODO create protein
 
     def translate_with_fs(self, frameshifts=None):
         # frameshifts is a dict in {pos: Variant} form. NOT VariantSet! We are translating

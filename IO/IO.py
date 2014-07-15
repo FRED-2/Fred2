@@ -9,6 +9,7 @@ import warnings
 import logging
 import operator
 from itertools import izip
+from operator import itemgetter, attrgetter
 
 import vcf
 
@@ -16,6 +17,7 @@ from Core.Variant import Variant
 from Core.Transcript import Transcript, TranscriptSet
 from Core.Allele import Allele, AlleleSet
 from Core.Peptide import Peptide, PeptideSet
+from RefSeqDB import RefSeqDB
 
 __author__ = 'walzer', 'haegele', 'schubert', 'szolek'
 
@@ -296,4 +298,43 @@ def write_peptide_file(pepset, pepfile):
     with open(pepfile, 'w') as f:
         for pepseq in pepset:
             f.write(pepseq + '\n')
+
+
+def create_transcripts(varset, combinations=None):
+    """
+    assumes the variations attributes are properly set
+    :param varset:
+    :param combinations:
+    """
+    refseq_db = RefSeqDB()
+    assert isinstance(varset, list) \
+        and all(isinstance(var, Variant) for var in varset), 'wrong input - should be list of Variant_s'
+
+    for var in varset:
+        var.gene = refseq_db.get_variant_gene(var.chromosome, var.start, var.stop)
+
+    genes = set([x.gene for x in varset])
+
+    soon_transcripts = list()
+    for g in genes:
+        soon_transcripts.append([var for var in varset if var.gene == g])
+
+    for vl in soon_transcripts:
+        #sort should be stable!
+        vl.sort(key=attrgetter('chromosome'))
+        vl.sort(key=attrgetter('start'))
+        vl.sort(key=attrgetter('stop'))
+        vl.sort(key=attrgetter('gene'))
+
+    transcripts = list()
+    for st in soon_transcripts:
+        r = refseq_db.get_variant_ids(st[0].gene)
+        for transcript_protein_ID in r:
+            tr = Transcript(transcript_protein_ID) #TODO
+            for var in st:
+                tr.add_variant(var)
+            transcripts.append(tr)
+
+
+
 

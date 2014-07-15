@@ -158,6 +158,7 @@ class RefSeqDB():
         :param stop: integer value of the variation stop position on given chromosome
         :return: The list of dicts of entries with transcript and protein ids
         """
+        # TODO add alternative Filter name = "uniprot_genename" and implement 'proxy'
         rq_n = self.biomart_head \
             + self.biomart_filter%("chromosome_name", str(chrom))  \
             + self.biomart_filter%("start", str(start))  \
