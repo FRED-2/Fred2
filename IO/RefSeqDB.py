@@ -132,7 +132,8 @@ class RefSeqDB():
             + self.biomart_tail
 
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
-        result = [x for x in tsvreader]
+        result = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
+                  if x['RefSeq Protein ID [e.g. NP_001005353]'] and x['RefSeq mRNA [e.g. NM_001195597]']}
 
         rq_x = self.biomart_head \
             + self.biomart_filter%("chromosome_name", str(chrom))  \
@@ -147,14 +148,10 @@ class RefSeqDB():
 
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
 
-        # cou = 0
-        for up in tsvreader:
-            # cou += 1
-            for r in result:
-                if r['Ensembl Gene ID']==up['Ensembl Gene ID'] \
-                    and r['Ensembl Protein ID']==up['Ensembl Protein ID'] \
-                    and r['Ensembl Transcript ID']==up['Ensembl Transcript ID']:
-                        r.update(up)
+        result2 = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
+                  if x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']}
+
+        result.update(result2)
 
         # print cou
         return result
