@@ -42,7 +42,7 @@ class RefSeqDB():
         """
         fetches product sequence for the given id
         :param product_refseq: given refseq id
-        :return: tuple of id and transcript sequence as strings
+        :return: list of dictionaries of the requested sequence, the respective strand and the associated gene name
         """
         if self.connection:
             cur = self.connection.cursor()
@@ -65,17 +65,31 @@ class RefSeqDB():
                 return None
             return (product_refseq, product_sequence)
         else:
-            rq = "http://biomart.org/biomart/martservice?query=%3C?xml%20version=%221.0%22%20encoding=%22UTF-8%22?%3E%3C!DOCTYPE%20Query%3E%3CQuery%20virtualSchemaName%20=%20%22default%22%20formatter%20=%20%22FASTA%22%20header%20=%20%220%22%20uniqueRows%20=%20%220%22%20count%20=%20%22%22%20datasetConfigVersion%20=%20%220.6%22%20%3E%3CDataset%20name%20=%20%22hsapiens_gene_ensembl%22%20interface%20=%20%22default%22%20%3E%3CFilter%20name%20=%20%refseq_mrna%22%20value%20=%20%22@XXX@%22/%3E%3CAttribute%20name%20=%20%22peptide%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_gene_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_transcript_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_peptide_id%22%20/%3E%20%3CAttribute%20name%20=%20%22refseq_mrna%22%20/%3E%20%3C/Dataset%3E%3C/Query%3E"
-            urllib2.urlopen(rq).read()
-            rq = rq.replace('@XXX@', product_refseq)
-            return (product_refseq, ''.join(urllib2.urlopen(rq).read().split('\n')[1:]))
+            filter = None
+            if product_refseq.startswith('NP_'):
+                filter = "refseq_predicted"
+            elif product_refseq.startswith('XP_'):
+                filter = "refseq_peptide_predicted"
+            else:
+                warnings.warn("No correct transcript id: " + product_refseq)
+                return None
+            rq_n = self.biomart_head \
+                + self.biomart_filter%(filter, str(product_refseq))  \
+                + self.biomart_attribute%("peptide")  \
+                + self.biomart_attribute%(filter)  \
+                + self.biomart_attribute%("external_gene_id")  \
+                + self.biomart_attribute%("strand")  \
+                + self.biomart_tail
+
+            tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+            return [x for x in tsvreader]
         return None
 
     def get_transcript_sequence(self, transcript_refseq):
         """
         fetches transcript sequence for the given id
         :param transcript_refseq:
-        :return: tuple of id and product sequence as string
+        :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
         """
         if self.connection:
             cur = self.connection.cursor()
@@ -97,9 +111,24 @@ class RefSeqDB():
                 return None
             return (transcript_refseq, transcript_sequence)
         else:
-            rq = "http://biomart.org/biomart/martservice?query=%3C?xml%20version=%221.0%22%20encoding=%22UTF-8%22?%3E%3C!DOCTYPE%20Query%3E%3CQuery%20virtualSchemaName%20=%20%22default%22%20formatter%20=%20%22TSV%22%20header%20=%20%220%22%20uniqueRows%20=%20%220%22%20count%20=%20%22%22%20datasetConfigVersion%20=%20%220.6%22%20%3E%20%3CDataset%20name%20=%20%22hsapiens_gene_ensembl%22%20interface%20=%20%22default%22%20%3E%20%3CFilter%20name%20=%20%22refseq_mrna%22%20value%20=%20%22@XXX@%22/%3E%20%3CAttribute%20name%20=%20%22ensembl_gene_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_transcript_id%22%20/%3E%20%3CAttribute%20name%20=%20%22ensembl_peptide_id%22%20/%3E%20%3CAttribute%20name%20=%20%22refseq_mrna%22%20/%3E%20%3C/Dataset%3E%3C/Query%3E"
-            rq = rq.replace('@XXX@', transcript_refseq)
-            return (transcript_refseq, ''.join(urllib2.urlopen(rq).read().split('\n')[1:]))
+            filter = None
+            if transcript_refseq.startswith('NM_'):
+                filter = "refseq_mrna"
+            elif transcript_refseq.startswith('XM_'):
+                filter = "refseq_mrna_predicted"
+            else:
+                warnings.warn("No correct transcript id: " + transcript_refseq)
+                return None
+            rq_n = self.biomart_head \
+                + self.biomart_filter%(filter, str(transcript_refseq))  \
+                + self.biomart_attribute%("peptide")  \
+                + self.biomart_attribute%(filter)  \
+                + self.biomart_attribute%("external_gene_id")  \
+                + self.biomart_attribute%("strand")  \
+                + self.biomart_tail
+
+            tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+            return [x for x in tsvreader]
         return None
 
     def get_variant_gene(self, chrom, start, stop):
@@ -108,16 +137,27 @@ class RefSeqDB():
         :param chrom: integer value of the chromosome in question
         :param start: integer value of the variation start position on given chromosome
         :param stop: integer value of the variation stop position on given chromosome
-        :return: tuple of location and list of dicts
+        :return: The respective gene name, i.e. the first one reported
         """
+        rq_n = self.biomart_head \
+            + self.biomart_filter%("chromosome_name", str(chrom))  \
+            + self.biomart_filter%("start", str(start))  \
+            + self.biomart_filter%("end", str(stop))  \
+            + self.biomart_attribute%("uniprot_genename")  \
+            + self.biomart_tail
 
-        rq = "http://biomart.org/biomart/martservice?query=%3C?xml%20version=%221.0%22%20encoding=%22UTF-8%22?%3E%3C!DOCTYPE%20Query%3E%3CQuery%20virtualSchemaName%20=%20%22default%22%20formatter%20=%20%22TSV%22%20header%20=%20%220%22%20uniqueRows%20=%20%220%22%20count%20=%20%22%22%20datasetConfigVersion%20=%20%220.6%22%20%3E%3CDataset%20name%20=%20%22hsapiens_gene_ensembl%22%20interface%20=%20%22default%22%20%3E%3CFilter%20name%20=%20%22chromosome_name%22%20value%20=%20%22@chr@%22/%3E%3CFilter%20name%20=%20%22end%22%20value%20=%20%22@stop@%22/%3E%3CFilter%20name%20=%20%22start%22%20value%20=%20%22@start@%22/%3E%3CAttribute%20name%20=%20%22external_gene_id%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_gene_id%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_transcript_id%22%20/%3E%3CAttribute%20name%20=%20%22ensembl_peptide_id%22%20/%3E%3CAttribute%20name%20=%20%22refseq_mrna%22%20/%3E%3CAttribute%20name%20=%20%22refseq_peptide%22%20/%3E%3C/Dataset%3E%3C/Query%3E"
-        rq = rq.replace('@chr@', str(chrom)).replace('@start@', str(start)).replace('@stop@', str(stop))
-        header = "external_gene_id\tensembl_gene_id\tensembl_transcript_id\tensembl_peptide_id\trefseq_mrna\trefseq_peptide"
-        tsvreader = csv.DictReader((header+'\n'+urllib2.urlopen(rq).read()).splitlines(), dialect='excel-tab')
-        return ((chrom, start, stop), [x for x in tsvreader if x['refseq_mrna']])  # TODO make _1_ definitive response
+        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+        tsvselect = [x for x in tsvreader]
+        return tsvselect[0]['UniProt Gene Name']
 
     def get_variant_ids(self, chrom, start, stop):
+        """
+        fetches the important db ids and names for given chromosomal location
+        :param chrom: integer value of the chromosome in question
+        :param start: integer value of the variation start position on given chromosome
+        :param stop: integer value of the variation stop position on given chromosome
+        :return: The list of dicts of entries with transcript and protein ids
+        """
         rq_n = self.biomart_head \
             + self.biomart_filter%("chromosome_name", str(chrom))  \
             + self.biomart_filter%("start", str(start))  \
@@ -153,5 +193,4 @@ class RefSeqDB():
 
         result.update(result2)
 
-        # print cou
-        return result
+        return result.values()
