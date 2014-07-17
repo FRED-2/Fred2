@@ -5,8 +5,14 @@ import logging
 from Base import MetadataLogger
 
 
-class Variant(MetadataLogger):
+class MutationSyntax():
+    def __init__(self):
+        self.type = None
+        self.cds_mutation_syntax = None
+        self.aa_mutation_syntax = None
 
+
+class Variant(MetadataLogger):
     def __init__(self, chrom_loc, loc_start, loc_stop, variant_type, ref, obs, sample_id='hg19', metadata={}):
         MetadataLogger.__init__(self)
         self.chromosome = chrom_loc
@@ -17,9 +23,12 @@ class Variant(MetadataLogger):
         self.type = variant_type  # SNV, INS, DEL, FSI, FSD, REF. Maybe needed: Sec, Pyl
         self.sample_id = sample_id  # hg19 if not observed in sample, but kept as reference
         self.gene = None
+        self.coding = None #dict transcript:MutationSyntax
 
         for meta in metadata:
             self.log_metadata(meta, metadata[meta])
+
+        # TODO try to get gene and coding from metadata with IO.parse_annovar_annotation and ?
 
     def __repr__(self):  # TODO, just to have something for now
         return ' '.join([self.type, self.sample_id, self.metadata['genotype'][0]])
@@ -63,55 +72,3 @@ class Variant(MetadataLogger):
             self.gene = refseq_DB.get_variant_gene(self.chromosome, self.start, self.stop)[0]
         else:
             logging.info('No gene available')
-
-# class VariantSet(MetadataLogger):
-#
-#     def __init__(self, genomic_pos, variants):
-#         MetadataLogger.__init__(self)
-#         self.genomic_pos = genomic_pos
-#         self.variants = set(variants)
-#         # these genomic_pos asserts wouldn't be needed if Variant didn't have that attribute.
-#         assert all((v.genomic_pos == self.genomic_pos for v in variants))
-#
-#     def add_variant(self, variant):
-#         #this makes no sense
-#         assert variant.genomic_pos == self.genomic_pos, 'Variant cannot be added on a different genomic position than its own'
-#         self.variants.add(variant)
-#
-#     def filter_sample_ids(self, sample_ids):
-#         filtered_variants = {v for v in self.variants if v.sample_id in sample_ids}
-#         return VariantSet(self.genomic_pos, filtered_variants)
-#
-#     # keep: if True, keeps only filtered elements, if False, throws them away
-#     # TODO: ugly, bad and currently unused. Will sort out in a filter redesign.
-#     def filter(self, sample_ids, keep=False):
-#         from_samples = {v for v in self.variants if v.sample_id in sample_ids}
-#
-#         # all elements that are equal to anything in from_samples except for their sample_id
-#         matches = {v for v in self.variants for m in from_samples if v._equals(m)}
-#         filtered = matches if keep else self.variants.difference(matches)
-#
-#         # if the filtered set would be empty, don't bother creating an empty VariantSet.
-#         # return None in these cases is expected behavior for higher level filter calls.
-#         return VariantSet(self.genomic_pos, filtered) if filtered else None
-#
-#     def merge(self, otherset):  # in-place merge.
-#         assert self.genomic_pos == otherset.genomic_pos, 'cannot merge VariantSets on different genomic positions'
-#
-#         # if both varsets contain an hg19 sample_id, they mustn't be duplicated.
-#         # maybe check for uniqueness of variants and drop duplicates if neccessary?
-#         # ...hell, even write a custom set that checks for deep equality with __hash__ interface.
-#         # In a normal use case, the only possible collisions could be the hg19s though.
-#         self.variants.update({v for v in otherset.variants if v.sample_id != 'hg19'})
-#         # or union and then return VariantSet(self.genomic_pos, merged)
-#
-#     def __repr__(self):  # just for now. TODO
-#         return ', '.join([('%s %s %s' % (v.sample_id, v.variant_type, v.sequence)) for v in self.variants])
-#
-#     # making VariantSet objects directly iterable, no need to iterate over vset.variants.
-#     # Consider subclassing from set
-#     def __iter__(self):
-#         return self.variants.__iter__()
-#
-#     def __len__(self):
-#         return len(self.variants)

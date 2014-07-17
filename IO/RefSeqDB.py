@@ -156,7 +156,7 @@ class RefSeqDB():
         :param chrom: integer value of the chromosome in question
         :param start: integer value of the variation start position on given chromosome
         :param stop: integer value of the variation stop position on given chromosome
-        :return: The list of dicts of entries with transcript and protein ids
+        :return: The list of dicts of entries with transcript and protein ids (either NM+NP or XM+XP)
         """
         # TODO add alternative Filter name = "uniprot_genename" and implement 'proxy'
         rq_n = self.biomart_head \
@@ -190,7 +190,7 @@ class RefSeqDB():
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
 
         result2 = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
-                  if x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']}
+                   if x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']}
 
         result.update(result2)
 

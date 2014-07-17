@@ -110,7 +110,7 @@ def parse_annovar_annotation(annotation, details):
     :param details: the ANNOVAR variant details
     :return:
     """
-    return None
+    return []
 
 
 def import_allele_list(file):
@@ -328,9 +328,18 @@ def create_transcripts(varset, combinations=None):
 
     transcripts = list()
     for st in soon_transcripts:
-        r = refseq_db.get_variant_ids(st[0].gene)
-        for transcript_protein_ID in r:
-            tr = Transcript(transcript_protein_ID) #TODO
+        ids = refseq_db.get_variant_ids(st[0].gene)
+        for id in ids:
+            pi,ps,ti,ts = [None]*4
+            if id['RefSeq mRNA [e.g. NM_001195597]']:
+                ti = id['RefSeq mRNA [e.g. NM_001195597]']
+                pi = id['RefSeq Protein ID [e.g. NP_001005353]']
+            else:
+                ti = id['RefSeq mRNA [e.g. NM_001195597]']
+                pi = id['RefSeq Protein ID [e.g. NP_001005353]']
+            ts = refseq_db.get_transcript_sequence(ti)
+            ps = refseq_db.get_product_sequence(pi)
+            tr = Transcript(ti, ts, pi, ps)
             for var in st:
                 tr.add_variant(var)
             transcripts.append(tr)
