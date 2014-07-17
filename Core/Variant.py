@@ -8,7 +8,7 @@ from Base import MetadataLogger
 class MutationSyntax():
     def __init__(self):
         self.type = None
-        self.cds_mutation_syntax = None
+        self.cds_mutation_syntax = None # c.
         self.aa_mutation_syntax = None
 
 
@@ -45,11 +45,9 @@ class Variant(MetadataLogger):
     def __lt__(self, other):
         return self.gene < other.gene
 
-    #vl.sort(key=lambda x: x.gene, reverse=True) a list of variants vl could be sorted like that or
-    #sorted(vl, key=attrgetter('age')) or for multiple criteria http://stackoverflow.com/a/1516449
+    #a list of variants vl could be sorted like that vl.sort(key=lambda x: x.gene, reverse=True)
+    #or sorted(vl, key=attrgetter('age')) or for multiple criteria see http://stackoverflow.com/a/1516449
 
-    # equality check does NOT take sample_id into account and it's a feature.
-    # Abscract filter class will make it disappear soon though.
     def _equals(self, other):
         # BioPython raises a warning for Seq() equality comparisons but plans to
         # implement the feature. For now they advise to compare them as

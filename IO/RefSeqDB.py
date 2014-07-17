@@ -19,6 +19,9 @@ class RefSeqDB():
         :param pwd: pw for user e.g. = 'an0q3ry'
         :param db: db on host e.g. = "hg18_ucsc_annotation"
         """
+        self.gene_proxy = dict()
+        self.sequence_proxy = dict()
+
         if usr and host and pwd and db:
             self.connection = MySQLdb.connect(user=usr, host=host, passwd=pwd, db=db)
         else:
@@ -63,6 +66,7 @@ class RefSeqDB():
                 warnings.warn(
                     "An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
                 return None
+            self.sequence_proxy[product_refseq] = product_sequence
             return [{product_refseq: product_sequence}]
         else:
             filter = None
@@ -82,7 +86,8 @@ class RefSeqDB():
                 + self.biomart_tail
 
             tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
-            return [x for x in tsvreader]
+            self.sequence_proxy[product_refseq] = [x for x in tsvreader]
+            return self.sequence_proxy[product_refseq]
         return None
 
     def get_transcript_sequence(self, transcript_refseq):
@@ -91,6 +96,9 @@ class RefSeqDB():
         :param transcript_refseq:
         :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
         """
+        if transcript_refseq in self.sequence_proxy:
+            return self.sequence_proxy[transcript_refseq]
+
         if self.connection:
             cur = self.connection.cursor()
             #query = "SELECT * FROM sbs_ncbi_mrna WHERE id='%s';"%('5')
@@ -109,7 +117,8 @@ class RefSeqDB():
             except MySQLdb.Error, message:
                 warnings.warn("An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
                 return None
-            return (transcript_refseq, transcript_sequence)
+                self.sequence_proxy[transcript_refseq] = transcript_sequence
+            return [{transcript_refseq: transcript_sequence}]
         else:
             filter = None
             if transcript_refseq.startswith('NM_'):
@@ -128,7 +137,8 @@ class RefSeqDB():
                 + self.biomart_tail
 
             tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
-            return [x for x in tsvreader]
+            self.sequence_proxy[transcript_refseq] = [x for x in tsvreader]
+            return self.sequence_proxy[transcript_refseq]
         return None
 
     def get_variant_gene(self, chrom, start, stop):
@@ -193,5 +203,5 @@ class RefSeqDB():
                    if x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']}
 
         result.update(result2)
-
+        self.gene_proxy
         return result.values()
