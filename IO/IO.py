@@ -310,10 +310,7 @@ def create_transcripts(varset, combinations=None):
     assert isinstance(varset, list) \
         and all(isinstance(var, Variant) for var in varset), 'wrong input - should be list of Variant_s'
 
-    for var in varset:
-        var.gene = refseq_db.get_variant_gene(var.chromosome, var.start, var.stop)
-
-    genes = set([x.gene for x in varset])
+    genes = set([x.find_gene(refseq_db) for x in varset])
 
     soon_transcripts = list()
     for g in genes:
@@ -330,7 +327,7 @@ def create_transcripts(varset, combinations=None):
     for st in soon_transcripts:
         ids = refseq_db.get_variant_ids(st[0].gene)
         for id in ids:
-            pi,ps,ti,ts = [None]*4
+            pi, ps, ti, ts = [None]*4
             if id['RefSeq mRNA [e.g. NM_001195597]']:
                 ti = id['RefSeq mRNA [e.g. NM_001195597]']
                 pi = id['RefSeq Protein ID [e.g. NP_001005353]']

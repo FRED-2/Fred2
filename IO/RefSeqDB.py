@@ -19,6 +19,7 @@ class RefSeqDB():
         :param pwd: pw for user e.g. = 'an0q3ry'
         :param db: db on host e.g. = "hg18_ucsc_annotation"
         """
+        self.ids_proxy = dict()
         self.gene_proxy = dict()
         self.sequence_proxy = dict()
 
@@ -92,10 +93,11 @@ class RefSeqDB():
 
     def get_transcript_sequence(self, transcript_refseq):
         """
-        fetches transcript sequence for the given id
+        Fetches transcript sequence for the given id
         :param transcript_refseq:
         :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
         """
+        # TODO transcript_refseq to transcript_id, sniff which, query according
         if transcript_refseq in self.sequence_proxy:
             return self.sequence_proxy[transcript_refseq]
 
@@ -143,12 +145,15 @@ class RefSeqDB():
 
     def get_variant_gene(self, chrom, start, stop):
         """
-        fetches the important db ids and names for given chromosomal location
+        Fetches the important db ids and names for given chromosomal location
         :param chrom: integer value of the chromosome in question
         :param start: integer value of the variation start position on given chromosome
         :param stop: integer value of the variation stop position on given chromosome
         :return: The respective gene name, i.e. the first one reported
         """
+        if chrom + start + stop in self.gene_proxy:
+            return self.gene_proxy[chrom + start + stop]
+
         rq_n = self.biomart_head \
             + self.biomart_filter%("chromosome_name", str(chrom))  \
             + self.biomart_filter%("start", str(start))  \
@@ -158,21 +163,35 @@ class RefSeqDB():
 
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
+        self.gene_proxy[chrom + start + stop] = tsvselect[0]['UniProt Gene Name']
         return tsvselect[0]['UniProt Gene Name']
 
-    def get_variant_ids(self, chrom, start, stop):
+    def get_variant_ids(self, **kwargs):
         """
-        fetches the important db ids and names for given chromosomal location
-        :param chrom: integer value of the chromosome in question
-        :param start: integer value of the variation start position on given chromosome
-        :param stop: integer value of the variation stop position on given chromosome
+        Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
+        Result is a list of dicts with either of the tree combinations:
+            - 'Ensembl Gene ID', 'Ensembl Transcript ID', 'Ensembl Protein ID'
+            - 'RefSeq Protein ID [e.g. NP_001005353]', 'RefSeq mRNA [e.g. NM_001195597]', first triplet
+            - 'RefSeq Predicted Protein ID [e.g. XP_001720922]', 'RefSeq mRNA predicted [e.g. XM_001125684]', first triplet
+        :keyword 'chrom': integer value of the chromosome in question
+        :keyword 'start': integer value of the variation start position on given chromosome
+        :keyword 'stop': integer value of the variation stop position on given chromosome
+        :keyword 'gene': string value of the gene of variation
         :return: The list of dicts of entries with transcript and protein ids (either NM+NP or XM+XP)
         """
-        # TODO add alternative Filter name = "uniprot_genename" and implement 'proxy'
+        # TODO type assessment
+        query = None
+        if len(kwargs) == 3 and 'chrom' in kwargs and 'start' in kwargs and 'stop' in kwargs:
+            query = self.biomart_filter%("chromosome_name", kwargs['chrom'])  \
+                + self.biomart_filter%("start", kwargs['start'])  \
+                + self.biomart_filter%("end", kwargs['stop'])
+        elif len(kwargs) == 1 and 'gene' in kwargs:
+            query = self.biomart_filter%("UniProt Gene Name", kwargs['gene'])
+        else:
+            warnings.warn("wrong arguments to get_variant_ids")
+
         rq_n = self.biomart_head \
-            + self.biomart_filter%("chromosome_name", str(chrom))  \
-            + self.biomart_filter%("start", str(start))  \
-            + self.biomart_filter%("end", str(stop))  \
+            + query \
             + self.biomart_attribute%("ensembl_gene_id")  \
             + self.biomart_attribute%("ensembl_peptide_id")  \
             + self.biomart_attribute%("ensembl_transcript_id")  \
@@ -187,9 +206,7 @@ class RefSeqDB():
                   if x['RefSeq Protein ID [e.g. NP_001005353]'] and x['RefSeq mRNA [e.g. NM_001195597]']}
 
         rq_x = self.biomart_head \
-            + self.biomart_filter%("chromosome_name", str(chrom))  \
-            + self.biomart_filter%("start", str(start))  \
-            + self.biomart_filter%("end", str(stop))  \
+            + query  \
             + self.biomart_attribute%("ensembl_gene_id")  \
             + self.biomart_attribute%("ensembl_peptide_id")  \
             + self.biomart_attribute%("ensembl_transcript_id")  \
@@ -200,8 +217,13 @@ class RefSeqDB():
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
 
         result2 = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
-                   if x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']}
+                   if (x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]'])
+                   or (not x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and not x['RefSeq mRNA predicted [e.g. XM_001125684]'])}
 
         result.update(result2)
-        self.gene_proxy
+        g = None
+        for k, v in result.iteritems():
+            if 'uniprot_swissprot' in v:
+                g = v['uniprot_swissprot']
+        self.ids_proxy[g] = result.values()
         return result.values()

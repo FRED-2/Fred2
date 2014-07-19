@@ -44,8 +44,7 @@ class Transcript(MetadataLogger):
 
     def integrate_variants(self):
         self.variantsets.sort(key=attrgetter('start'))
-        #TODO read transcript position from variant metadataloggers annovar annotation
-        #TODO create protein
+        #TODO create translation
 
     def translate_with_fs(self, frameshifts=None):
         # frameshifts is a dict in {pos: Variant} form. NOT VariantSet! We are translating

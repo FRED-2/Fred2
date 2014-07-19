@@ -7,28 +7,27 @@ from Base import MetadataLogger
 
 class MutationSyntax():
     def __init__(self):
-        self.type = None
-        self.cds_mutation_syntax = None # c.
-        self.aa_mutation_syntax = None
+        self.type = None  # SNV, INS, DEL, FSI, FSD, REF. Maybe needed: Sec, Pyl
+        self.cds_mutation_syntax = None  #c. ...
+        self.aa_mutation_syntax = None  #p. ...
 
 
 class Variant(MetadataLogger):
-    def __init__(self, chrom_loc, loc_start, loc_stop, variant_type, ref, obs, sample_id='hg19', metadata={}):
+    def __init__(self, chrom_loc, loc_start, loc_stop, ref, obs, sample_id='hg19', metadata={}):
         MetadataLogger.__init__(self)
         self.chromosome = chrom_loc
         self.start = loc_start
         self.stop = loc_stop
         self.reference = ref
         self.observed = loc_stop
-        self.type = variant_type  # SNV, INS, DEL, FSI, FSD, REF. Maybe needed: Sec, Pyl
         self.sample_id = sample_id  # hg19 if not observed in sample, but kept as reference
         self.gene = None
-        self.coding = None #dict transcript:MutationSyntax
+        self.coding = None  # dict transcript_id:MutationSyntax
 
         for meta in metadata:
             self.log_metadata(meta, metadata[meta])
 
-        # TODO try to get gene and coding from metadata with IO.parse_annovar_annotation and ?
+        # TODO try to get gene, coding, type from metadata with IO.parse_annovar_annotation and ?
 
     def __repr__(self):  # TODO, just to have something for now
         return ' '.join([self.type, self.sample_id, self.metadata['genotype'][0]])
@@ -62,11 +61,17 @@ class Variant(MetadataLogger):
         else:
             return False
 
-    #move to refseqdb class and toolbox!
+    def get_transcript_ids(self):
+        return self.coding.keys()
+
+    #move to refseqdb class and toolbox?
     def find_gene(self, refseq_DB=None):
-        if 'gene' in self.metadata:
+        if self.gene:
+            pass
+        elif 'gene' in self.metadata:
             self.gene = self.metadata['gene'][0]
         elif refseq_DB:
             self.gene = refseq_DB.get_variant_gene(self.chromosome, self.start, self.stop)[0]
         else:
             logging.info('No gene available')
+        return self.gene
