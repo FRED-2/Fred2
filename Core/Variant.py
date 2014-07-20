@@ -1,15 +1,18 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+__author__ = 'szolek', 'walzer'
+
 import logging
 from Base import MetadataLogger
+import IO  # TODO fix imports! (see IO)
 
 
 class MutationSyntax():
-    def __init__(self):
-        self.type = None  # SNV, INS, DEL, FSI, FSD, REF. Maybe needed: Sec, Pyl
-        self.cds_mutation_syntax = None  #c. ...
-        self.aa_mutation_syntax = None  #p. ...
+    def __init__(self, type, cds, aas):
+        self.type = type  # SNV, INS, DEL, FSI, FSD, REF. Maybe needed: Sec, Pyl
+        self.cds_mutation_syntax = cds  #c. ...
+        self.aa_mutation_syntax = aas  #p. ...
 
 
 class Variant(MetadataLogger):
@@ -22,12 +25,11 @@ class Variant(MetadataLogger):
         self.observed = loc_stop
         self.sample_id = sample_id  # hg19 if not observed in sample, but kept as reference
         self.gene = None
-        self.coding = None  # dict transcript_id:MutationSyntax
+        self.type = None
+        self.coding = dict()  # dict transcript_id:MutationSyntax
 
         for meta in metadata:
             self.log_metadata(meta, metadata[meta])
-
-        # TODO try to get gene, coding, type from metadata with IO.parse_annovar_annotation and ?
 
     def __repr__(self):  # TODO, just to have something for now
         return ' '.join([self.type, self.sample_id, self.metadata['genotype'][0]])
@@ -45,17 +47,17 @@ class Variant(MetadataLogger):
         return self.gene < other.gene
 
     #a list of variants vl could be sorted like that vl.sort(key=lambda x: x.gene, reverse=True)
-    #or sorted(vl, key=attrgetter('age')) or for multiple criteria see http://stackoverflow.com/a/1516449
+    #or sorted(vl, key=attrgetter('gene')) or for multiple criteria see http://stackoverflow.com/a/1516449
 
     def _equals(self, other):
         # BioPython raises a warning for Seq() equality comparisons but plans to
         # implement the feature. For now they advise to compare them as
         # str(seq1)==str(seq2) [and maybe the alphabets too]
         if (self.chromosome == other.chromosome
-            and self.start == other.location_start
-            and self.stop == other.location_stop
+            and self.start == other.start
+            and self.stop == other.stop
             and self.observed == other.observed
-            and self.type == other.variant_type
+            and self.reference == other.reference
             and self.sample_id == other.sample_id):
             return True
         else:
@@ -64,7 +66,6 @@ class Variant(MetadataLogger):
     def get_transcript_ids(self):
         return self.coding.keys()
 
-    #move to refseqdb class and toolbox?
     def find_gene(self, refseq_DB=None):
         if self.gene:
             pass
@@ -75,3 +76,8 @@ class Variant(MetadataLogger):
         else:
             logging.info('No gene available')
         return self.gene
+
+    def find_coding(self, refseq_DB=None):
+        for meta in self.metadata:
+            if meta == 'coding' or meta == 'coding_and_splicing_details':
+                self.coding.update(IO.IO.parse_annotation(self.metadata[meta][0]))

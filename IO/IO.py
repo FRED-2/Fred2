@@ -1,6 +1,8 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+__author__ = 'walzer', 'haegele', 'schubert', 'szolek'
+
 import string
 import csv
 import re
@@ -13,13 +15,11 @@ from operator import itemgetter, attrgetter
 
 import vcf
 
-from Core.Variant import Variant
+from Core.Variant import Variant, MutationSyntax
 from Core.Transcript import Transcript, TranscriptSet
 from Core.Allele import Allele, AlleleSet
 from Core.Peptide import Peptide, PeptideSet
 from RefSeqDB import RefSeqDB
-
-__author__ = 'walzer', 'haegele', 'schubert', 'szolek'
 
 
 def check_min_req_GSvar(row):
@@ -39,24 +39,89 @@ def check_min_req_GSvar(row):
     return False
 
 
-def read_GSvar(filename):
+def read_GSvar(filename, sample_id, just_dict=False):
     """
     reads GSvar and tsv files (tab sep files in context of genetic variants), omitting and warning about rows missing
     mandatory columns
     :param filename: /path/to/file
+    :param sample_id:
+    :param just_dict:
     :return: list of dictionaries representing valid variations
     """
+    # TODO param type check
     ld_var = list()
     with open(filename, 'rb') as tsvfile:
         tsvreader = csv.DictReader((row for row in tsvfile if not row.startswith('##')), dialect='excel-tab')
         for row in tsvreader:
             if not check_min_req_GSvar(row):
-                logging.warn("readGSvar: Omitted row! Mandatory columns not present in: \n"+str(row))
+                logging.warn("read_GSvar: Omitted row! Mandatory columns not present in: \n"+str(row))
                 #https://docs.python.org/2/library/warnings.html
             else:
                 ld_var.append(row)
+
     #test = sorted(ld_var,key=itemgetter('#chr','start'))
-    return ld_var
+    if just_dict:
+        return ld_var
+
+    var_list = list()
+    for v in ld_var:
+        var_list.append(Variant(v["#chr"], v["start"], v["end"], v["ref"], v["obs"], sample_id, v))
+    return var_list
+
+
+def parse_annotation(annotations, details=None):
+    """
+    parses an annotation string (http://www.hgvs.org/mutnomen/quickref.html)
+        - e.g. from ANNOVAR: (string) ANK3:NM_001204403:exon10:c.939delG:p.M313fs,ANK3:NM_020987:exon9:c.957delG:p.M319fs,ANK3:NM_001204404:exon9:c.906delG:p.M302fs,
+        - e.g. cosmic: (list of dict) ITGAV	ENST00000261023	71212	c.1502C>A	p.S501Y	...
+    :param annotations: the ANNOVAR annotation string
+    :param details: the ANNOVAR variant details
+    :return:
+    """
+    mut_syn = dict()
+    #gss - old ANNOVAR stuff
+    # HAT1:NM_003642:exon11:c.A1208T:p.Q403L,
+    # NBPF10:NM_001039703:exon4:p.A179D:GCT->GAT:+,
+
+    #gsvar - ANNOVAR uses UCSC?
+    # RANBP2:NM_006267:exon14:c.A1954G:p.I652V,
+    # ANAPC1:NM_022662:exon12:c.C1393T:p.Q465X,
+    # NCBP1:NM_002486:exon9:c.913_914insG:p.G305fs,
+    # ANK3:NM_001204403:exon10:c.939delG:p.M313fs,ANK3:NM_020987:exon9:c.957delG:p.M319fs,ANK3:NM_001204404:exon9:c.906delG:p.M302fs,
+
+    #cosmic - http://www.hgvs.org/mutnomen/ (http://www.hgvs.org/mutnomen/quickref.html)
+    # Gene Name	Accession Number    CDS Mutation Syntax	AA Mutation Syntax
+    # TP53	ENST00000269305	c.?	p.E286K
+    # MAP3K6	NM_004672	c.2483C>T	p.T828I	...
+    # ITGAV	ENST00000261023	c.1502C>A	p.S501Y	...
+    # TP53	ENST00000269305	c.847_848insT	p.R283fs*23
+    if isinstance(annotations, str):
+        annotations = [x for x in annotations.split(',') if x]  # removes trailing list entry ''
+        print annotations
+        for a in annotations:
+                    t, c, p = [None]*3
+                    for i in a.split(':'):
+                        if i.startswith(('NM_', 'ENST')):
+                                t = i
+                        elif i.startswith('c.'):
+                                c = i
+                        elif i.startswith('p.'):
+                                p = i
+                    if t and c and p:
+                        mut_syn[t] = MutationSyntax(details, c, p)
+                    else:
+                        logging.warn('Insufficient data')
+
+    elif isinstance(annotations, list) \
+            and all(isinstance(x, dict)
+                    and 'Accession Number' in x and 'CDS Mutation Syntax' in x and 'AA Mutation Syntax' in x
+                    for x in annotations):
+        for a in annotations:
+            mut_syn[a['Accession Number']] = MutationSyntax(details, a['CDS Mutation Syntax'], a['AA Mutation Syntax'])
+    else:
+        logging.warn('Unusable input')
+    print mut_syn
+    return mut_syn
 
 
 def read_vcf(filename):
@@ -100,17 +165,6 @@ def read_vcf(filename):
         #print record_dict
         list_records.append(record_dict)
     return list_records, metadata_dict
-
-
-def parse_annovar_annotation(annotation, details):
-    """
-    parses a annotation string from ANNOVAR, needs the variant details of annovar as well
-    as the annotation string has different formatting for the variants.
-    :param annotation: the ANNOVAR annotation string
-    :param details: the ANNOVAR variant details
-    :return:
-    """
-    return []
 
 
 def import_allele_list(file):
@@ -172,109 +226,6 @@ def import_epitope_list(file):
             peptideSet.add_peptide(p)
 
     return peptideSet
-
-
-def import_annovar_tsv(annovar_file, sample_id, refseq_lookup_handle, max_lines=100000):
-
-    complement = string.maketrans('atgcATGC', 'tacgTACG')
-    ts = TranscriptSet()
-
-    data = csv.reader(open(annovar_file), delimiter='\t')
-    fields = data.next()
-    for jj, onerow in enumerate(data):
-
-        if jj > max_lines:
-            break  # limit to X lines for quick testing
-
-        row = dict(zip(fields, onerow))
-        genomic_pos = (row['#chr'], row['start'], row['end'])
-
-        # empty sequences show up as a single '-' in the ref and obs columns. Delete that dash.
-        seq_obs = row['obs'].strip('-')
-        seq_ref = row['ref'].strip('-')
-
-        if row['variant'] == 'SNV':
-            variant_type = 'SNV'
-            assert len(seq_obs) == 1 and len(seq_ref) == 1, 'SNV observed and reference have improper lengths'
-        elif row['variant'] == 'INDEL':
-            if seq_obs:  # insertion
-                assert seq_ref == '', 'insertion INDEL has a non-empty reference sequence'
-                variant_type = 'FSI' if len(seq_obs) % 3 else 'INS'  # frameshift or not
-            else:
-                assert seq_obs == '', 'deletion INDEL has a non-empty observed sequence'
-                variant_type = 'FSD' if len(seq_ref) % 3 else 'DEL'
-        else:
-            print 'variant type not SNV nor INDEL. What the hell?'
-
-        # reverse complements for reverse strand transcripts
-        seq_obs_rc = seq_obs[::-1].translate(complement)
-        seq_ref_rc = seq_ref[::-1].translate(complement)
-
-        x1 = Variant(genomic_pos, variant_type, seq_obs, 'N', sample_id)
-        x1_rc = Variant(genomic_pos, variant_type, seq_obs_rc, 'N', sample_id)
-
-        # if the variant is homozygous we know that the reference sequence cannot be present
-        # in our sample so it's from HG19. Important to not mix it with our sample_ids.
-        # Homozygous indels really bother me though. Why are there so many? What to do with them? TODO
-        x2 = Variant(genomic_pos, 'REF', seq_ref, 'N', 'hg19'
-            if row['genotype'] == 'hom' else (sample_id + '_ref'))  # TODO: I don't like it
-        # But how should we represent the non-variant base in het. tumor mutations?
-        x2_rc = Variant(genomic_pos, 'REF', seq_ref_rc, 'N', 'hg19'
-            if row['genotype'] == 'hom' else (sample_id + '_ref'))  # TODO: I don't like it
-
-        x1.log_metadata('genotype', row['genotype'])
-        x2.log_metadata('genotype', row['genotype'])
-        x1_rc.log_metadata('genotype', row['genotype'])
-        x2_rc.log_metadata('genotype', row['genotype'])
-
-        x1.log_metadata('original_row', (sample_id + '_' + str(jj), onerow))  # TODO: don't
-        x2.log_metadata('original_row', (sample_id + '_' + str(jj), onerow))
-        x1_rc.log_metadata('original_row', (sample_id + '_' + str(jj), onerow))
-        x2_rc.log_metadata('original_row', (sample_id + '_' + str(jj), onerow))
-
-        vs = VariantSet(genomic_pos, [x1, x2])
-        vs_rc = VariantSet(genomic_pos, [x1_rc, x2_rc])
-
-        transcripts = row['coding'].rstrip(',').split(',')
-        for tr in transcripts:
-            try:
-                gene, tr_id, _, mutation_nuc, mutation_aa = tr.split(':')
-                if tr_id in ts:
-                    transcript = ts[tr_id]
-                else:
-                    try:
-                        transcript = Transcript(tr_id, lookup_fn=refseq_lookup_handle)
-                    except AssertionError as aerr:  # TODO: replace this to a proper exception.
-                        print aerr
-                        continue
-
-                    ts.add_transcript(transcript)
-
-                # a single number for SNV-s, two consecutive numbers for INS-es and two unconstrained
-                # numbers for deletions. We turn them into a (start, stop) tuple, indexed from zero
-                # and referring to positions on the reference sequence. In the following form:
-                # SNVs: (x, x+1) - pinpointing the affected nucleotide
-                # INSs: (x, x)   - 0 affected bases in the reference insertion spot is well defined
-                # DELs: (x, y)   - deletion starting somewhere and ending somewhere
-                # ...making it possible to define substituted slices in a concise way.
-                positions = map(int, re.findall(r'[0-9_]+', mutation_nuc)[0].split('_'))
-                positions.append(positions[-1])  # padding for single nucleotide deletion cases
-                if variant_type == 'SNV':
-                    vpos = (positions[0] - 1, positions[0])
-                elif variant_type in ('INS', 'FSI'):
-                    vpos = (positions[0], positions[0])
-                elif variant_type in ('DEL', 'FSD'):
-                    vpos = (positions[0] - 1, positions[1])
-
-                # TODO: vpos is still relative to the CDS start position. It should probably be
-                # relative to the transcript start position.
-                transcript.add_variantset(vpos, vs if transcript.strand == '+' else vs_rc)
-
-            except ValueError as ee:
-                ee == ee  # don't need it now
-                #print 'unparseable stuff: ', row['gene']
-                continue
-    return ts
 
 
 def write_annovar_file(list_records, filename):
@@ -341,6 +292,19 @@ def create_transcripts(varset, combinations=None):
                 tr.add_variant(var)
             transcripts.append(tr)
 
+    # t = """MERGKMAEAESLETAAEHERILREIESTDTACIGPTLRSVYDGEEHGRFMEKLETRIRNHDREIEKMCNFHYQGFVDSITELLKVRGEAQKLKNQVTDTNRKLQHEGKELVIAMEELKQCRLQQRNISATVDKLMLCLPVLEMYSKLRDQMKTKRHYPALKTLEHLEHTYLPQVSHYRFCKVMVDNIPKLREEIKDVSMSDLKDFLESIRKHSDKIGETAMKQAQQQRNLDNIVLQQPRIGSKRKSKKDAYIIFDTEIESTSPKSEQDSGILDVEDEEDDEEVPGAQDLVDFSPVYRCLHIYSVLGARETFENYYRKQRRKQARLVLQPPSNMHETLDGYRKYFNQIVGFFVVEDHILHTTQGLVNRAYIDELWEMALSKTIAALRTHSSYCSDPNLVLDLKNLIVLFADTLQVYGFPVNQLFDMLLEIRDQYSETLLKKWAGIFRNILDSDNYSPIPVTSEEMYKKVVGQFPFQDIELEKQPFPKKFPFSEFVPKVYNQIKEFIYACLKFSEDLHLSSTEVDDMIRKSTNLLLTRTLSNSLQNVIKRKNIGLTELVQIIINTTHLEKSCKYLEEFITNITNVLPETVHTTKLYGTTTFKDARHAAEEEIYTNLNQKIDQFLQLADYDWMTGDLGNKASDYLVDLIAFLRSTFAVFTHLPGKVAQTACMSACKHLATSLMQLLLEAEVRQLTLGALQQFNLDVRECEQFARSGPVPGFQEDTLQLAFIDLRQLLDLFIQWDWSTYLADYGQPNCKYLRVNPVTALTLLEKMKDTSRKNNMFAQFRKNERDKQKLIDTVAKQLRGLISSHHS"""
+    # i = """NM_015189"""
+    # vc = "c.A1842C"
+    # pc = "p.L614F"
+    #
+    # from IO import IO
+    # from Core import Variant, Transcript
+    # V = Variant.Variant(1,234,234,'A','C',"whatsoever",{})
+    # V.log_metadata('coding', 'EXOC6B:NM_015189:exon18:c.A1842C:p.L614F,')
+    # V.find_coding()
+    # T = Transcript.Transcript(i, 'tseq', 'pid' , t)
+    # T.add_variant(V)
+    # T.translate()
 
 
 

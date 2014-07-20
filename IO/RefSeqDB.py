@@ -10,6 +10,7 @@ import urllib2
 import warnings
 import logging
 
+
 class RefSeqDB():
     def __init__(self, usr=None, host=None, pwd=None, db=None):
         """
