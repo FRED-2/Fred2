@@ -48,6 +48,15 @@ class Transcript(MetadataLogger):
     def translate(self, with_fs=False):
 
         self.variants.sort(key=attrgetter('start'))
+
+        homos = [id(x) for x in self.variants if not bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
+        heteros = [id(x) for x in self.variants if bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
+        combis = list()
+        for i in range(len(heteros)):
+            combis += itertools.combinations(heteros, i+1)
+        combis = [list(t)+homos for t in combis]
+        gens = [(x for x in self.variants if id(x) in c) for c in combis]
+
         nuseq = None
         if self.protein:
             nuseq = self.protein
@@ -57,8 +66,10 @@ class Transcript(MetadataLogger):
                                             or bool(re.match(r"\Ap\.[A-X]\d+[A-X]\Z", var.coding[self.id].aa_mutation_syntax))):
                     ori, rep = re.compile(r"\d+").split(var.coding[self.id].aa_mutation_syntax.strip("p."))
                     pos = int(re.findall(r"\d+", var.coding[self.id].aa_mutation_syntax)[0])
-                    # TODO paranoia check ori and nuseq[pos-1]
-                    nuseq = nuseq[:pos-1] + rep + nuseq[pos:]
+                    if nuseq[pos-1] == ori:
+                        nuseq = nuseq[:pos-1] + rep + nuseq[pos:]
+                    else:
+                        logging.warn('No position/aminoacid match, coding is off.')
                 else:
                     logging.warn('No coding for this transcript')
         else:

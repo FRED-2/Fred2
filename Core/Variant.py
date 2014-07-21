@@ -4,6 +4,7 @@
 __author__ = 'szolek', 'walzer'
 
 import logging
+import re
 from Base import MetadataLogger
 import IO  # TODO fix imports! (see IO)
 
@@ -26,6 +27,7 @@ class Variant(MetadataLogger):
         self.sample_id = sample_id  # hg19 if not observed in sample, but kept as reference
         self.gene = None
         self.type = None
+        self.zygosity = None
         self.coding = dict()  # dict transcript_id:MutationSyntax
 
         for meta in metadata:
@@ -81,3 +83,16 @@ class Variant(MetadataLogger):
         for meta in self.metadata:
             if meta == 'coding' or meta == 'coding_and_splicing_details':
                 self.coding.update(IO.IO.parse_annotation(self.metadata[meta][0]))
+
+    def find_zygosity(self):
+        if self.zygosity:
+            pass
+        elif 'Zygosity' in self.metadata \
+                and bool(re.match(r"\Ah(omo|etero)zygous\Z", self.metadata['Zygosity'][0], flags=re.IGNORECASE)):
+            self.zygosity = self.metadata['Zygosity'][0]
+        elif 'genotype' in self.metadata \
+                and bool(re.match(r"\Ah(omo|etero)zygous\Z", self.metadata['genotype'][0], flags=re.IGNORECASE)):
+            self.zygosity = self.metadata['genotype'][0]
+        else:
+            logging.info('No zygosity information available')
+        return self.gene
