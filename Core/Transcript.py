@@ -15,7 +15,7 @@ from Bio.Alphabet import generic_rna, generic_protein
 
 from Protein import Protein, ProteinSet
 from Variant import Variant
-from Base import MetadataLogger, FrameshiftNode
+from Base import MetadataLogger, AASequence, FrameshiftNode
 
 
 class Transcript(MetadataLogger):
@@ -60,30 +60,19 @@ class Transcript(MetadataLogger):
         ret = list()
         if self.protein:
             for varcomb in generators:
-                nuseq = SeqRecord(Seq(self.protein, generic_protein))
-                nuseq.id = 'fred2|' + self.pid
-                nuseq.name = nuseq.id
-                nuseq.description = self.pid + " from " + self.id + " "
-                offset = 0
+                nuseq = AASequence(self.protein, 'fred2|' + self.pid, None, self.pid + " from " + self.id + " ")
                 for var in varcomb:
                     if var.coding[self.id] and (var.coding[self.id].type == 'SNV'
                                                 or bool(re.match(r"\Ap\.[A-X]\d+[A-X]\Z", var.coding[self.id].aa_mutation_syntax))):
-                        ori, rep = re.compile(r"\d+").split(var.coding[self.id].aa_mutation_syntax.strip("p."))
-                        pos = int(re.findall(r"\d+", var.coding[self.id].aa_mutation_syntax)[0])
-                        if nuseq[pos-1] == ori:
-                            nuseq.seq = nuseq.seq[:pos-1] + rep + nuseq.seq[pos:]
-                            nuseq.description += str(var)
-                        else:
-                            logging.warn('No position/aminoacid match, coding is off.')
+                        nuseq.add_snv(var)  # TODO exception handling & logging
                     else:
                         logging.warn('No coding for this transcript')
                 ret.append(nuseq)
         else:
+            # TODO add translation
             logging.warn('No protein sequence.')
         return ret
 
-    def to_peptides(self):
-        pass # TODO track variant positions
 
     # def translate_with_fs(self, frameshifts=None):
     #     # frameshifts is a dict in {pos: Variant} form. NOT VariantSet! We are translating
@@ -163,27 +152,6 @@ class Transcript(MetadataLogger):
     #         " Use a different field name in your custom functions.")
     #     protein.log_metadata('frameshifts', used_frameshifts)
     #     return protein
-
-    def filter(self, sample_ids, keep=False):
-        filtered_vsets = {}  # new variantsets dict
-        for vpos, vset in self.variantsets.iteritems():
-            filtered_vset = vset.filter(sample_ids, keep)
-            if filtered_vset:  # may return None if everything was filtered out
-                filtered_vsets[vpos] = filtered_vset
-        if filtered_vsets:
-            filtered_transcript = Transcript(self.id)  # already in pool, so this is enough
-            filtered_transcript.variantsets = filtered_vsets
-            return filtered_transcript
-        else:
-            return None
-
-    def variant_locations(self):
-        variant_positions = sorted(self.variantsets.keys())
-        if len(variant_positions) < 2:
-            return
-        print self.id
-        print '\t', '\t'.join([str(v[0]) for v in variant_positions])
-        print '\t', '\t'.join([str(v[1]) for v in variant_positions])
 
     def frameshifts(self):
         # stupid old debug thing, will get rid of this

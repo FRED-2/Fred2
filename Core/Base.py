@@ -1,4 +1,14 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
+__author__ = 'szolek', 'walzer'
+
+import re
 from collections import defaultdict
+
+from Bio.Seq import Seq
+from Bio.SeqIO import SeqRecord
+from Bio.Alphabet import generic_rna, generic_protein
 
 
 class MetadataLogger(object):
@@ -59,3 +69,42 @@ class FrameshiftNode(object):
 
     def __repr__(self):
         return str(self.fs)
+
+
+class AASequence(SeqRecord):
+    def __init__(self, seq, id='<unknown id>', name='<unknown name>', description='<unknown description>',
+                 dbxrefs=None, features=None, annotations=None, letter_annotations=None):
+        SeqRecord.__init__(self, seq, id, name, description, dbxrefs, features, annotations, letter_annotations)
+        self.variants = dict()  # variants
+
+    def add_snv(self, variant):
+        try:
+            ori, sub = re.compile(r"\d+").split(variant.coding[self.id].aa_mutation_syntax.strip("p."))
+            pos = int(re.findall(r"\d+", variant.coding[self.id].aa_mutation_syntax)[0])
+            if self.seq[pos-1] == ori:
+                if self.variants[pos-1]:
+                    raise AttributeError('Already a Variant at this position.')  # TODO handle better & more generic (in/del!)
+                self.seq[pos-1] = sub
+                self.description += str(variant)
+                self.variants[pos-1] = variant
+            else:
+                raise AttributeError('No position/aminoacid match, coding is off.')
+        except AttributeError as ae:
+            raise AttributeError('No coding for given variant.')
+
+    def unfold(self, length):
+        if length > len(self.seq):
+            raise IndexError('Sequence too short to unfold with that length.')
+        ret = list()
+        anchors = list()
+        for pos, var in self.variants.items():
+            if var.specific:
+                anchors.append(pos)
+        for a in anchors:
+            sled_heads = range(max(0, a-(length-1)), min(a, (len(self.seq)-length)))
+            for sled in sled_heads:
+                ret.append(self.seq[sled:sled+length])  # TODO paranoia checks
+                # TODO add resp. variants to each fold
+                # TODO merge those folds with equal seq, serve description
+
+

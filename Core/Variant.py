@@ -29,6 +29,7 @@ class Variant(MetadataLogger):
         self.type = None
         self.zygosity = None
         self.coding = dict()  # dict transcript_id:MutationSyntax
+        self.specific = False
 
         for meta in metadata:
             self.log_metadata(meta, metadata[meta])
