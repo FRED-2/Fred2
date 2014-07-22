@@ -10,6 +10,7 @@ import re
 from operator import itemgetter, attrgetter
 
 from Bio.Seq import Seq
+from Bio.SeqIO import SeqRecord
 from Bio.Alphabet import generic_rna, generic_protein
 
 from Protein import Protein, ProteinSet
@@ -45,37 +46,44 @@ class Transcript(MetadataLogger):
     def extend_variants(self, other):
         self.variants.extend(other)
 
-    def translate(self, with_fs=False):
-
+    def to_proteins(self, with_fs=False):
+        # TODO fs
+        # TODO non fs in/del
         self.variants.sort(key=attrgetter('start'))
-
         homos = [id(x) for x in self.variants if not bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
         heteros = [id(x) for x in self.variants if bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
         combis = list()
         for i in range(len(heteros)):
             combis += itertools.combinations(heteros, i+1)
         combis = [list(t)+homos for t in combis]
-        gens = [(x for x in self.variants if id(x) in c) for c in combis]
-
-        nuseq = None
+        generators = [(x for x in self.variants if id(x) in c) for c in combis]
+        ret = list()
         if self.protein:
-            nuseq = self.protein
-            offset = 0
-            for var in self.variants:
-                if var.coding[self.id] and (var.coding[self.id].type == 'SNV'
-                                            or bool(re.match(r"\Ap\.[A-X]\d+[A-X]\Z", var.coding[self.id].aa_mutation_syntax))):
-                    ori, rep = re.compile(r"\d+").split(var.coding[self.id].aa_mutation_syntax.strip("p."))
-                    pos = int(re.findall(r"\d+", var.coding[self.id].aa_mutation_syntax)[0])
-                    if nuseq[pos-1] == ori:
-                        nuseq = nuseq[:pos-1] + rep + nuseq[pos:]
+            for varcomb in generators:
+                nuseq = SeqRecord(Seq(self.protein, generic_protein))
+                nuseq.id = 'fred2|' + self.pid
+                nuseq.name = nuseq.id
+                nuseq.description = self.pid + " from " + self.id + " "
+                offset = 0
+                for var in varcomb:
+                    if var.coding[self.id] and (var.coding[self.id].type == 'SNV'
+                                                or bool(re.match(r"\Ap\.[A-X]\d+[A-X]\Z", var.coding[self.id].aa_mutation_syntax))):
+                        ori, rep = re.compile(r"\d+").split(var.coding[self.id].aa_mutation_syntax.strip("p."))
+                        pos = int(re.findall(r"\d+", var.coding[self.id].aa_mutation_syntax)[0])
+                        if nuseq[pos-1] == ori:
+                            nuseq.seq = nuseq.seq[:pos-1] + rep + nuseq.seq[pos:]
+                            nuseq.description += str(var)
+                        else:
+                            logging.warn('No position/aminoacid match, coding is off.')
                     else:
-                        logging.warn('No position/aminoacid match, coding is off.')
-                else:
-                    logging.warn('No coding for this transcript')
+                        logging.warn('No coding for this transcript')
+                ret.append(nuseq)
         else:
             logging.warn('No protein sequence.')
-        # TODO track variant positions
-        return nuseq
+        return ret
+
+    def to_peptides(self):
+        pass # TODO track variant positions
 
     # def translate_with_fs(self, frameshifts=None):
     #     # frameshifts is a dict in {pos: Variant} form. NOT VariantSet! We are translating

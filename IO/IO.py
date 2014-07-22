@@ -95,6 +95,8 @@ def parse_annotation(annotations, details=None):
     # MAP3K6	NM_004672	c.2483C>T	p.T828I	...
     # ITGAV	ENST00000261023	c.1502C>A	p.S501Y	...
     # TP53	ENST00000269305	c.847_848insT	p.R283fs*23
+
+    #maybe use HGVS 0.3.3dev-d13418a64c51 ??
     if isinstance(annotations, str):
         annotations = [x for x in annotations.split(',') if x]  # removes trailing list entry ''
         print annotations
