@@ -1,3 +1,8 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
+__author__ = 'szolek', 'walzer'
+
 import time
 import os
 import warnings
@@ -101,7 +106,7 @@ def netmhcpan_predictions(pepset, allele, netmhc_path, tempdir=Configuration.tem
 
 
 def syfpeithi_predictions(pepset, alleles = None, ignore = True):
-    syf = Predictions.Syfpeithi()
+    syf = Prediction.Syfpeithi()
     if not alleles:
         alleles = syf.get_matrices()
     else:

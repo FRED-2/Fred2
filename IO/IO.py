@@ -16,7 +16,6 @@ from operator import itemgetter, attrgetter
 import vcf
 
 from Core.Variant import Variant, MutationSyntax
-from Core.Transcript import Transcript, TranscriptSet
 from Core.Allele import Allele, AlleleSet
 from Core.Peptide import Peptide, PeptideSet
 from RefSeqDB import RefSeqDB
@@ -185,11 +184,11 @@ def import_allele_list(file):
     with open(file, "r") as f:
 
         for l in f:
-            allele,prob,thr = l.strip().split(",")
+            allele, prob, thr = l.strip().split(",")
             a = Allele(allele)
-            a.log_metadata("prob",float(prob))
-            a.log_metadata("bindingThresh",float(thr))
-            alleleSet[allele]=a
+            a.log_metadata("prob", float(prob))
+            a.log_metadata("bindingThresh", float(thr))
+            alleleSet[allele] = a
 
     return alleleSet
 
