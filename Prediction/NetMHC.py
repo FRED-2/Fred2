@@ -8,8 +8,6 @@ import os
 import warnings
 
 import Prediction
-
-from IO.IO import convert_hla_id
 from Core.Peptide import Peptide, PeptideSet
 #import Fred2.toolbox.Configuration as Configuration  -----  Discuss what to do with configuration files! 
 
@@ -103,24 +101,3 @@ def netmhcpan_predictions(pepset, allele, netmhc_path, tempdir=Configuration.tem
                     peptide.log_metadata('score', score_triplet)
                     peptide.log_metadata('affinity', affinity_triplet)
                     peptide.log_metadata('rank', rank_triplet)
-
-
-def syfpeithi_predictions(pepset, alleles = None, ignore = True):
-    syf = Prediction.Syfpeithi()
-    if not alleles:
-        alleles = syf.get_matrices()
-    else:
-        alleles = [convert_hla_id(i, syf) for i in alleles]
-    for pepseq in pepset:
-        for a in alleles:
-            try:
-                affinity = syf.predict(pepseq,a)
-                affinity_triplet = ('Syfpeithi', a, affinity)
-                score = syf.predict(pepseq,a)
-                score_triplet = ('Syfpeithi', a, syf.percent_max(score,a))
-                for pep in pepset[pepseq]:
-                    pep.log_metadata('affinity', affinity_triplet)
-                    pep.log_metadata('score', score_triplet)
-            except:
-                if not ignore:
-                    warnings.warn(''.join(pepseq, " failed with ", a))

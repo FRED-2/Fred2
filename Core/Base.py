@@ -8,7 +8,7 @@ from collections import defaultdict
 
 from Bio.Seq import Seq
 from Bio.SeqIO import SeqRecord
-from Bio.Alphabet import generic_rna, generic_protein
+from Bio.Alphabet import IUPAC
 
 
 class MetadataLogger(object):
@@ -71,11 +71,30 @@ class FrameshiftNode(object):
         return str(self.fs)
 
 
+class Score(object):
+    """
+    The class Score holds a structure for scoring a prediction. A score is composed of 3 attributes: the pure score,
+    the affinity and the associated rank.
+    """
+    def __init__(self, method, score, affinity, rank):
+        self.method = method
+        self.score = score
+        self.affinity = affinity
+        self.rank = rank
+
+
 class AASequence(SeqRecord):
     def __init__(self, seq, id='<unknown id>', name='<unknown name>', description='<unknown description>',
                  dbxrefs=None, features=None, annotations=None, letter_annotations=None):
-        SeqRecord.__init__(self, seq, id, name, description, dbxrefs, features, annotations, letter_annotations)
+        """
+        Forces seq into a Seq object, removing whitespace and other special characters
+        :type self: SeqRecord
+        """
+        aas = Seq(re.sub(r'(\s+|[^\w])', '', seq.upper()), IUPAC.protein) if not isinstance(seq, Seq) else seq
+        # TODO warning when seq has IUPAC.protein characters or Bio.Seq is used
+        SeqRecord.__init__(self, aas, id, name, description, dbxrefs, features, annotations, letter_annotations)
         self.variants = dict()  # variants
+        self.scores = list()  # actually dict(dict())
 
     def add_snv(self, variant):
         try:
@@ -106,5 +125,11 @@ class AASequence(SeqRecord):
                 ret.append(self.seq[sled:sled+length])  # TODO paranoia checks
                 # TODO add resp. variants to each fold
                 # TODO merge those folds with equal seq, serve description
+
+    # for benchmarking
+    #def randomword(length):
+    #    return ''.join(random.choice(string.uppercase) for i in range(length))
+    # ids = ['gene1','gene2','gene3']
+    # tests = [AASequence(randomword(9),i) for i in ids*5]
 
 

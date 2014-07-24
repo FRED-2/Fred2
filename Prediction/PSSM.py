@@ -6,50 +6,52 @@ __author__ = 'walzer'
 import warnings
 import glob
 import csv
+from operator import attrgetter
 
-from Core.Base import MetadataLogger
+from Core.Base import MetadataLogger, AASequence, Score
+from Core.Allele import Allele
+from Core import Utils
 
 
 class PSSM(dict):
-  """
-  Baseclass for PSSM predictions.
-  """
-  def __init__(self, name, rows):
     """
-    Initializes a PSSM prediction method object.
+    Baseclass for PSSM predictions.
     """
-    self.name = name
-    self.length = 0
-    self.max = 0
-    for row in rows:
-      self[row[0]] = map(int, row[1:])
+    def __init__(self, name, rows):
+        """
+        Initializes a PSSM prediction method object.
+        """
+        self.name = name
+        self.length = 0
+        self.max = 0
+        for row in rows:
+            self[row[0]] = map(int, row[1:])
 
-      self.length = len(row[1:])
-    #TODO: properly check lengths
-    #~ transposed = zip(*original)
-    self.max = sum(max(i) for i in map(list,zip(*self.values())))
+        self.length = len(row[1:])
+        #TODO: properly check lengths
+        #~ transposed = zip(*original)
+        self.max = sum(max(i) for i in map(list, zip(*self.values())))
 
-  def predict(self, Peptide):
-    """
-    Make prediction for a Peptide.
-    """
-    message = "Peptide does not match the Matrix" + self.name + " (Aminoacidcomposition or length " + str(self.length) + ")."
-    if len(Peptide) != self.length:
-      warnings.warn(message)
-      return None
-    try:
-      score = 0
-      for i,aa in enumerate(str(Peptide)):
-        #TODO enforce Bio.alphabet
-        score = score + self[aa.upper()][i]
-      return score
-    except KeyError:
-      warnings.warn(message)
-      return None
-    return score
+    def predict(self, peptide):
+        """
+        Make prediction for a Peptide.
+        """
+        message = "Peptide does not match the Matrix" + self.name + " (Aminoacidcomposition or length " + str(self.length) + ")."
+        if len(peptide) != self.length or not isinstance(peptide, AASequence):
+            warnings.warn(message)
+            return None
+        try:
+            score = 0
+            for i, aa in enumerate(str(peptide)):
+                #TODO enforce Bio.alphabet?
+                score = score + self[aa.upper()][i]
+            return score
+        except KeyError:
+            warnings.warn(message)
+            return None
 
-  def percent_max(self, score):
-    return (100.0/float(self.max))*float(score)
+    def percent_max(self, score):
+        return (100.0/float(self.max))*float(score)
 
 
 class Syfpeithi(MetadataLogger):
@@ -89,13 +91,35 @@ class Syfpeithi(MetadataLogger):
         else:
             message = "No such allele_name: " + allele_name + "."
             raise Exception(message)
-            return None
 
     def get_matrices(self, length=None):
         if not length:
             return self.matrices.keys()
         else:
             return [i for i in self.matrices.keys() if self.matrices[i].length == length]
+
+    def make_predictions(self, peptides, alleles=None, ignore=True):
+        """
+
+        :type alleles: list of Core.Allele
+        """
+        if not alleles:
+            alleles = self.get_matrices()
+        else:
+            assert all(isinstance(a, Allele) for a in alleles), "No list of Allele"
+            alleles = [a.to_syfpeithi() for a in alleles]
+        assert all(isinstance(a, AASequence) for a in peptides), "No list of AASequence"
+        pepset = Utils.uniquify_list(peptides, attrgetter('seq'))
+        for pepseq in pepset:
+            for a in alleles:
+                try:
+                    syf_score = self.predict(pepseq, a)
+                    score = Score('Syfpeithi', syf_score, self.percent_max(syf_score, a), None)
+                    for pep in [p for p in peptides if pepseq.seq == p.seq]:
+                        pep.scores = score
+                except:
+                    if not ignore:
+                        warnings.warn(''.join(pepseq, " failed with ", a))
 
 
 class BIMAS(MetadataLogger):
