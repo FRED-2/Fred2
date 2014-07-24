@@ -29,7 +29,8 @@ class Allele(MetadataLogger):
         self.__repr__()
 
     def to_netmhc(self, version):
-        if version == 'netmhc':
+        # allele format: A0101. For netMHCpan: HLA-A01:01
+        if version == 'netMHC-3.0':
             return self.locus + self.supertype + self.subtype
         elif version == 'netmhcpan':
             return 'HLA-%s%s:%s' % (self.locus, self.supertype, self.subtype)
