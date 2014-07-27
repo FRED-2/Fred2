@@ -35,7 +35,7 @@ class Allele(MetadataLogger):
         elif version == 'netmhcpan':
             return 'HLA-%s%s:%s' % (self.locus, self.supertype, self.subtype)
         else:
-            raise ValueError
+            raise LookupError
         # TODO
         #warnings.warn("HLA-ID not known to method " + hla_id)
         #    net = ['A0101', 'A0201', 'A0202', 'A0203', 'A0204', 'A0206', 'A0211', 'A0212', 'A0216', 'A0219', 'A0301', 'A1101',

@@ -3,72 +3,57 @@
 # as part of this package.
 __author__ = 'szolek', 'walzer'
 
-import time
-import os
-import warnings
+import re
+import logging
+import subprocess
 
-from operator import attrgetter
+from tempfile import NamedTemporaryFile
 
 from Core.Base import MetadataLogger, AASequence, Score
 from Core.Allele import Allele
-from Core import Utils
+import Core
+import IO
 
 
 class NetMHC(MetadataLogger):
-    def __init__(self, matrix_directory='Syfpeithi'):
+    def __init__(self, netmhc=None, netpan=None):
         MetadataLogger.__init__(self)
-        self.netmhc_path = None
-        self.netpan_path = None
+        self.netmhc_path = netmhc
+        self.netpan_path = netpan
+        self.header = ["pos", "peptide", "logscore", "affinity(nM)", "Bind Level", "Protein Name", "Allele"]
 
     def make_predictions(self, peptides, alleles=None, method='netMHC-3.0', ignore=True):
         if not alleles:
-            alleles = self.get_matrices()
+            return
         else:
             assert all(isinstance(a, Allele) for a in alleles), "No list of Allele"
-            alleles = [a.to_netmhc() for a in alleles]
         assert all(isinstance(a, AASequence) for a in peptides), "No list of AASequence"
-        pepset = Utils.uniquify_list(peptides, attrgetter('seq'))
+        pepset = Core.uniquify_list(peptides, Core.fred2_attrgetter('seq'))
+        tmp_file = NamedTemporaryFile(delete=True)
+        IO.write_peptide_file(pepset, tmp_file)
 
-        runid = time.time()
-        peptide_infile = os.path.join(tempdir, 'peptides_%s.txt' % runid)
-        prediction_outfile = os.path.join(tempdir, 'predictions_%s.txt' % runid)
+        for allele in alleles:
+            try:
+                a = allele.to_netmhc()
+            except ValueError:
+                logging.warn("Allele not available for netMHC")
+                continue
+            cmd = self.netmhc_path + ' -a %s -p %s > %s' % (a, tmp_file)
+            result = subprocess.check_output(cmd, shell=True)
 
-        write_peptide_file(pepset, peptide_infile)
+            netsplit = [x.lstrip().split() for x in result.split('\n')[11:-3]]
+            result = dict()
+            for i in netsplit:
+                if len(i) == len(self.header):
+                    result[i[1]] = dict(zip(self.header, i))
+                else:
+                    result[i[1]] = dict(zip(self.header[:4]+self.header[5:], i))
 
-        #MW: I would suggest a netmhc predictor object having a default path, alleles and doing the errorhandling?
-        os.system(netmhc_path + ' -a %s -p %s > %s' % (','.join(allele), peptide_infile, prediction_outfile))
+            for p in peptides:
+                if p.seq in result:
+                    p.scores.append(Score('netMHC-3.0', allele, result[p.seq]['logscore'], result[p.seq]['affinity(nM)'], None))
 
-        with open(prediction_outfile, 'r') as g:
-            i_separator = 1
-            for line in g:
-                if line.startswith('-------------------'):
-                    i_separator += 1
-                    continue
 
-                if i_separator%3 == 0:  # rows between the second and 3rd ----- separator lines
-                    sep = line.split()
-                    pepseq = None
-                    if ('WB' in sep or 'SB' in sep) and len(sep)==7 :
-                        pepseq=sep[1]
-                        score_triplet = ('NetMHC', sep[6], sep[2])
-                        affinity_triplet = ('NetMHC', sep[6], sep[3])
-                        rank_triplet = ('NetMHC', sep[6], sep[4])
-                    elif len(sep)==6:
-                        pepseq=sep[1]
-                        score_triplet = ('NetMHC', sep[5], sep[2])
-                        affinity_triplet = ('NetMHC', sep[5], sep[3])
-                        rank_triplet = ('NetMHC', sep[5], 'NB')
-                    else:
-                        if not ignore:
-                            print "netMHC interpretation failed with ", line
-                        continue
-                    #~ _, pepseq, score, affinity = line.split()[:4]
-                    #~ score_triplet = ('netMHC', allele, float(score))
-                    #~ affinity_triplet = ('netMHC', allele, float(affinity))
-
-                    for peptide in pepset[pepseq]:
-                        peptide.log_metadata('score', score_triplet)
-                        peptide.log_metadata('affinity', affinity_triplet)
 
 
     def netmhcpan_predictions(pepset, allele, netmhc_path, tempdir=Configuration.tempdir):

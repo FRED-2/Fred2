@@ -3,14 +3,14 @@
 # as part of this package.
 __author__ = 'walzer'
 
-import warnings
+import logging
 import glob
 import csv
 from operator import attrgetter
 
 from Core.Base import MetadataLogger, AASequence, Score
 from Core.Allele import Allele
-from Core import Utils
+import Core
 
 
 class PSSM(dict):
@@ -38,7 +38,7 @@ class PSSM(dict):
         """
         message = "Peptide does not match the Matrix" + self.name + " (Aminoacidcomposition or length " + str(self.length) + ")."
         if len(peptide) != self.length or not isinstance(peptide, AASequence):
-            warnings.warn(message)
+            logging.warn(message)
             return None
         try:
             score = 0
@@ -47,7 +47,7 @@ class PSSM(dict):
                 score = score + self[aa.upper()][i]
             return score
         except KeyError:
-            warnings.warn(message)
+            logging.warn(message)
             return None
 
     def percent_max(self, score):
@@ -107,19 +107,19 @@ class Syfpeithi(MetadataLogger):
             alleles = self.get_matrices()
         else:
             assert all(isinstance(a, Allele) for a in alleles), "No list of Allele"
-            alleles = [a.to_syfpeithi() for a in alleles]
         assert all(isinstance(a, AASequence) for a in peptides), "No list of AASequence"
-        pepset = Utils.uniquify_list(peptides, attrgetter('seq'))
+        pepset = Core.uniquify_list(peptides, attrgetter('seq'))
         for pepseq in pepset:
-            for a in alleles:
+            for allele in alleles:
                 try:
+                    a = allele.to_syfpeithi()
                     syf_score = self.predict(pepseq, a)
-                    score = Score('Syfpeithi', syf_score, self.percent_max(syf_score, a), None)
+                    score = Score('Syfpeithi', allele, syf_score, self.percent_max(syf_score, a), None)
                     for pep in [p for p in peptides if pepseq.seq == p.seq]:
                         pep.scores = score
                 except:
                     if not ignore:
-                        warnings.warn(''.join(pepseq, " failed with ", a))
+                        logging.warn(''.join(pepseq, " failed with ", allele))
 
 
 class BIMAS(MetadataLogger):

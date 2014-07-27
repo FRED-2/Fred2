@@ -5,6 +5,7 @@ __author__ = 'szolek', 'walzer'
 
 import re
 from collections import defaultdict
+from operator import attrgetter
 
 from Bio.Seq import Seq
 from Bio.SeqIO import SeqRecord
@@ -76,11 +77,48 @@ class Score(object):
     The class Score holds a structure for scoring a prediction. A score is composed of 3 attributes: the pure score,
     the affinity and the associated rank.
     """
-    def __init__(self, method, score, affinity, rank):
+    def __init__(self, method, allele, score, affinity, rank):
         self.method = method
+        self.allele = allele
         self.score = score
         self.affinity = affinity
         self.rank = rank
+
+
+class fred2_attrgetter:
+    def __init__(self, attr, *attrs):
+        if not attrs:
+            if not isinstance(attr, str):
+                raise TypeError('attribute name must be a string')
+            names = attr.split('.')
+            def func(obj):
+                for name in names:
+                    if name == 'seq':
+                        if isinstance(obj, AASequence):
+                            obj = getattr(obj.seq, '__str__')()
+                        else:
+                            obj = getattr(obj, '__str__')()
+                        return obj
+                    else:
+                        obj = getattr(obj, name)
+                        return obj
+            self._call = func
+        else:
+            getters = tuple(map(fred2_attrgetter, (attr,) + attrs))
+            def func(obj):
+                return tuple(getter(obj) for getter in getters)
+            self._call = func
+
+    def __call__(self, obj):
+        return self._call(obj)
+
+    # for benchmarking
+    # from fred2.Core.Base import AASequence
+    # from fred2.Core.Base import fred2_attrgetter
+    # from fred2 import Core
+    # fag = fred2_attrgetter('seq')
+    # test = [AASequence('SYFPEITHI','id1','name1','desc1'),AASequence('SYFPEITHI','id2','name2','desc2'),AASequence('SYFPEITHI','id3','name3','desc3'),AASequence('IHTIEPFYS','id1','name1','desc1')]
+    # fag(test[0]) ...
 
 
 class AASequence(SeqRecord):
@@ -95,6 +133,7 @@ class AASequence(SeqRecord):
         SeqRecord.__init__(self, aas, id, name, description, dbxrefs, features, annotations, letter_annotations)
         self.variants = dict()  # variants
         self.scores = list()  # actually dict(dict())
+        self.aaseq = self.seq.tostring()
 
     def add_snv(self, variant):
         try:
