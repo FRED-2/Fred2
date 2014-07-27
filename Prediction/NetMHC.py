@@ -20,7 +20,8 @@ class NetMHC(MetadataLogger):
         MetadataLogger.__init__(self)
         self.netmhc_path = netmhc
         self.netpan_path = netpan
-        self.header = ["pos", "peptide", "logscore", "affinity(nM)", "Bind Level", "Protein Name", "Allele"]
+        self.mhcheader = ["pos", "peptide", "logscore", "affinity(nM)", "Bind Level", "Protein Name", "Allele"]
+        self.panheader = ["pos", "Allele", "peptide", "Protein Name", "logscore", "affinity(nM)", "%Rank", "BindLevel"]
 
     def make_predictions(self, peptides, alleles=None, method='netMHC-3.0', ignore=True):
         if not alleles:
@@ -34,55 +35,29 @@ class NetMHC(MetadataLogger):
 
         for allele in alleles:
             try:
-                a = allele.to_netmhc()
+                a = allele.to_netmhc(method)
             except ValueError:
                 logging.warn("Allele not available for netMHC")
                 continue
-            cmd = self.netmhc_path + ' -a %s -p %s > %s' % (a, tmp_file)
+            if method == 'netMHC-3.0':
+                cmd = self.netmhc_path + ' -a %s %s' % (a, tmp_file)
+            else:
+                cmd = self.netpan_path + ' -a %s -p %s > %s' % (a, tmp_file)
             result = subprocess.check_output(cmd, shell=True)
 
-            netsplit = [x.lstrip().split() for x in result.split('\n')[11:-3]]
+            netsplit = [x.lstrip().split() for x in result.split('\n')[11:-3]] if method == 'netMHC-3.0' \
+                else [x.lstrip().split() for x in result.split('\n')[55:-6]]
             result = dict()
-            for i in netsplit:
-                if len(i) == len(self.header):
-                    result[i[1]] = dict(zip(self.header, i))
-                else:
-                    result[i[1]] = dict(zip(self.header[:4]+self.header[5:], i))
+            if method == 'netMHC-3.0':
+                for i in netsplit:
+                    if len(i) == len(self.mhcheader):
+                        result[i[1]] = dict(zip(self.mhcheader, i))
+                    else:
+                        result[i[1]] = dict(zip(self.mhcheader[:4]+self.mhcheader[5:], i))
+            else:
+                for i in netsplit:
+                        result[i[1]] = dict(zip(self.panheader, i))  # here no matter if i is shorter than header
 
             for p in peptides:
                 if p.seq in result:
-                    p.scores.append(Score('netMHC-3.0', allele, result[p.seq]['logscore'], result[p.seq]['affinity(nM)'], None))
-
-
-
-
-    def netmhcpan_predictions(pepset, allele, netmhc_path, tempdir=Configuration.tempdir):
-        # allele format: A0101. For netMHCpan: HLA-A01:01
-
-        allele = convert_hla_id(allele, 'netmhcpan')
-
-        runid = time.time()
-        peptide_infile = os.path.join(tempdir, 'peptides_%s.txt' % runid)
-        prediction_outfile = os.path.join(tempdir, 'predictions_%s.txt' % runid)
-
-        write_peptide_file(pepset, peptide_infile)
-
-        os.system(netmhc_path + ' -a %s -p %s > %s' % (allele, peptide_infile, prediction_outfile))
-
-        with open(prediction_outfile, 'r') as g:
-            i_separator = 0
-            for line in g:
-                if line.startswith('-------------------'):
-                    i_separator += 1
-                    continue
-
-                if i_separator == 2:  # rows between the second and 3rd ----- separator lines
-                    _, _, pepseq, _, score, affinity, rank = line.split()[:7]
-                    score_triplet = ('netMHCpan', allele, float(score))
-                    affinity_triplet = ('netMHCpan', allele, float(affinity))
-                    rank_triplet = ('netMHCpan', allele, float(rank))
-
-                    for peptide in pepset[pepseq]:
-                        peptide.log_metadata('score', score_triplet)
-                        peptide.log_metadata('affinity', affinity_triplet)
-                        peptide.log_metadata('rank', rank_triplet)
+                    p.scores.append(Score(method, allele, result[p.seq]['logscore'], result[p.seq]['affinity(nM)'], None))
