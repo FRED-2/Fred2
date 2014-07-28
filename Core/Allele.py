@@ -4,7 +4,7 @@
 __author__ = 'schubert', 'walzer'
 
 import warnings
-from Prediction import PSSM
+#from Prediction.PSSM import Syfpeithi
 from Base import MetadataLogger
 from collections import OrderedDict
 
@@ -44,7 +44,7 @@ class Allele(MetadataLogger):
         #   'B4403', 'B4501', 'B5101', 'B5301', 'B5401', 'B5701', 'B5801']
 
     def to_syfpeithi(self, syfpeithi, length):
-        if isinstance(syfpeithi, PSSM.Syfpeithi):
+        #if isinstance(syfpeithi, Syfpeithi):
             if '%s%s%s_%s' % (self.locus, self.supertype, self.subtype, length) not in syfpeithi.get_matrices():
                 if '%s%s_%s' % (self.locus, self.supertype, length) not in syfpeithi.get_matrices():
                     raise LookupError
@@ -52,8 +52,8 @@ class Allele(MetadataLogger):
                     return '%s%s_%s' % (self.locus, self.supertype, length)
             else:
                 return '%s%s%s_%s' % (self.locus, self.supertype, self.subtype, length)
-        else:
-            raise ValueError
+        #else:
+            #raise ValueError
 
 
 class AlleleSet(MetadataLogger, OrderedDict):

@@ -57,10 +57,12 @@ class Transcript(MetadataLogger):
             combis += itertools.combinations(heteros, i+1)
         combis = [list(t)+homos for t in combis]
         generators = [(x for x in self.variants if id(x) in c) for c in combis]
+        if not generators:
+            generators = [(x for x in self.variants if id(x) in homos)]
         ret = list()
         if self.protein:
             for varcomb in generators:
-                nuseq = AASequence(self.protein, 'fred2|' + self.pid, None, self.pid + " from " + self.id + " ")
+                nuseq = AASequence(self.protein, 'fred2|' + self.pid, self.pid, self.pid + " from " + self.id + " ")
                 for var in varcomb:
                     if var.coding[self.id] and (var.coding[self.id].type == 'SNV'
                                                 or bool(re.match(r"\Ap\.[A-X]\d+[A-X]\Z", var.coding[self.id].aa_mutation_syntax))):

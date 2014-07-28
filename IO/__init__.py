@@ -13,12 +13,11 @@ from operator import itemgetter, attrgetter
 import vcf
 from Bio import SeqIO
 
+import Core
 from Core.Variant import Variant, MutationSyntax
 from Core.Base import AASequence, Score
 from Core.Allele import Allele, AlleleSet
 from Core.Peptide import Peptide, PeptideSet
-import Core
-from RefSeqDB import RefSeqDB
 
 
 def write_peptide_file(pepset, fasta_file, length=None):
@@ -47,7 +46,7 @@ def check_min_req_GSvar(row):
                 and "end" in row.keys()
                 and "ref" in row.keys()
                 and "obs" in row.keys()
-                and "coding_and_splicing_details" in row.keys()
+                and ("coding_and_splicing_details" in row.keys() or "coding" in row.keys())
                 and "variant_details" in row.keys()):
         return True
     return False
@@ -79,65 +78,9 @@ def read_GSvar(filename, sample_id, just_dict=False):
 
     var_list = list()
     for v in ld_var:
-        var_list.append(Variant(v["#chr"], v["start"], v["end"], v["ref"], v["obs"], sample_id, v))
+
+        var_list.append(Variant(v["#chr"].lstrip('chr'), v["start"], v["end"], v["ref"], v["obs"], sample_id, v))
     return var_list
-
-
-def parse_annotation(annotations, details=None):
-    """
-    parses an annotation string (http://www.hgvs.org/mutnomen/quickref.html)
-        - e.g. from ANNOVAR: (string) ANK3:NM_001204403:exon10:c.939delG:p.M313fs,ANK3:NM_020987:exon9:c.957delG:p.M319fs,ANK3:NM_001204404:exon9:c.906delG:p.M302fs,
-        - e.g. cosmic: (list of dict) ITGAV	ENST00000261023	71212	c.1502C>A	p.S501Y	...
-    :param annotations: the ANNOVAR annotation string
-    :param details: the ANNOVAR variant details
-    :return:
-    """
-    mut_syn = dict()
-    #gss - old ANNOVAR stuff
-    # HAT1:NM_003642:exon11:c.A1208T:p.Q403L,
-    # NBPF10:NM_001039703:exon4:p.A179D:GCT->GAT:+,
-
-    #gsvar - ANNOVAR uses UCSC?
-    # RANBP2:NM_006267:exon14:c.A1954G:p.I652V,
-    # ANAPC1:NM_022662:exon12:c.C1393T:p.Q465X,
-    # NCBP1:NM_002486:exon9:c.913_914insG:p.G305fs,
-    # ANK3:NM_001204403:exon10:c.939delG:p.M313fs,ANK3:NM_020987:exon9:c.957delG:p.M319fs,ANK3:NM_001204404:exon9:c.906delG:p.M302fs,
-
-    #cosmic - http://www.hgvs.org/mutnomen/ (http://www.hgvs.org/mutnomen/quickref.html)
-    # Gene Name	Accession Number    CDS Mutation Syntax	AA Mutation Syntax
-    # TP53	ENST00000269305	c.?	p.E286K
-    # MAP3K6	NM_004672	c.2483C>T	p.T828I	...
-    # ITGAV	ENST00000261023	c.1502C>A	p.S501Y	...
-    # TP53	ENST00000269305	c.847_848insT	p.R283fs*23
-
-    #maybe use HGVS 0.3.3dev-d13418a64c51 ??
-    if isinstance(annotations, str):
-        annotations = [x for x in annotations.split(',') if x]  # removes trailing list entry ''
-        print annotations
-        for a in annotations:
-                    t, c, p = [None]*3
-                    for i in a.split(':'):
-                        if i.startswith(('NM_', 'ENST')):
-                                t = i
-                        elif i.startswith('c.'):
-                                c = i
-                        elif i.startswith('p.'):
-                                p = i
-                    if t and c and p:
-                        mut_syn[t] = MutationSyntax(details, c, p)
-                    else:
-                        logging.warn('Insufficient data')
-
-    elif isinstance(annotations, list) \
-            and all(isinstance(x, dict)
-                    and 'Accession Number' in x and 'CDS Mutation Syntax' in x and 'AA Mutation Syntax' in x
-                    for x in annotations):
-        for a in annotations:
-            mut_syn[a['Accession Number']] = MutationSyntax(details, a['CDS Mutation Syntax'], a['AA Mutation Syntax'])
-    else:
-        logging.warn('Unusable input')
-    print mut_syn
-    return mut_syn
 
 
 def read_vcf(filename):
@@ -259,62 +202,4 @@ def write_annovar_file(list_records, filename):
                   (rec["CHROM"], rec["POS"], end_pos, rec["REF"], obs , rec["INFO"])
         output_file.write(output_line)
     output_file.close()
-
-
-def create_transcripts(varset, combinations=None):
-    """
-    assumes the variations attributes are properly set
-    :param varset:
-    :param combinations:
-    """
-    refseq_db = RefSeqDB()
-    assert isinstance(varset, list) \
-        and all(isinstance(var, Variant) for var in varset), 'wrong input - should be list of Variant_s'
-
-    genes = set([x.find_gene(refseq_db) for x in varset])
-
-    soon_transcripts = list()
-    for g in genes:
-        soon_transcripts.append([var for var in varset if var.gene == g])
-
-    for vl in soon_transcripts:
-        #sort should be stable!
-        vl.sort(key=attrgetter('chromosome'))
-        vl.sort(key=attrgetter('start'))
-        vl.sort(key=attrgetter('stop'))
-        vl.sort(key=attrgetter('gene'))
-
-    transcripts = list()
-    for st in soon_transcripts:
-        ids = refseq_db.get_variant_ids(st[0].gene)
-        for id in ids:
-            pi, ps, ti, ts = [None]*4
-            if id['RefSeq mRNA [e.g. NM_001195597]']:
-                ti = id['RefSeq mRNA [e.g. NM_001195597]']
-                pi = id['RefSeq Protein ID [e.g. NP_001005353]']
-            else:
-                ti = id['RefSeq mRNA [e.g. NM_001195597]']
-                pi = id['RefSeq Protein ID [e.g. NP_001005353]']
-            ts = refseq_db.get_transcript_sequence(ti)
-            ps = refseq_db.get_product_sequence(pi)
-            tr = Transcript(ti, ts, pi, ps)
-            for var in st:
-                tr.add_variant(var)
-            transcripts.append(tr)
-
-    # t = """MERGKMAEAESLETAAEHERILREIESTDTACIGPTLRSVYDGEEHGRFMEKLETRIRNHDREIEKMCNFHYQGFVDSITELLKVRGEAQKLKNQVTDTNRKLQHEGKELVIAMEELKQCRLQQRNISATVDKLMLCLPVLEMYSKLRDQMKTKRHYPALKTLEHLEHTYLPQVSHYRFCKVMVDNIPKLREEIKDVSMSDLKDFLESIRKHSDKIGETAMKQAQQQRNLDNIVLQQPRIGSKRKSKKDAYIIFDTEIESTSPKSEQDSGILDVEDEEDDEEVPGAQDLVDFSPVYRCLHIYSVLGARETFENYYRKQRRKQARLVLQPPSNMHETLDGYRKYFNQIVGFFVVEDHILHTTQGLVNRAYIDELWEMALSKTIAALRTHSSYCSDPNLVLDLKNLIVLFADTLQVYGFPVNQLFDMLLEIRDQYSETLLKKWAGIFRNILDSDNYSPIPVTSEEMYKKVVGQFPFQDIELEKQPFPKKFPFSEFVPKVYNQIKEFIYACLKFSEDLHLSSTEVDDMIRKSTNLLLTRTLSNSLQNVIKRKNIGLTELVQIIINTTHLEKSCKYLEEFITNITNVLPETVHTTKLYGTTTFKDARHAAEEEIYTNLNQKIDQFLQLADYDWMTGDLGNKASDYLVDLIAFLRSTFAVFTHLPGKVAQTACMSACKHLATSLMQLLLEAEVRQLTLGALQQFNLDVRECEQFARSGPVPGFQEDTLQLAFIDLRQLLDLFIQWDWSTYLADYGQPNCKYLRVNPVTALTLLEKMKDTSRKNNMFAQFRKNERDKQKLIDTVAKQLRGLISSHHS"""
-    # i = """NM_015189"""
-    # vc = "c.A1842C"
-    # pc = "p.L614F"
-    #
-    # from IO import IO
-    # from Core import Variant, Transcript
-    # V = Variant.Variant(1,234,234,'A','C',"whatsoever",{})
-    # V.log_metadata('coding', 'EXOC6B:NM_015189:exon18:c.A1842C:p.L614F,')
-    # V.find_coding()
-    # T = Transcript.Transcript(i, 'tseq', 'pid' , t)
-    # T.add_variant(V)
-    # T.translate()
-
-
 

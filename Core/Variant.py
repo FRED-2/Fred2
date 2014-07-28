@@ -6,7 +6,63 @@ __author__ = 'szolek', 'walzer'
 import logging
 import re
 from Base import MetadataLogger
-import IO  # TODO fix imports! (see IO)
+
+
+def parse_annotation(annotations, details=None):
+    """
+    parses an annotation string (http://www.hgvs.org/mutnomen/quickref.html)
+        - e.g. from ANNOVAR: (string) ANK3:NM_001204403:exon10:c.939delG:p.M313fs,ANK3:NM_020987:exon9:c.957delG:p.M319fs,ANK3:NM_001204404:exon9:c.906delG:p.M302fs,
+        - e.g. cosmic: (list of dict) ITGAV	ENST00000261023	71212	c.1502C>A	p.S501Y	...
+    :param annotations: the ANNOVAR annotation string
+    :param details: the ANNOVAR variant details
+    :return:
+    """
+    mut_syn = dict()
+    #gss - old ANNOVAR stuff
+    # HAT1:NM_003642:exon11:c.A1208T:p.Q403L,
+    # NBPF10:NM_001039703:exon4:p.A179D:GCT->GAT:+,
+
+    #gsvar - ANNOVAR uses UCSC?
+    # RANBP2:NM_006267:exon14:c.A1954G:p.I652V,
+    # ANAPC1:NM_022662:exon12:c.C1393T:p.Q465X,
+    # NCBP1:NM_002486:exon9:c.913_914insG:p.G305fs,
+    # ANK3:NM_001204403:exon10:c.939delG:p.M313fs,ANK3:NM_020987:exon9:c.957delG:p.M319fs,ANK3:NM_001204404:exon9:c.906delG:p.M302fs,
+
+    #cosmic - http://www.hgvs.org/mutnomen/ (http://www.hgvs.org/mutnomen/quickref.html)
+    # Gene Name	Accession Number    CDS Mutation Syntax	AA Mutation Syntax
+    # TP53	ENST00000269305	c.?	p.E286K
+    # MAP3K6	NM_004672	c.2483C>T	p.T828I	...
+    # ITGAV	ENST00000261023	c.1502C>A	p.S501Y	...
+    # TP53	ENST00000269305	c.847_848insT	p.R283fs*23
+
+    #maybe use HGVS 0.3.3dev-d13418a64c51 ??
+    if isinstance(annotations, str):
+        annotations = [x for x in annotations.split(',') if x]  # removes trailing list entry ''
+        print annotations
+        for a in annotations:
+                    t, c, p = [None]*3
+                    for i in a.split(':'):
+                        if i.startswith(('NM_', 'ENST')):
+                                t = i
+                        elif i.startswith('c.'):
+                                c = i
+                        elif i.startswith('p.'):
+                                p = i
+                    if t and c and p:
+                        mut_syn[t] = MutationSyntax(details, c, p)
+                    else:
+                        logging.warn('Insufficient data')
+
+    elif isinstance(annotations, list) \
+            and all(isinstance(x, dict)
+                    and 'Accession Number' in x and 'CDS Mutation Syntax' in x and 'AA Mutation Syntax' in x
+                    for x in annotations):
+        for a in annotations:
+            mut_syn[a['Accession Number']] = MutationSyntax(details, a['CDS Mutation Syntax'], a['AA Mutation Syntax'])
+    else:
+        logging.warn('Unusable input')
+    print mut_syn
+    return mut_syn
 
 
 class MutationSyntax():
@@ -23,7 +79,7 @@ class Variant(MetadataLogger):
         self.start = loc_start
         self.stop = loc_stop
         self.reference = ref
-        self.observed = loc_stop
+        self.observed = obs
         self.sample_id = sample_id  # hg19 if not observed in sample, but kept as reference
         self.gene = None
         self.type = None
@@ -35,7 +91,7 @@ class Variant(MetadataLogger):
             self.log_metadata(meta, metadata[meta])
 
     def __repr__(self):  # TODO, just to have something for now
-        return ' '.join([self.type, self.sample_id, self.metadata['genotype'][0]])
+        return ' '.join([self.sample_id, 'c.', self.start, self.reference, '>',  self.observed])
 
     def __str__(self):  # TODO this is used e.g. in transcript.to_protein for the SeqRecord description - needs pos
         return ''.join(['c.', self.start, self.reference, '>',  self.observed])  #
@@ -83,17 +139,21 @@ class Variant(MetadataLogger):
     def find_coding(self, refseq_DB=None):
         for meta in self.metadata:
             if meta == 'coding' or meta == 'coding_and_splicing_details':
-                self.coding.update(IO.IO.parse_annotation(self.metadata[meta][0]))
+                self.coding.update(parse_annotation(self.metadata[meta][0]))
 
     def find_zygosity(self):
         if self.zygosity:
             pass
-        elif 'Zygosity' in self.metadata \
-                and bool(re.match(r"\Ah(omo|etero)zygous\Z", self.metadata['Zygosity'][0], flags=re.IGNORECASE)):
-            self.zygosity = self.metadata['Zygosity'][0]
-        elif 'genotype' in self.metadata \
-                and bool(re.match(r"\Ah(omo|etero)zygous\Z", self.metadata['genotype'][0], flags=re.IGNORECASE)):
-            self.zygosity = self.metadata['genotype'][0]
+        elif 'Zygosity' in self.metadata:
+            if bool(re.match(r"\Ah(omo|etero)zygous\Z", self.metadata['Zygosity'][0], flags=re.IGNORECASE)):
+                self.zygosity = self.metadata['Zygosity'][0]
+            else:
+                self.zygosity = 'homozygous'
+        elif 'genotype' in self.metadata:
+            if bool(re.match(r"\Ah(omo|etero)zygous\Z", self.metadata['genotype'][0], flags=re.IGNORECASE)):
+                self.zygosity = self.metadata['genotype'][0]
+            else:
+                self.zygosity = 'homozygous'
         else:
             logging.info('No zygosity information available')
         return self.gene

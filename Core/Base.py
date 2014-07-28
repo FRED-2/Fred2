@@ -142,7 +142,7 @@ class AASequence(SeqRecord):
             if self.seq[pos-1] == ori:
                 if self.variants[pos-1]:
                     raise AttributeError('Already a Variant at this position.')  # TODO handle better & more generic (in/del!)
-                self.seq[pos-1] = sub
+                self.seq[pos-1] = self.seq[:pos-1] + sub + self.seq[pos:]
                 self.description += str(variant)
                 self.variants[pos-1] = variant
             else:
