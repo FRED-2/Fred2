@@ -62,7 +62,7 @@ class Transcript(MetadataLogger):
         ret = list()
         if self.protein:
             for varcomb in generators:
-                nuseq = AASequence(self.protein, 'fred2|' + self.pid, self.pid, self.pid + " from " + self.id + " ")
+                nuseq = AASequence(self.protein, 'fred2|' + self.pid + '@' + self.id, self.pid, self.pid + " from " + self.id + " ", self.id, self.pid)
                 for var in varcomb:
                     if var.coding[self.id] and (var.coding[self.id].type == 'SNV'
                                                 or bool(re.match(r"\Ap\.[A-X]\d+[A-X]\Z", var.coding[self.id].aa_mutation_syntax))):

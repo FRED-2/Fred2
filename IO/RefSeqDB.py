@@ -49,6 +49,10 @@ class RefSeqDB():
         :param product_refseq: given refseq id
         :return: list of dictionaries of the requested sequence, the respective strand and the associated gene name
         """
+
+        if product_refseq in self.sequence_proxy:
+            return self.sequence_proxy[product_refseq]
+
         if self.connection:
             cur = self.connection.cursor()
             #query = "SELECT * FROM sbs_ncbi_mrna WHERE id='%s';"%('5')

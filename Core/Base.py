@@ -123,7 +123,7 @@ class fred2_attrgetter:
 
 class AASequence(SeqRecord):
     def __init__(self, seq, id='<unknown id>', name='<unknown name>', description='<unknown description>',
-                 dbxrefs=None, features=None, annotations=None, letter_annotations=None):
+                 tid=None, pid=None, dbxrefs=None, features=None, annotations=None, letter_annotations=None):
         """
         Forces seq into a Seq object, removing whitespace and other special characters
         :type self: SeqRecord
@@ -133,16 +133,17 @@ class AASequence(SeqRecord):
         SeqRecord.__init__(self, aas, id, name, description, dbxrefs, features, annotations, letter_annotations)
         self.variants = dict()  # variants
         self.scores = list()  # actually dict(dict())
-        self.aaseq = self.seq.tostring()
+        self.tid = tid
+        self.pid = pid
 
     def add_snv(self, variant):
         try:
-            ori, sub = re.compile(r"\d+").split(variant.coding[self.id].aa_mutation_syntax.strip("p."))
-            pos = int(re.findall(r"\d+", variant.coding[self.id].aa_mutation_syntax)[0])
+            ori, sub = re.compile(r"\d+").split(variant.coding[self.tid].aa_mutation_syntax.strip("p."))
+            pos = int(re.findall(r"\d+", variant.coding[self.tid].aa_mutation_syntax)[0])
             if self.seq[pos-1] == ori:
-                if self.variants[pos-1]:
+                if pos-1 in self.variants:
                     raise AttributeError('Already a Variant at this position.')  # TODO handle better & more generic (in/del!)
-                self.seq[pos-1] = self.seq[:pos-1] + sub + self.seq[pos:]
+                self.seq = self.seq[:pos-1] + sub + self.seq[pos:]
                 self.description += str(variant)
                 self.variants[pos-1] = variant
             else:
@@ -159,11 +160,15 @@ class AASequence(SeqRecord):
             if var.specific:
                 anchors.append(pos)
         for a in anchors:
-            sled_heads = range(max(0, a-(length-1)), min(a, (len(self.seq)-length)))
+            sled_heads = range(max(0, a-(length-1)), min(a+1, (len(self.seq)-length)))
             for sled in sled_heads:
-                ret.append(self.seq[sled:sled+length])  # TODO paranoia checks
+                pep = AASequence(self.seq[sled:sled+length], 'fred2|' + self.pid, "", "peptide around " + str(a))
+                for vp in self.variants:
+                    if vp < sled+length and vp >= sled:
+                        pep.variants[vp-sled] = self.variants[vp]
+                ret.append(pep)  # TODO paranoia checks
                 # TODO add resp. variants to each fold
-                # TODO merge those folds with equal seq, serve description
+        return ret
 
     # for benchmarking
     #def randomword(length):
