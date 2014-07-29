@@ -20,7 +20,16 @@ from Core.Allele import Allele, AlleleSet
 from Core.Peptide import Peptide, PeptideSet
 
 
-def write_peptide_file(pepset, fasta_file, length=None):
+def write_peptide_file(pepset, file, length=None):
+    assert all(isinstance(a, AASequence) for a in pepset), "No list of AASequence"
+    with open(file, 'w') as f:
+        if length:
+            f.writelines([str(x.seq) + '\n' for x in Core.lengthrestrict_list(pepset, length)])
+        else:
+            f.writelines([str(x.seq) + '\n' for x in pepset])
+
+
+def write_peptide_fasta(pepset, fasta_file, length=None):
     assert all(isinstance(a, AASequence) for a in pepset), "No list of AASequence"
     with open(fasta_file, 'w') as f:
         if length:
@@ -29,7 +38,7 @@ def write_peptide_file(pepset, fasta_file, length=None):
             SeqIO.write(pepset, f, "fasta")
 
 
-def write_protein_file(proset, fasta_file):
+def write_protein_fasta(proset, fasta_file):
     assert all(isinstance(a, AASequence) for a in proset), "No list of AASequence"
     with open(fasta_file, 'w') as f:
         SeqIO.write(proset, f, "fasta")
@@ -142,10 +151,11 @@ def import_allele_list(file):
     with open(file, "r") as f:
 
         for l in f:
-            allele, prob, thr = l.strip().split(",")
+            allele = l.strip()
+            #allele, prob, thr = l.strip().split(",")
             a = Allele(allele)
-            a.log_metadata("prob", float(prob))
-            a.log_metadata("bindingThresh", float(thr))
+            #a.log_metadata("prob", float(prob))
+            #a.log_metadata("bindingThresh", float(thr))
             alleleSet[allele] = a
 
     return alleleSet

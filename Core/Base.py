@@ -84,6 +84,9 @@ class Score(object):
         self.affinity = affinity
         self.rank = rank
 
+    def __str__(self):
+        return ','.join([self.method, str(self.allele), str(self.score), str(self.affinity), (str(self.rank) if self.rank else '-')])
+
 
 class fred2_attrgetter:
     def __init__(self, attr, *attrs):

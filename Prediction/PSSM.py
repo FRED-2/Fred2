@@ -7,8 +7,9 @@ import logging
 import glob
 import csv
 from operator import attrgetter
+from itertools import groupby
 
-from Core.Base import MetadataLogger, AASequence, Score
+from Core.Base import MetadataLogger, AASequence, Score, fred2_attrgetter
 from Core.Allele import Allele
 import Core
 
@@ -32,22 +33,25 @@ class PSSM(dict):
         #~ transposed = zip(*original)
         self.max = sum(max(i) for i in map(list, zip(*self.values())))
 
+    def __str__(self):
+        return ' '.join(self.keys())  # TODO
+
     def predict(self, peptide):
         """
         Make prediction for a Peptide.
         """
-        message = "Peptide does not match the Matrix" + self.name + " (Aminoacidcomposition or length " + str(self.length) + ")."
+        message = "Peptide " + str(peptide.seq) + " does not match the Matrix" + self.name + " (Aminoacidcomposition or length " + str(self.length) + ")."
         if len(peptide) != self.length or not isinstance(peptide, AASequence):
-            logging.warn(message)
+            logging.warning(message)
             return None
         try:
             score = 0
-            for i, aa in enumerate(str(peptide)):
+            for i, aa in enumerate(peptide):
                 #TODO enforce Bio.alphabet?
                 score = score + self[aa.upper()][i]
             return score
-        except KeyError:
-            logging.warn(message)
+        except KeyError as e:
+            logging.warn(message + ' ' + e)
             return None
 
     def percent_max(self, score):
@@ -108,18 +112,29 @@ class Syfpeithi(MetadataLogger):
         else:
             assert all(isinstance(a, Allele) for a in alleles), "No list of Allele"
         assert all(isinstance(a, AASequence) for a in peptides), "No list of AASequence"
-        pepset = Core.uniquify_list(peptides, attrgetter('seq'))
-        for pepseq in pepset:
+        pepset = Core.uniquify_list(peptides, fred2_attrgetter('seq'))
+        pepset.sort(key=len)
+        pepsets = [list(g) for k, g in groupby(pepset, key=len)]
+
+        for set in pepsets:
             for allele in alleles:
                 try:
-                    a = allele.to_syfpeithi()
-                    syf_score = self.predict(pepseq, a)
-                    score = Score('Syfpeithi', allele, syf_score, self.percent_max(syf_score, a), None)
-                    for pep in [p for p in peptides if pepseq.seq == p.seq]:
-                        pep.scores = score
-                except:
+                    a = allele.to_syfpeithi(self, len(set[0]))
+                except:  # value error?
+                    if ignore:
+                        continue
                     if not ignore:
-                        logging.warn(''.join(pepseq, " failed with ", allele))
+                        logging.warning(''.join(["There's no ", a]))
+                        continue
+                for pepseq in set:
+                    try:
+                        syf_score = self.predict(pepseq, a)
+                        score = Score('Syfpeithi', allele, syf_score, self.percent_max(syf_score, a), None)
+                        for pep in [p for p in peptides if str(pepseq.seq) == str(p.seq)]:
+                            pep.scores.append(score)
+                    except:
+                        if not ignore:
+                            logging.warning(''.join(pepseq, " failed with ", allele))
 
 
 class BIMAS(MetadataLogger):

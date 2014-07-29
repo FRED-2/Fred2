@@ -3,7 +3,7 @@
 # as part of this package.
 __author__ = 'schubert', 'walzer'
 
-import warnings
+import logging
 #from Prediction.PSSM import Syfpeithi
 from Base import MetadataLogger
 from collections import OrderedDict
@@ -23,25 +23,29 @@ class Allele(MetadataLogger):
         # TODO check semantics
 
     def __repr__(self):
-        return 'HLA-%s%s:%s' % (self.locus, self.supertype, self.subtype)
+        return 'HLA-%s*%s:%s' % (str(self.locus), str(self.supertype), str(self.subtype))
 
     def __str__(self):
-        self.__repr__()
+        return self.__repr__()
 
-    def to_netmhc(self, version):
+    def to_netmhc(self, netmhc, version):
         # allele format: A0101. For netMHCpan: HLA-A01:01
-        if version == 'netMHC-3.0':
-            return self.locus + self.supertype + self.subtype
-        elif version == 'netmhcpan':
-            return 'HLA-%s%s:%s' % (self.locus, self.supertype, self.subtype)
-        else:
-            raise LookupError
-        # TODO
-        #warnings.warn("HLA-ID not known to method " + hla_id)
-        #    net = ['A0101', 'A0201', 'A0202', 'A0203', 'A0204', 'A0206', 'A0211', 'A0212', 'A0216', 'A0219', 'A0301', 'A1101',
-        #   'A2301', 'A2402', 'A2403', 'A2601', 'A2602', 'A2902', 'A3001', 'A3002', 'A3101', 'A3301', 'A6801', 'A6802',
-        #   'A6901', 'B0702', 'B0801', 'B0802', 'B1501', 'B1801', 'B2705', 'B3501', 'B3901', 'B4001', 'B4002', 'B4402',
-        #   'B4403', 'B4501', 'B5101', 'B5301', 'B5401', 'B5701', 'B5801']
+        #if isinstance(netmhc, NetMHC):
+            if version == 'netMHC-3.0':
+                a = self.locus + self.supertype + self.subtype
+                logging.warning(a)
+                if a in netmhc.mhcalleles:
+                    return a
+                else:
+                    raise LookupError
+            elif version == 'netMHCpan-2.4':
+                a = 'HLA-%s%s:%s' % (self.locus, self.supertype, self.subtype)
+                if a in netmhc.panalleles:
+                    return a
+                else:
+                    raise LookupError
+            else:
+                raise LookupError
 
     def to_syfpeithi(self, syfpeithi, length):
         #if isinstance(syfpeithi, Syfpeithi):
@@ -56,12 +60,11 @@ class Allele(MetadataLogger):
             #raise ValueError
 
 
-class AlleleSet(MetadataLogger, OrderedDict):
+class AlleleSet(OrderedDict):
     """
     This class stores several alleles as a dictionary key by allele name!
     """
     def __init__(self, alleles=None):
-        MetadataLogger.__init__(self)
         OrderedDict.__init__(self)
         if alleles is not None:
             for allele in alleles:
