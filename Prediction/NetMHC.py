@@ -59,18 +59,18 @@ class NetMHC(MetadataLogger):
 
         pepsets = [list(g) for k, g in groupby(pepset, key=len)]
 
-        for set in pepsets:
+        for ps in pepsets:
             tmp_file = NamedTemporaryFile(delete=True)
-            IO.write_peptide_file(set, tmp_file.name)
+            IO.write_peptide_file(ps, tmp_file.name)
 
-            length = len(set[0].seq)
+            length = len(ps[0].seq)
 
             for allele in alleles:
                 try:
                     logging.warning(allele)
                     a = allele.to_netmhc(self, method)
                 except LookupError:
-                    logging.warning("Allele not available for netMHC")
+                    logging.warning("Allele not available for this method")
                     continue
                 if method == 'netMHC-3.0':
                     cmd = self.netmhc_path + ' -a %s -p %s -l %s' % (a, tmp_file.name, length)
@@ -83,17 +83,18 @@ class NetMHC(MetadataLogger):
                 netsplit = [x.lstrip().split() for x in result.split('\n')[11:-3]] if method == 'netMHC-3.0' \
                     else [x.lstrip().split() for x in result.split('\n')[57:-6]]
                 #logging.warning(netsplit[0:3])
-                result = dict()
+
+                rd = dict()
                 if method == 'netMHC-3.0':
                     for i in netsplit:
                         if len(i) == len(self.mhcheader):
-                            result[i[1]] = dict(zip(self.mhcheader, i))
+                            rd[i[1]] = dict(zip(self.mhcheader, i))
                         else:
-                            result[i[1]] = dict(zip(self.mhcheader[:4]+self.mhcheader[5:], i))
+                            rd[i[1]] = dict(zip(self.mhcheader[:4]+self.mhcheader[5:], i))
                 else:
                     for i in netsplit:
-                            result[i[1]] = dict(zip(self.panheader, i))  # here no matter if i is shorter than header
+                            rd[i[2]] = dict(zip(self.panheader, i))  # here no matter if i is shorter than header
 
                 for p in peptides:
-                    if str(p.seq) in result:
-                        p.scores.append(Score(method, allele, result[str(p.seq)]['logscore'], result[str(p.seq)]['affinity(nM)'], None))
+                    if str(p.seq) in rd:
+                        p.scores.append(Score(method, allele, rd[str(p.seq)]['logscore'], rd[str(p.seq)]['affinity(nM)'], None))
