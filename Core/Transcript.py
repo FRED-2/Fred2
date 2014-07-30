@@ -49,18 +49,19 @@ class Transcript(MetadataLogger):
     def to_proteins(self, with_fs=False):
         # TODO fs
         # TODO non fs in/del
-        self.variants.sort(key=attrgetter('start'))
-        homos = [id(x) for x in self.variants if not bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
-        heteros = [id(x) for x in self.variants if bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
-        combis = list()
-        for i in range(len(heteros)):
-            combis += itertools.combinations(heteros, i+1)
-        combis = [list(t)+homos for t in combis]
-        generators = [(x for x in self.variants if id(x) in c) for c in combis]
-        if not generators:
-            generators = [(x for x in self.variants if id(x) in homos)]
-        ret = list()
         if self.protein:
+            self.variants.sort(key=attrgetter('start'))
+            homos = [id(x) for x in self.variants if not bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
+            heteros = [id(x) for x in self.variants if bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
+            combis = list()
+            for i in range(len(heteros)):
+                combis += itertools.combinations(heteros, i+1)
+            combis = [list(t)+homos for t in combis]
+            generators = [(x for x in self.variants if id(x) in c) for c in combis]
+            if not generators:
+                generators = [(x for x in self.variants if id(x) in homos)]
+            ret = list()
+
             for varcomb in generators:
                 nuseq = AASequence(self.protein, 'fred2|' + self.pid + '@' + self.id, self.pid, self.pid + " from " + self.id + " ", self.id, self.pid)
                 for var in varcomb:
