@@ -76,7 +76,7 @@ def read_GSvar(filename, sample_id, just_dict=False):
         tsvreader = csv.DictReader((row for row in tsvfile if not row.startswith('##')), dialect='excel-tab')
         for row in tsvreader:
             if not check_min_req_GSvar(row):
-                logging.warn("read_GSvar: Omitted row! Mandatory columns not present in: \n"+str(row))
+                logging.warning("read_GSvar: Omitted row! Mandatory columns not present in: \n"+str(row))
                 #https://docs.python.org/2/library/warnings.html
             else:
                 ld_var.append(row)
@@ -87,7 +87,6 @@ def read_GSvar(filename, sample_id, just_dict=False):
 
     var_list = list()
     for v in ld_var:
-
         var_list.append(Variant(v["#chr"].lstrip('chr'), v["start"], v["end"], v["ref"], v["obs"], sample_id, v))
     return var_list
 

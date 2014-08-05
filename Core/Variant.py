@@ -36,9 +36,9 @@ def parse_annotation(annotations, details=None):
     # TP53	ENST00000269305	c.847_848insT	p.R283fs*23
 
     #maybe use HGVS 0.3.3dev-d13418a64c51 ??
+    #TODO needs indel handling
     if isinstance(annotations, str):
         annotations = [x for x in annotations.split(',') if x]  # removes trailing list entry ''
-        print annotations
         for a in annotations:
                     t, c, p = [None]*3
                     for i in a.split(':'):
@@ -51,7 +51,7 @@ def parse_annotation(annotations, details=None):
                     if t and c and p:
                         mut_syn[t] = MutationSyntax(details, c, p)
                     else:
-                        logging.warn('Insufficient data')
+                        logging.warn('Insufficient variation coding annotation data (entry is ' + str(a) + ')')
 
     elif isinstance(annotations, list) \
             and all(isinstance(x, dict)
@@ -60,8 +60,7 @@ def parse_annotation(annotations, details=None):
         for a in annotations:
             mut_syn[a['Accession Number']] = MutationSyntax(details, a['CDS Mutation Syntax'], a['AA Mutation Syntax'])
     else:
-        logging.warn('Unusable input')
-    print mut_syn
+        logging.warn('Unusable variation annotation input')
     return mut_syn
 
 
@@ -128,12 +127,14 @@ class Variant(MetadataLogger):
     def find_gene(self, refseq_DB=None):
         if self.gene:
             pass
-        elif 'gene' in self.metadata:
+        elif 'gene' in self.metadata and self.metadata['gene'][0]:
             self.gene = self.metadata['gene'][0]
         elif refseq_DB:
-            self.gene = refseq_DB.get_variant_gene(self.chromosome, self.start, self.stop)[0]
+            print self.gene
+            self.gene = refseq_DB.get_variant_gene(self.chromosome, self.start, self.stop)
+            print self.gene
         else:
-            logging.info('No gene available')
+            logging.warning('No gene available')
         return self.gene
 
     def find_coding(self, refseq_DB=None):
@@ -155,5 +156,5 @@ class Variant(MetadataLogger):
             else:
                 self.zygosity = 'homozygous'
         else:
-            logging.info('No zygosity information available')
+            logging.warning('No zygosity information available')
         return self.gene

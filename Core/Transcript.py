@@ -65,15 +65,15 @@ class Transcript(MetadataLogger):
             for varcomb in generators:
                 nuseq = AASequence(self.protein, 'fred2|' + self.pid + '@' + self.id, self.pid, self.pid + " from " + self.id + " ", self.id, self.pid)
                 for var in varcomb:
-                    if var.coding[self.id] and (var.coding[self.id].type == 'SNV'
+                    if self.id in var.coding and (var.coding[self.id].type == 'SNV'
                                                 or bool(re.match(r"\Ap\.[A-X]\d+[A-X]\Z", var.coding[self.id].aa_mutation_syntax))):
                         nuseq.add_snv(var)  # TODO exception handling & logging
                     else:
-                        logging.warn('No coding for this transcript')
+                        logging.warning('No coding registered for this transcript: ' + str(self.id))
                 ret.append(nuseq)
         else:
             # TODO add translation
-            logging.warn('No protein sequence.')
+            logging.warning('No protein sequence registered for this transcript: ' + str(self.id))
         return ret
 
 

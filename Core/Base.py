@@ -152,7 +152,7 @@ class AASequence(SeqRecord):
             else:
                 raise AttributeError('No position/aminoacid match, coding is off.')
         except AttributeError as ae:
-            raise AttributeError('No coding for given variant.')
+            raise AttributeError('Bad coding for given variant: ' + variant.coding[self.tid].aa_mutation_syntax + ' @ ' + self.tid + '/' + self.pid + '\n' + str(ae))
 
     def unfold(self, length):
         if length > len(self.seq):

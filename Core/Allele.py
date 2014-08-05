@@ -9,7 +9,8 @@ from Base import MetadataLogger
 from collections import OrderedDict
 
 
-class Allele(MetadataLogger):
+#class Allele(MetadataLogger):
+class Allele(object):
     """
     This class represents an Allele and stores additional informations as a dictionary
     """
@@ -17,7 +18,7 @@ class Allele(MetadataLogger):
         """
         :param name (string): the name of the MHC allele (new nomenclature A*01:01)
         """
-        MetadataLogger.__init__(self)
+        # MetadataLogger.__init__(self)
         self.locus, rest = name.split('*')
         self.supertype, self.subtype = rest.split(':')[:2]
         # TODO check semantics
