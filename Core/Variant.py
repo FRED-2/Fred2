@@ -81,7 +81,6 @@ class Variant(MetadataLogger):
         self.observed = obs
         self.sample_id = sample_id  # hg19 if not observed in sample, but kept as reference
         self.gene = None
-        self.type = None
         self.zygosity = None
         self.coding = dict()  # dict transcript_id:MutationSyntax
         self.specific = True  #TODO set variants from germline all to specific=False
@@ -138,9 +137,13 @@ class Variant(MetadataLogger):
         return self.gene
 
     def find_coding(self, refseq_DB=None):
+        vtype = None
+        for meta in self.metadata:
+            if meta == 'variant_details':
+                vtype = self.metadata[meta][0]
         for meta in self.metadata:
             if meta == 'coding' or meta == 'coding_and_splicing_details':
-                self.coding.update(parse_annotation(self.metadata[meta][0]))
+                self.coding.update(parse_annotation(self.metadata[meta][0], vtype))
 
     def find_zygosity(self):
         if self.zygosity:
