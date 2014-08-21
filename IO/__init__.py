@@ -146,7 +146,7 @@ def import_allele_list(file):
     :return: alleleSet: an alleleSet containing those informations
     """
 
-    alleleSet = AlleleSet()
+    alleleSet = dict()
     with open(file, "r") as f:
 
         for l in f:
