@@ -18,6 +18,7 @@ import IO
 
 class NetMHC(MetadataLogger):
     def __init__(self, netmhc=None, netpan=None):
+        #N.B. Allele max number is 80!
         MetadataLogger.__init__(self)
         self.netmhc_path = netmhc
         self.netpan_path = netpan
@@ -658,7 +659,7 @@ class NetMHC(MetadataLogger):
 
             for allele in alleles:
                 try:
-                    logging.warning(allele)
+                    # logging.warning(allele)
                     a = allele.to_netmhc(self, method)
                 except LookupError:
                     logging.warning("Allele not available for this method")
