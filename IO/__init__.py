@@ -16,7 +16,7 @@ from Bio import SeqIO
 import Core
 from Core.Variant import Variant, MutationSyntax
 from Core.Base import AASequence, Score
-from Core.Allele import Allele, AlleleSet
+from Core.Allele import Allele
 from Core.Peptide import Peptide, PeptideSet
 
 
