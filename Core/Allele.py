@@ -34,7 +34,7 @@ class Allele(object):
         #if isinstance(netmhc, NetMHC):
             if version == 'netMHC-3.0':
                 a = self.locus + self.supertype + self.subtype
-                logging.warning(a)
+                #logging.warning(a)
                 if a in netmhc.mhcalleles:
                     return a
                 else:
@@ -60,23 +60,3 @@ class Allele(object):
         #else:
             #raise ValueError
 
-
-class AlleleSet(OrderedDict):
-    """
-    This class stores several alleles as a dictionary key by allele name!
-    """
-    def __init__(self, alleles=None):
-        OrderedDict.__init__(self)
-        if alleles is not None:
-            for allele in alleles:
-                self[allele.name] = allele
-
-    def filter(self, filter_criterion):
-        """
-        function for filtering the alleleSet
-        :param filter_function (Func): A function accepting two values. First is the name of the allele, second is the allele object
-        :type filter_function: Is a anonymous function returning true or false
-        :return: a list of allele objects full filling the filter_criterion
-        :rtype: list
-        """
-        return filter(filter_criterion, self.items())

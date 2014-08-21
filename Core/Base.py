@@ -139,6 +139,7 @@ class AASequence(SeqRecord):
         self.tid = tid
         self.pid = pid
 
+    # does complicate things, should be in transcript (i.e. a generator using variants (specialized) )
     def add_snv(self, variant):
         try:
             ori, sub = re.compile(r"\d+").split(variant.coding[self.tid].aa_mutation_syntax.strip("p."))
