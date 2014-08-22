@@ -120,12 +120,11 @@ class Syfpeithi(MetadataLogger):
             for allele in alleles:
                 try:
                     a = allele.to_syfpeithi(self, len(set[0]))
-                except:  # value error?
+                except LookupError:
+                    logging.warning("Allele not available for this method (Syfpeithi): "+str(allele))
                     if ignore:
                         continue
-                    if not ignore:
-                        logging.warning(''.join(["There's no ", a]))
-                        continue
+
                 for pepseq in set:
                     try:
                         syf_score = self.predict(pepseq, a)

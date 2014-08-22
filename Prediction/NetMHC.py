@@ -662,8 +662,9 @@ class NetMHC(MetadataLogger):
                     # logging.warning(allele)
                     a = allele.to_netmhc(self, method)
                 except LookupError:
-                    logging.warning("Allele not available for this method")
-                    continue
+                    logging.warning("Allele not available for this method ("+method+"): "+str(allele))
+                    if ignore:
+                        continue
                 if method == 'netMHC-3.0':
                     cmd = self.netmhc_path + ' -a %s -p %s -l %s' % (a, tmp_file.name, length)
                 elif method == 'netMHCpan-2.4':
