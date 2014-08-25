@@ -89,10 +89,10 @@ class Variant(MetadataLogger):
             self.log_metadata(meta, metadata[meta])
 
     def __repr__(self):  # TODO, just to have something for now
-        return ' '.join([self.sample_id, 'c.', self.start, self.reference, '>',  self.observed])
+        return ''.join([self.sample_id, '@chr', self.chromosome, ':', self.start, '=', self.reference, '>',  self.observed])
 
     def __str__(self):  # TODO this is used e.g. in transcript.to_protein for the SeqRecord description - needs pos
-        return ''.join(['c.', self.start, self.reference, '>',  self.observed])  #
+        return ''.join([self.sample_id, '@chr', self.chromosome, ':', self.start, '=', self.reference, '>',  self.observed])
 
     def __len__(self):
         return len(self.observed)

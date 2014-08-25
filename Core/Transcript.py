@@ -63,8 +63,8 @@ class Transcript(MetadataLogger):
             ret = list()
 
             for varcomb in generators:
-                nuseq = AASequence(self.protein, 'fred2|' + self.pid + '@' + self.id, self.pid, self.pid + " from " + self.id + " ", self.id, self.pid)
-                for var in varcomb:
+                nuseq = AASequence(self.protein, 'fred2|' + self.pid + '@' + self.id, '', self.pid + '@' + self.id + "+ ", self.id, self.pid)
+                for var in varcomb:  # TODO there might be the link to the transcript missing - dunno if even needed
                     if self.id in var.coding and (var.coding[self.id].type == 'SNV'
                                                 or bool(re.match(r"\Ap\.[A-Z]\d+[A-Z]\Z", var.coding[self.id].aa_mutation_syntax))):
                         nuseq.add_snv(var)  # TODO exception handling & logging

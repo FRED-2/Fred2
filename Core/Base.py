@@ -148,7 +148,7 @@ class AASequence(SeqRecord):
                 if pos-1 in self.variants:
                     raise AttributeError('Already a Variant at this position.')  # TODO handle better & more generic (in/del!)
                 self.seq = self.seq[:pos-1] + sub + self.seq[pos:]
-                self.description += str(variant)
+                self.description += str(variant) + '=' + str(variant.coding[self.tid].aa_mutation_syntax)
                 self.variants[pos-1] = variant
             else:
                 raise AttributeError('No position/aminoacid match, coding is off.')
