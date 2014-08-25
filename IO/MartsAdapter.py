@@ -81,7 +81,7 @@ class MartsAdapter():
             elif product_refseq.startswith('XP_'):
                 filter = "refseq_peptide_predicted"
             elif product_refseq.startswith('ENS'):
-                filter = "peptide"
+                filter = "ensembl_peptide_id"
             else:
                 warnings.warn("No correct product id: " + product_refseq)
                 return None
@@ -225,6 +225,7 @@ class MartsAdapter():
         :keyword 'start': integer value of the variation start position on given chromosome
         :keyword 'stop': integer value of the variation stop position on given chromosome
         :keyword 'gene': string value of the gene of variation
+        :keyword 'transcript_id': string value of the gene of variation
         :return: The list of dicts of entries with transcript and protein ids (either NM+NP or XM+XP)
         """
         # TODO type assessment
@@ -242,6 +243,9 @@ class MartsAdapter():
         elif len(kwargs) == 2 and 'gene' in kwargs and 'ensemble_only' in kwargs:
             ensemble_only = kwargs['ensemble_only']
             query = self.biomart_filter%("uniprot_genename", kwargs['gene'])
+        elif len(kwargs) == 2 and 'transcript_id' in kwargs and 'ensemble_only' in kwargs:
+            ensemble_only = kwargs['ensemble_only']
+            query = self.biomart_filter%("ensembl_transcript_id", kwargs['transcript_id'])
         elif len(kwargs) == 1 and 'gene' in kwargs:
             query = self.biomart_filter%("uniprot_genename", kwargs['gene'])
         else:
@@ -258,7 +262,7 @@ class MartsAdapter():
                 + self.biomart_attribute%("refseq_peptide")
         rq_n += self.biomart_attribute%("uniprot_swissprot") + self.biomart_tail
 
-        logging.warning(rq_n)
+        # logging.warning(rq_n)
 
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         if ensemble_only:
@@ -332,7 +336,7 @@ class MartsAdapter():
             rq_n += self.biomart_tail
             # rq_n += self.biomart_attribute%("uniprot_swissprot") + self.biomart_tail
 
-            logging.warning(rq_n)
+            # logging.warning(rq_n)
 
             tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
             if ensemble_only:
