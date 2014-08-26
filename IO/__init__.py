@@ -61,6 +61,52 @@ def check_min_req_GSvar(row):
     return False
 
 
+def read_COSMICtsv(filename, sample_id, just_dict=False):
+    """
+    reads COSMIC tsv files (tab sep files), omitting and warning about rows missing
+    mandatory columns
+    :param filename: /path/to/file
+    :param sample_id:
+    :param just_dict:
+    :return: list of dictionaries representing valid variations
+    """
+    # TODO param type check
+    ld_var = list()
+    with open(filename, 'rb') as tsvfile:
+        tsvreader = csv.DictReader((row for row in tsvfile if not row.startswith('##')), dialect='excel-tab')
+        for row in tsvreader:
+            if not check_min_req_GSvar(row):
+                logging.warning("read_GSvar: Omitted row! Mandatory columns not present in: \n"+str(row))
+                #https://docs.python.org/2/library/warnings.html
+            else:
+                ld_var.append(row)
+
+    #test = sorted(ld_var,key=itemgetter('#chr','start'))
+    if just_dict:
+        return ld_var
+
+    var_list = list()
+    for v in ld_var:
+        try:
+            c,start,end = map(int,re.split(':|-', v['Mutation GRCh37 genome position']))
+            if 'del' in v['Mutation CDS']:
+                ref = '-'
+                obs = v['Mutation CDS'].split('del')[-1]
+            elif 'ins' in v['Mutation CDS']:
+                ref = v['Mutation CDS'].split('ins')[-1]
+                obs = '-'
+            elif '>' in v['Mutation CDS']:
+                ref, obs = re.split('\d+|>', v['Mutation CDS'])[-2:]
+            if c and start and end and ref and obs:
+                var_list.append(Variant(c, start, end, ref, obs, sample_id, v))
+            if v['Gene name'] and v['Gene name'] not in [' ', '-']:
+                var_list[-1].gene = v['Gene name']
+
+        except:
+            print 'tüdelü'
+
+
+
 def read_GSvar(filename, sample_id, just_dict=False):
     """
     reads GSvar and tsv files (tab sep files in context of genetic variants), omitting and warning about rows missing

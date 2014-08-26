@@ -137,6 +137,9 @@ class Variant(MetadataLogger):
         return self.gene
 
     def find_coding(self, refseq_DB=None):
+        if all(x in self.metadata for x in ['Mutation CDS', 'Mutation AA', 'Mutation Description', 'Gene name']):
+            self.coding.update({self.metadata['Gene name'][0]: MutationSyntax(self.metadata['Mutation Description'][0], self.metadata['Mutation CDS'][0], self.metadata['Mutation AA'][0])})
+            return
         vtype = None
         for meta in self.metadata:
             if meta == 'variant_details':
@@ -144,6 +147,8 @@ class Variant(MetadataLogger):
         for meta in self.metadata:
             if meta == 'coding' or meta == 'coding_and_splicing_details':
                 self.coding.update(parse_annotation(self.metadata[meta][0], vtype))
+        if meta == 'coding' or meta == 'coding_and_splicing_details':
+            self.coding.update(parse_annotation(self.metadata[meta][0], vtype))
 
     def find_zygosity(self):
         if self.zygosity:
@@ -157,6 +162,11 @@ class Variant(MetadataLogger):
             if bool(re.match(r"\Ah(omo|etero)zygous\Z", self.metadata['genotype'][0], flags=re.IGNORECASE)):
                 self.zygosity = self.metadata['genotype'][0]
             else:
+                self.zygosity = 'homozygous'
+        elif 'Mutation zygosity' in self.metadata:
+            if self.metadata['Mutation zygosity'] == 'het':
+                self.zygosity = 'heterozygous'
+            elif self.metadata['Mutation zygosity'] == 'hom':
                 self.zygosity = 'homozygous'
         else:
             logging.warning('No zygosity information available')
