@@ -1,160 +1,75 @@
-# This code is part of the Fred2 distribution and governed by its
-# license.  Please see the LICENSE file that should have been included
-# as part of this package.
-__author__ = 'szolek', 'walzer'
+"""
+.. module:: Transcript
+   :synopsis: Contains the Transcript Class.
+.. moduleauthor:: brachvogel, szolek, walzer
 
-import warnings
+"""
+__author__ = 'brachvogel', 'szolek', 'walzer'
+
+#import warnings
 import logging
 import itertools
 import re
-from operator import itemgetter, attrgetter
+#from operator import itemgetter, attrgetter
 
 from Bio.Seq import Seq
-from Bio.SeqIO import SeqRecord
+#from Bio.SeqIO import SeqRecord
 from Bio.Alphabet import generic_rna, generic_protein
 
-from Protein import Protein, ProteinSet
+from Protein import Protein
 from Variant import Variant
-from Base import MetadataLogger, AASequence, FrameshiftNode
+from Fred2.Core.Base import MetadataLogger, AASequence
+from Bio.Alphabet import IUPAC
 
+class Transcript(MetadataLogger, Seq):
+    """Transcript Class
+    """
 
-class Transcript(MetadataLogger):
-
-    def __init__(self, transcript_id, transcript_seq, protein_id=None, protein_seq=None):
+    def __init__(self, transcriptId, seq, start, stop, vars=None):
         """
 
-        :param transcript_id: (String) Transcript RefSeqID
-        :param transcript_seq: (Bio.Seq) Transcript RefSeq sequence
-        :param protein_id:
-        :param protein_seq:
+        :param transcript_id: Transcript RefSeqID
+        :type transcript_id: str.
+        :param seq: Transcript RefSeq sequence
+        :type seq: str.
+        :param start: true start position of transcript
+        :type start: int.
+        :param stop: true stop position of transcript
+        :type stop: int.
+        :param vars: Variants belonging to the 
+            transcript
+        :type vars: {int:Fred2.Core.Variant}.
         """
         MetadataLogger.__init__(self)
-        self.id = transcript_id
-        self.pid = protein_id
-        # cast our sequence into a Bio.Seq object with the correct alphabet if needed
-        self.mrna = Seq(re.sub(r'\s+', '', transcript_seq), generic_rna) if not isinstance(transcript_seq, Seq) else transcript_seq
-        self.protein = Seq(re.sub(r'\s+', '', protein_seq), generic_protein) if not isinstance(protein_seq, Seq) else protein_seq
-
-        self.variants = list()
-
-    def __len__(self):
-        return len(self.protein)
-
-    def add_variant(self, variant):
-        self.variants.append(variant)
-
-    def extend_variants(self, other):
-        self.variants.extend(other)
-
-    def to_proteins(self, with_fs=False):
-        # TODO fs
-        # TODO non fs in/del
-        if self.protein:
-            self.variants.sort(key=attrgetter('start'))
-            homos = [id(x) for x in self.variants if not bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
-            heteros = [id(x) for x in self.variants if bool(re.match(r"heterozygous", x.zygosity, flags=re.IGNORECASE))]
-            combis = list()
-            for i in range(len(heteros)):
-                combis += itertools.combinations(heteros, i+1)
-            combis = [list(t)+homos for t in combis]
-            generators = [(x for x in self.variants if id(x) in c) for c in combis]
-            if not generators:
-                generators = [(x for x in self.variants if id(x) in homos)]
-            ret = list()
-
-            for varcomb in generators:
-                nuseq = AASequence(self.protein, 'fred2|' + self.pid + '@' + self.id, '', self.pid + '@' + self.id + "+ ", self.id, self.pid)
-                for var in varcomb:  # TODO there might be the link to the transcript missing - dunno if even needed
-                    if self.id in var.coding and (var.coding[self.id].type == 'SNV'
-                                                or bool(re.match(r"\Ap\.[A-Z]\d+[A-Z]\Z", var.coding[self.id].aa_mutation_syntax))):
-                        nuseq.add_snv(var)  # TODO exception handling & logging
-                    else:
-                        logging.warning('No coding registered for this transcript: ' + str(self.id))
-                ret.append(nuseq)
+        Seq.__init__(self, seq, IUPAC.IUPACUnambiguousRNA)
+        self.transcriptId = transcriptId
+        self.start = start
+        self.stop = stop
+        if vars is not None:
+            self.vars = vars
         else:
-            # TODO add translation
-            logging.warning('No protein sequence registered for this transcript: ' + str(self.id))
-        return ret
+            self.vars = {}
 
 
-    # def translate_with_fs(self, frameshifts=None):
-    #     # frameshifts is a dict in {pos: Variant} form. NOT VariantSet! We are translating
-    #     # with a particular FS combination and NOT calculating possible combinations here.
-    #     if frameshifts is None:
-    #         frameshifts = []
-    #     else:
-    #         frameshifts = sorted(frameshifts)  # should be already sorted, but...
-    #
-    #     # the number of bases gained or lost by each frameshift. Positive: gain, negative: lost
-    #     fs_shifts = [(fpos, fpos[0] - fpos[1] + len(fsvar)) for
-    #         fpos, fsvar in frameshifts]
-    #
-    #     def reposition(orig_pos):
-    #         start, stop = orig_pos
-    #         new_start, new_stop = start, stop
-    #         for (fs_start, fs_stop), fs_shift in fs_shifts:
-    #             if fs_start <= start < fs_stop or fs_start < stop <= fs_stop:
-    #                 warnings.warn('Watch out, variant inside frameshift! We\'re not ready to handle '
-    #                     'that yet. %s, (%d-%d)' % (self.id, fs_start, fs_stop))
-    #             if start >= fs_stop:  # frameshift happened before variant, so variant shifts
-    #                 new_start += fs_shift
-    #                 new_stop += fs_shift
-    #         return new_start, new_stop
-    #
-    #     fs_positions = []
-    #     new_seq = Seq('', generic_nucleotide)
-    #     original_seq = self.sequence[self.cds[0]:]
-    #     next_start = 0
-    #     for (fs_start, fs_stop), fs_var in frameshifts:
-    #         new_seq += original_seq[next_start:fs_start]
-    #         fs_positions.append(len(new_seq)/3)  # register first AA position that current FS affects
-    #         new_seq += fs_var.sequence
-    #         next_start = fs_stop
-    #     else:
-    #         new_seq += original_seq[next_start:]
-    #
-    #     protein = Protein(new_seq.translate(), self)
-    #
-    #     # now with the new sequence created it's time to translate non-FS variants. Since the frameshifts
-    #     # moved their relative positions around, we have to use their updated locations.
-    #
-    #     new_variantsets = {}
-    #     for (start, stop), vset in {reposition(vpos): vset for vpos, vset in self.variantsets.iteritems()}.iteritems():
-    #         cstart = start - (start % 3)  # codon start
-    #         cstop = (stop + 2) / 3 * 3  # codon stop
-    #         new_vset = VariantSet(vset.genomic_pos, set([]))
-    #
-    #         # TODO: this may introduce superfluous AA-s, that is 'Q'->'QP' when a
-    #         # ''->'P' would be enough. Need to look into it. -- 99% SOLVED.
-    #         for v in vset:
-    #             if v.variant_type not in ('FSI', 'FSD'):
-    #                 aa_seq = (new_seq[cstart:start] + v.sequence + new_seq[stop:cstop]).translate()
-    #                 translated_variant = Variant(v.genomic_pos, v.variant_type, aa_seq, 'AA', v.sample_id)
-    #                 # TODO: should we carry over metadata? I think we really should!
-    #                 # for now, let's just keep a simple reference to the original variant
-    #                 translated_variant.log_metadata('origin', v)
-    #                 new_vset.add_variant(translated_variant)
-    #                 new_vset.log_metadata('origin', vset)  # TODO: maybe origin should be a first-class attribue not metadata?
-    #         if len(new_vset) > 0:  # frameshift VariantSets would create empty new_vsets, disregard them
-    #             new_variantsets[(cstart/3, cstop/3)] = new_vset
-    #
-    #     protein.variantsets = new_variantsets
-    #     protein._trim_after_stop()
-    #
-    #     # now let's see which frameshifts were actually kept. As induced stop codons may have terminated
-    #     # the translated sequence, there's a chance that later frameshifts are irrelevant.
-    #
-    #     # <= instead of < as the stop codon (Biopython '*') is trimmed away and if a FS induces that
-    #     # as its first affected AA position it DID play a role in what the sequence has become
-    #     # although '*' is not part of the protein sequence itself.
-    #     fs_positions = filter(lambda x: x<=len(protein), fs_positions)
-    #     used_frameshifts = zip(fs_positions, (fs for _, fs in frameshifts[:len(fs_positions)]))
-    #
-    #     assert protein.get_metadata('frameshifts') == [], ("Someone has tweaked with the 'frameshift'"
-    #         " field of protein metadata before. May have come from inherited transcript metadata."
-    #         " Use a different field name in your custom functions.")
-    #     protein.log_metadata('frameshifts', used_frameshifts)
-    #     return protein
+    def __getitem__(self, index):
+        """
+
+        :param index: (int) position 
+        :returns: Transcript -- A Transcript consisting of the single letter at
+            position :attr:`index`.
+        """
+        item = self[index]
+        return Transcript(self.transcriptId, item, self.start, self.stop, 
+                          self.vars)
+
+
+    def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
+                  cds=False):
+    """
+    Extension of Bio.Seq.translate
+    """
+        return self.translate()
+
 
     def frameshifts(self):
         # stupid old debug thing, will get rid of this
@@ -245,3 +160,85 @@ class Transcript(MetadataLogger):
                         print '.' if is_annot_line else ' ', curr_line
         else:
             print '\n'.join(lines)
+
+
+
+
+    # def translate_with_fs(self, frameshifts=None):
+    #     # frameshifts is a dict in {pos: Variant} form. NOT VariantSet! We are translating
+    #     # with a particular FS combination and NOT calculating possible combinations here.
+    #     if frameshifts is None:
+    #         frameshifts = []
+    #     else:
+    #         frameshifts = sorted(frameshifts)  # should be already sorted, but...
+    #
+    #     # the number of bases gained or lost by each frameshift. Positive: gain, negative: lost
+    #     fs_shifts = [(fpos, fpos[0] - fpos[1] + len(fsvar)) for
+    #         fpos, fsvar in frameshifts]
+    #
+    #     def reposition(orig_pos):
+    #         start, stop = orig_pos
+    #         new_start, new_stop = start, stop
+    #         for (fs_start, fs_stop), fs_shift in fs_shifts:
+    #             if fs_start <= start < fs_stop or fs_start < stop <= fs_stop:
+    #                 warnings.warn('Watch out, variant inside frameshift! We\'re not ready to handle '
+    #                     'that yet. %s, (%d-%d)' % (self.id, fs_start, fs_stop))
+    #             if start >= fs_stop:  # frameshift happened before variant, so variant shifts
+    #                 new_start += fs_shift
+    #                 new_stop += fs_shift
+    #         return new_start, new_stop
+    #
+    #     fs_positions = []
+    #     new_seq = Seq('', generic_nucleotide)
+    #     original_seq = self.sequence[self.cds[0]:]
+    #     next_start = 0
+    #     for (fs_start, fs_stop), fs_var in frameshifts:
+    #         new_seq += original_seq[next_start:fs_start]
+    #         fs_positions.append(len(new_seq)/3)  # register first AA position that current FS affects
+    #         new_seq += fs_var.sequence
+    #         next_start = fs_stop
+    #     else:
+    #         new_seq += original_seq[next_start:]
+    #
+    #     protein = Protein(new_seq.translate(), self)
+    #
+    #     # now with the new sequence created it's time to translate non-FS variants. Since the frameshifts
+    #     # moved their relative positions around, we have to use their updated locations.
+    #
+    #     new_variantsets = {}
+    #     for (start, stop), vset in {reposition(vpos): vset for vpos, vset in self.variantsets.iteritems()}.iteritems():
+    #         cstart = start - (start % 3)  # codon start
+    #         cstop = (stop + 2) / 3 * 3  # codon stop
+    #         new_vset = VariantSet(vset.genomic_pos, set([]))
+    #
+    #         # TODO: this may introduce superfluous AA-s, that is 'Q'->'QP' when a
+    #         # ''->'P' would be enough. Need to look into it. -- 99% SOLVED.
+    #         for v in vset:
+    #             if v.variant_type not in ('FSI', 'FSD'):
+    #                 aa_seq = (new_seq[cstart:start] + v.sequence + new_seq[stop:cstop]).translate()
+    #                 translated_variant = Variant(v.genomic_pos, v.variant_type, aa_seq, 'AA', v.sample_id)
+    #                 # TODO: should we carry over metadata? I think we really should!
+    #                 # for now, let's just keep a simple reference to the original variant
+    #                 translated_variant.log_metadata('origin', v)
+    #                 new_vset.add_variant(translated_variant)
+    #                 new_vset.log_metadata('origin', vset)  # TODO: maybe origin should be a first-class attribue not metadata?
+    #         if len(new_vset) > 0:  # frameshift VariantSets would create empty new_vsets, disregard them
+    #             new_variantsets[(cstart/3, cstop/3)] = new_vset
+    #
+    #     protein.variantsets = new_variantsets
+    #     protein._trim_after_stop()
+    #
+    #     # now let's see which frameshifts were actually kept. As induced stop codons may have terminated
+    #     # the translated sequence, there's a chance that later frameshifts are irrelevant.
+    #
+    #     # <= instead of < as the stop codon (Biopython '*') is trimmed away and if a FS induces that
+    #     # as its first affected AA position it DID play a role in what the sequence has become
+    #     # although '*' is not part of the protein sequence itself.
+    #     fs_positions = filter(lambda x: x<=len(protein), fs_positions)
+    #     used_frameshifts = zip(fs_positions, (fs for _, fs in frameshifts[:len(fs_positions)]))
+    #
+    #     assert protein.get_metadata('frameshifts') == [], ("Someone has tweaked with the 'frameshift'"
+    #         " field of protein metadata before. May have come from inherited transcript metadata."
+    #         " Use a different field name in your custom functions.")
+    #     protein.log_metadata('frameshifts', used_frameshifts)
+    #     return protein
