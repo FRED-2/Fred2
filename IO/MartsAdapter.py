@@ -1,17 +1,17 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer'
+__author__ = 'walzer', 'schubert'
 
+from IO.ADBAdapter import ADBAdapter
 import MySQLdb
 import csv
-import re
 import urllib2
 import warnings
 import logging
 
 
-class MartsAdapter():
+class MartsAdapter(ADBAdapter):
     def __init__(self, usr=None, host=None, pwd=None, db=None):
         """
         used to fetch sequences from given RefSeq id's either from BioMart if no credentials given else from a MySQLdb

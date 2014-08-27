@@ -3,12 +3,13 @@
 # as part of this package.
 __author__ = 'walzer'
 
-import logging
 
+import logging
+from IO.ADBAdapter import ADBAdapter
 from Bio import SeqIO
 
 
-class RefSeqAdapter():
+class RefSeqAdapter(ADBAdapter):
     def __init__(self, prot_file=None, prot_vers=None, mrna_file=None, mrna_vers=None):
         self.refseq_prot = self.load(prot_file)
         self.vers_prot = prot_vers
