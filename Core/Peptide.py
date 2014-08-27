@@ -1,6 +1,9 @@
-# This code is part of the Fred2 distribution and governed by its
-# license.  Please see the LICENSE file that should have been included
-# as part of this package.
+"""
+.. module:: Peptide
+   :synopsis: Contains the Peptide Class.
+.. moduleauthor:: brachvogel
+
+"""
 
 from Base import MetadataLogger
 from collections import OrderedDict
