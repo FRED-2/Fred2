@@ -14,39 +14,39 @@ import re
 
 from Bio.Seq import Seq
 #from Bio.SeqIO import SeqRecord
-from Bio.Alphabet import generic_rna, generic_protein
+#from Bio.Alphabet import generic_rna, generic_protein
 
-from Protein import Protein
-from Variant import Variant
-from Fred2.Core.Base import MetadataLogger, AASequence
+from Fred2.Core.Protein import Protein
+from Fred2.Core.Variant import Variant
+from Fred2.Core.Base import MetadataLogger
 from Bio.Alphabet import IUPAC
 
 class Transcript(MetadataLogger, Seq):
     """Transcript Class
     """
 
-    def __init__(self, transcriptId, seq, start, stop, vars=None):
+    def __init__(self, _transcript_id, _seq, _start, _stop, _vars=None):
         """
 
-        :param transcript_id: Transcript RefSeqID
-        :type transcript_id: str.
-        :param seq: Transcript RefSeq sequence
-        :type seq: str.
-        :param start: true start position of transcript
-        :type start: int.
-        :param stop: true stop position of transcript
-        :type stop: int.
-        :param vars: Variants belonging to the 
+        :param _transcript_id: Transcript RefSeqID
+        :type _transcript_id: str.
+        :param _seq: Transcript RefSeq sequence
+        :type _seq: str.
+        :param _start: true start position of transcript
+        :type _start: int.
+        :param _stop: true stop position of transcript
+        :type _stop: int.
+        :param _vars: Variants belonging to the 
             transcript
-        :type vars: {int:Fred2.Core.Variant}.
+        :type _vars: {int:Fred2.Core.Variant}.
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, seq, IUPAC.IUPACUnambiguousRNA)
-        self.transcriptId = transcriptId
-        self.start = start
-        self.stop = stop
+        Seq.__init__(self, _seq, IUPAC.IUPACUnambiguousRNA)
+        self.transcript_id = _transcript_id
+        self.start = _start
+        self.stop = _stop
         if vars is not None:
-            self.vars = vars
+            self.vars = _vars
         else:
             self.vars = {}
 
@@ -59,16 +59,19 @@ class Transcript(MetadataLogger, Seq):
             position :attr:`index`.
         """
         item = self[index]
-        return Transcript(self.transcriptId, item, self.start, self.stop, 
+        return Transcript(self.transcript_id, item, self.start, self.stop, 
                           self.vars)
 
 
     def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
                   cds=False):
-    """
-    Extension of Bio.Seq.translate
-    """
-        return self.translate()
+        """
+        Extension of Bio.Seq.translate
+        """
+        prot_seq = str(self.translate())
+        new_vars = [x for x in self.vars if x.isSynonymous]
+        gene_id = "???" # TODO: derive correct gene-id
+        return Protein(prot_seq, gene_id, self, new_vars)
 
 
     def frameshifts(self):
