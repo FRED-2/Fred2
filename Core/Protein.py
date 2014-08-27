@@ -4,8 +4,12 @@
 .. moduleauthor:: brachvogel
 
 """
+__author__ = 'brachvogel'
+
 from Bio.Seq import Seq
-from Peptide import Peptide, PeptideSet
+from Bio.Alphabet import IUPAC
+
+#from Peptide import Peptide, PeptideSet
 from Base import MetadataLogger
 from itertools import product
 import re
@@ -13,18 +17,16 @@ import re
 from Bio.Alphabet import generic_protein
 
 
-class Protein(MetadataLogger):
+class Protein(MetadataLogger, Seq):
 
-    def __init__(self, sequence, original_transcript):
+    def __init__(self, seq, _geneId, orig_transcript):
+        
         MetadataLogger.__init__(self)
+        Seq.__init__(self, seq, IUPAC.IUPACProtein)
         self.sequence = sequence if isinstance(sequence, Seq) else Seq(sequence, generic_protein)
-        # TODO: assert that sequence alphabet is protein: HasStopCodon(ExtendedIUPACProtein(), '*') or ProteinAlphabet()?
         self.origin = original_transcript
-
-        # protein variantsets contain only non-frameshift variants. Everything in here is a directly
-        # applicable residue variation, insertion or deletion. Of course we can generate frameshifted
-        # sequences (as a different Protein object) along with their non-frameshifting variantsets.
-        self.variantsets = {}  # position1: variantset1
+        self.vars = {}  # position: variantset
+        self.geneID = _geneId
 
     def __len__(self):
         return len(self.sequence)
@@ -357,26 +359,3 @@ class Protein(MetadataLogger):
                     # .items() creates a copy so it's safe to delete using its values.
                     if stopcodon < vstart:
                         del self.variantsets[(vstart, vstop)]
-
-
-class ProteinSet(MetadataLogger):
-
-    def __init__(self, proteins):
-        MetadataLogger.__init__(self)
-        self.proteins = set(proteins)
-
-    def create_peptides(self, *args, **kwargs):
-        pepsets = []
-        for p in self.proteins:
-            pepsets.append(p.create_peptides(*args, **kwargs))
-
-        result_pepset = PeptideSet()
-        for ps in pepsets:
-            result_pepset.merge(ps)
-        return result_pepset
-
-    def __len__(self):
-        return len(self.proteins)
-
-    def __iter__(self):
-        return self.proteins.__iter__()
