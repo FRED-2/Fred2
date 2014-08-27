@@ -10,26 +10,40 @@ from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
 #from Peptide import Peptide, PeptideSet
-from Base import MetadataLogger
+from Fred2.Core.Base import MetadataLogger
 from itertools import product
 import re
 
-from Bio.Alphabet import generic_protein
 
 
 class Protein(MetadataLogger, Seq):
 
-    def __init__(self, seq, _geneId, orig_transcript):
+    def __init__(self, _seq, _gene_id, _orig_transcript=None, _vars=None):
+        """
+        :param _seq: Bio.Seq object consiting of an IUPACProtein alphabet
+        :type _sep: Seq.
+        """
         
         MetadataLogger.__init__(self)
-        Seq.__init__(self, seq, IUPAC.IUPACProtein)
-        self.sequence = sequence if isinstance(sequence, Seq) else Seq(sequence, generic_protein)
-        self.origin = original_transcript
-        self.vars = {}  # position: variantset
-        self.geneID = _geneId
+        Seq.__init__(self, _seq, IUPAC.IUPACProtein)
+        if _vars is None:
+            self.vars = {}
+        else:
+            self.vars = _vars  # {position: variantset}
+        self.orig_transcript = _orig_transcript
+        self.gene_id = _gene_id
 
-    def __len__(self):
-        return len(self.sequence)
+
+    def __getitem__(self, index):
+        """
+
+        :param index: (int) position within the primary sequence
+        :returns: Protein -- A protein consisting of the single letter at
+            position :attr:`index`.
+        """
+        item = self[index]
+        return Protein(item, self.gene_id, self.orig_transcript, self.vars)
+
 
     def peptides_in_window(self, w_start, length, is_recursion=0):
 
