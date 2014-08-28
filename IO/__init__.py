@@ -13,11 +13,11 @@ from operator import itemgetter, attrgetter
 import vcf
 from Bio import SeqIO
 
-import Core
-from Core.Variant import Variant, MutationSyntax
-from Core.Base import AASequence, Score
-from Core.Allele import Allele
-from Core.Peptide import Peptide, PeptideSet
+import Fred2.Core as Core
+from Fred2.Core.Variant import Variant, MutationSyntax
+from Fred2.Core.Base import AASequence, Score
+from Fred2.Core.Allele import Allele
+from Fred2.Core.Peptide import Peptide
 
 
 def write_peptide_file(pepset, file, length=None):
@@ -103,7 +103,7 @@ def read_COSMICtsv(filename, sample_id, just_dict=False):
                 var_list[-1].gene = v['Gene name']
 
         except:
-            print 'tüdelü'
+            print 'no ASCII man !!!! damn easter-eggs'
 
 
 

@@ -117,6 +117,7 @@ class Variant(MetadataLogger):
         self.gene = None
         self.isHomozygous = isHomozygous
         self.isSynonymous = isSynonymous
+        self.offsets = {}
         self.coding = coding  # dict transcript_id:MutationSyntax
 
         if metadata is not None:
@@ -124,7 +125,7 @@ class Variant(MetadataLogger):
                 self.log_metadata(meta, metadata[meta])
 
     def __repr__(self):
-        return "Variant(%s%i%s)"%(self.ref, self.obs, self.genomePos)
+        return "Variant(%s%i%s)"%(self.ref, self.genomePos, self.obs)
 
     def get_transcript_position(self, transcriptId):
         """
@@ -134,11 +135,14 @@ class Variant(MetadataLogger):
         :return: (int) transcript position
         :raises: KeyError
         """
-
+        offsetID = ""
+        transID = transcriptId.split(":FRED2_")
+        if len(transID) > 1:
+            offsetID = transID[1]
         try:
-            return self.coding[transcriptId].transPos
+            return self.coding[transID[0]].tranPos+self.offsets.get((transID[0], offsetID), 0)
         except KeyError:
-            raise KeyError("Transcript ID %s not associated with variant %s"%(str(transcriptId), self.__str__()))
+            raise KeyError("Transcript ID %s not associated with variant %s"%(str(transID[0]), self.__str__()))
 
     def get_protein_position(self, transcriptId):
         """
