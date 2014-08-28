@@ -112,6 +112,7 @@ class Syfpeithi(MetadataLogger):
         else:
             assert all(isinstance(a, Allele) for a in alleles), "No list of Allele"
         assert all(isinstance(a, AASequence) for a in peptides), "No list of AASequence"
+        # TODO: refactor these 3 lines for new peptide format:
         pepset = Core.uniquify_list(peptides, fred2_attrgetter('seq'))
         pepset.sort(key=len)
         pepsets = [list(g) for k, g in groupby(pepset, key=len)]

@@ -647,6 +647,7 @@ class NetMHC(MetadataLogger):
         else:
             assert all(isinstance(a, Allele) for a in alleles), "No list of Allele"
         assert all(isinstance(a, AASequence) for a in peptides), "No list of AASequence"
+        # TODO: refactor these 3 lines for new peptide format:
         peptides.sort(key=len)  # SUPERIMPORTANT for the afterwards use of groupby
         pepset = Core.uniquify_list(peptides, Core.fred2_attrgetter('seq'))
         pepsets = [list(g) for k, g in groupby(pepset, key=len)]

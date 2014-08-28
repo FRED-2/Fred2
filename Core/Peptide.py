@@ -6,11 +6,12 @@
 """
 __author__ = 'brachvogel'
 
+from collections import OrderedDict
+
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
 from Fred2.Core.Base import MetadataLogger
-#from collections import OrderedDict
 
 
 class Peptide(MetadataLogger, Seq):
@@ -30,7 +31,7 @@ class Peptide(MetadataLogger, Seq):
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, IUPAC.IUPACProtein)
         self.proteins = {}
-        self.vars = {}
+        self.vars = OrderedDict()
         self.transcripts = {}
 
 
@@ -50,7 +51,13 @@ class Peptide(MetadataLogger, Seq):
 
 
     def __repr__(self):
-        return "" # TODO "%s found on %s (%s)" % (str(self.seq), self.origin.origin.id, self.origin.origin.gene)
+        lines = []
+        for vpos, vset in self.vars.iteritems():
+            lines.append('%s: '%vpos +', '.join([('%s %s' % \
+            (v.coding.protPos, v.coding.aaMutationSyntax)) for v in vset]))
+        lines.append("found in transcripts: \n" + ', '.join(\
+            [t_ids for t_ids in self.transcripts]))
+        return str(self) + '\n\t' + '\n\t'.join(lines)
 
 
 # class PeptideSet(MetadataLogger, OrderedDict):

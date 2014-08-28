@@ -11,6 +11,7 @@ __author__ = 'brachvogel', 'szolek', 'walzer'
 # import itertools
 # import re
 # from operator import itemgetter, attrgetter
+from collections import OrderedDict
 
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
@@ -35,8 +36,8 @@ class Transcript(MetadataLogger, Seq):
         :type _start: int.
         :param _stop: true stop position of transcript
         :type _stop: int.
-        :param _vars: Variants belonging to the 
-            transcript
+        :param _vars: Dict giving the variants of the transcript according to 
+                      their position. The position keys are sorted increasingly.
         :type _vars: {int:Fred2.Core.Variant}.
         """
         MetadataLogger.__init__(self)
@@ -46,7 +47,7 @@ class Transcript(MetadataLogger, Seq):
         if vars is not None:
             self.vars = _vars
         else:
-            self.vars = {}
+            self.vars = OrderedDict()
 
 
     def __getitem__(self, index):
@@ -78,8 +79,10 @@ class Transcript(MetadataLogger, Seq):
         # translate to a protein sequence
         prot_seq = str(self.translate())
 
-        # only transfer the non-synonymous variants to the protein
-        new_vars = [x for x in self.vars if x.isSynonymous]
+        # only transfer the non-synonymous variants to the protein as an
+        # ordered dict, also translate into protein positions
+        new_vars = OrderedDict((y.coding.protPos, y) for y in \
+                               self.vars.itervalues()  if y.isSynonymous)
 
         gene_id = self.gene_id
         return Protein(prot_seq, gene_id, self, new_vars)

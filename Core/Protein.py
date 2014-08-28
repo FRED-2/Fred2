@@ -7,8 +7,6 @@
 __author__ = 'brachvogel'
 
 from collections import OrderedDict
-from itertools import product
-import re
 
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
@@ -38,7 +36,7 @@ class Protein(MetadataLogger, Seq):
         Seq.__init__(self, _seq, IUPAC.IUPACProtein)
         # Init own member:
         if _vars is None:
-            self.vars = {}
+            self.vars = OrderedDict()
         else:
             self.vars = _vars  # {prot-position: variantset}
         self.orig_transcript = _orig_transcript
@@ -72,46 +70,30 @@ def generate_peptides_from_protein(proteins, window_size):
     :type window_size: int
     """
 
-    def vars_in_window(protein, start, end):
-        """
-        Find all variants that belong (according to their position) to a 
-        peptide. If the protein did not have any variants returns None
-        :param start: starting position of a specific window
-        :type start: int.
-        :param end: end position (inclusive) of a specific window
-        :type end: int.
-        """
-        if protein.vars is not None:
-            res = OrderedDict()
+    def gen_peptide_info(protein):
+        # Generate a peptide seqs and find the variants within each sequence
 
-            for var in protein.vars:
-                t_id = protein.orig_transcript.transcript_id # transcript-var-id
-                pos = var.get_protein_position(t_id)
-                if start <= pos and pos <= end:
-                    res[pos] = var
-            return res
-        else:
-            return None
-
-    def gen_peptide_info(seq):
-        """
-        Generate a single peptide
-        """
         res = []
-        for i in range(len(seq)+1-window_size):
-            pep_seq = seq[i:i+window_size]
+        for i in range(len(protein)+1-window_size):
+            end = i+window_size
+            pep_seq = str(protein)[i:end]
+
              # get the variants within that peptide:
-            pep_var = vars_in_window(seq, i, i+window_size)
+            if protein.vars is not None:
+                pep_var = OrderedDict((pos, var) for pos, var in \
+                            protein.vars.iteritems() if i <= pos <= end)
+            else:
+                pep_var = None
+
             res.append(pep_seq, pep_var)
         return res
-
 
 
     final_peptides = {} # sequence : peptide-instance
 
     for prot in proteins:
         # generate all peptide sequences per protein:
-        for (pep, _vars) in gen_peptide_info(str(prot)):
+        for (pep, _vars) in gen_peptide_info(prot):
 
             if pep in final_peptides:
                 t_id = prot.orig_transcript.transcript_id
