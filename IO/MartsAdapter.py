@@ -3,7 +3,7 @@
 # as part of this package.
 __author__ = 'walzer', 'schubert'
 
-from IO.ADBAdapter import ADBAdapter
+from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 import MySQLdb
 import csv
 import urllib2
@@ -155,6 +155,66 @@ class MartsAdapter(ADBAdapter):
             tsvselect = [x for x in tsvreader]
             self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']
             return self.sequence_proxy[transcript_refseq]
+        return None
+
+    def get_transcript_information(self, transcript_refseq):
+        """
+        It also already uses the Field-Enum for DBAdapters
+
+        Fetches transcript sequence for the given id
+        :param transcript_refseq:
+        :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
+        """
+        # TODO transcript_refseq to transcript_id, sniff which, query according
+        if transcript_refseq in self.sequence_proxy:
+            return self.sequence_proxy[transcript_refseq]
+
+        if self.connection:
+            cur = self.connection.cursor()
+            #query = "SELECT * FROM sbs_ncbi_mrna WHERE id='%s';"%('5')
+            query = "SELECT refseq,seq FROM hg19_ucsc_annotation.sbs_ncbi_mrna WHERE refseq LIKE '" + transcript_refseq + "%'"
+            try:
+                cur.execute(query)
+                result = cur.fetchall()
+                if result:
+                    transcript_refseq = result[0][0]
+                    transcript_sequence = result[0][1]
+                    if len(result) > 1:
+                        warnings.warn("Ambiguous transcript refseq query: " + transcript_refseq + "\n")
+                else:
+                    warnings.warn("An Error occured while executing query: " + query + "\n")
+                    return None
+            except MySQLdb.Error, message:
+                warnings.warn("An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
+                return None
+            self.ids_proxy[transcript_refseq] = transcript_sequence
+            return [{transcript_refseq: transcript_sequence}]
+        else:
+            filter = None
+            if transcript_refseq.startswith('NM_'):
+                filter = "refseq_mrna"
+            elif transcript_refseq.startswith('XM_'):
+                filter = "refseq_mrna_predicted"
+            elif transcript_refseq.startswith('ENS'):
+                filter = "ensembl_transcript_id"
+            else:
+                warnings.warn("No correct transcript id: " + transcript_refseq)
+                return None
+            rq_n = self.biomart_head \
+                + self.biomart_filter%(filter, str(transcript_refseq))  \
+                + self.biomart_attribute%(filter)  \
+                + self.biomart_attribute%("coding")  \
+                + self.biomart_attribute%("external_gene_id")  \
+                + self.biomart_attribute%("strand")  \
+                + self.biomart_tail
+
+            tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+            tsvselect = [x for x in tsvreader]
+            self.ids_proxy[transcript_refseq] = {EAdapterFields.SEQ: tsvselect[0]['Coding sequence'],
+                                                      EAdapterFields.GENE: tsvselect[0]['Associated Gene Name'],
+                                                      EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0
+                                                      else "+"}
+            return self.ids_proxy[transcript_refseq]
         return None
 
     def get_variant_gene(self, chrom, start, stop):

@@ -3,7 +3,7 @@
 # as part of this package.
 __author__ = 'schubert', 'walzer'
 
-from Core.Base import MetadataLogger
+from Fred2.Core.Base import MetadataLogger
 
 
 class Allele(MetadataLogger):
