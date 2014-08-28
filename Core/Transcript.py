@@ -7,9 +7,9 @@
 __author__ = 'brachvogel', 'szolek', 'walzer'
 
 #import warnings
-import logging
-import itertools
-import re
+# import logging
+# import itertools
+# import re
 #from operator import itemgetter, attrgetter
 
 from Bio.Seq import Seq
@@ -17,7 +17,7 @@ from Bio.Seq import Seq
 #from Bio.Alphabet import generic_rna, generic_protein
 
 from Fred2.Core.Protein import Protein
-from Fred2.Core.Variant import Variant
+#from Fred2.Core.Variant import Variant
 from Fred2.Core.Base import MetadataLogger
 from Bio.Alphabet import IUPAC
 
@@ -25,14 +25,15 @@ class Transcript(MetadataLogger, Seq):
     """Transcript Class
     """
 
-    def __init__(self, _transcript_id, _seq, _start, _stop, _vars=None):
+    def __init__(self, _gene_id, _transcript_id, _seq, _vars=None):
         """
 
         :param _transcript_id: Transcript RefSeqID
         :type _transcript_id: str.
         :param _seq: Transcript RefSeq sequence
         :type _seq: str.
-        :param _start: true start position of transcript
+        :param _start: true start position of transcript, positions starting at
+                       1
         :type _start: int.
         :param _stop: true stop position of transcript
         :type _stop: int.
@@ -42,9 +43,8 @@ class Transcript(MetadataLogger, Seq):
         """
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, IUPAC.IUPACUnambiguousRNA)
+        self.gene_id = _gene_id
         self.transcript_id = _transcript_id
-        self.start = _start
-        self.stop = _stop
         if vars is not None:
             self.vars = _vars
         else:
@@ -53,116 +53,121 @@ class Transcript(MetadataLogger, Seq):
 
     def __getitem__(self, index):
         """
+        Overrides Bio.Seq.__getitem__
 
         :param index: (int) position 
         :returns: Transcript -- A Transcript consisting of the single letter at
             position :attr:`index`.
         """
         item = self[index]
-        return Transcript(self.transcript_id, item, self.start, self.stop, 
-                          self.vars)
+        return Transcript(self.transcript_id, item, self.vars)
 
 
     def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
                   cds=False):
         """
-        Extension of Bio.Seq.translate
+        Override of Bio.Seq.translate()
         """
+
+        # translate to a protein sequence
         prot_seq = str(self.translate())
+
+        # only transfer the non-synonymous variants to the protein
         new_vars = [x for x in self.vars if x.isSynonymous]
-        gene_id = "???" # TODO: derive correct gene-id
+
+        gene_id = self.gene_id
         return Protein(prot_seq, gene_id, self, new_vars)
 
 
-    def frameshifts(self):
-        # stupid old debug thing, will get rid of this
-        fshifts = []
-        for vpos, vset in self.variantsets.iteritems():
-            fsvar = [v.sequence for v in vset if v.variant_type in ('FSI', 'FSD')]
-            if fsvar:
-                if len(fsvar[0]) % 3 == 1:
-                    fshifts.append('+')
-                else:
-                    fshifts.append('-')
-        return ''.join(fshifts)
+    # def frameshifts(self):
+    #     # stupid old debug thing, will get rid of this
+    #     fshifts = []
+    #     for vpos, vset in self.variantsets.iteritems():
+    #         fsvar = [v.sequence for v in vset if v.variant_type in ('FSI', 'FSD')]
+    #         if fsvar:
+    #             if len(fsvar[0]) % 3 == 1:
+    #                 fshifts.append('+')
+    #             else:
+    #                 fshifts.append('-')
+    #     return ''.join(fshifts)
 
-    def sanity_check(self):
-        def get_sanity_vector():
-            match, complement, mismatch = 0, 0, 0
-            for vpos, vset in self.variantsets.iteritems():
-                vstart, vstop = vpos
-                cds_start, cds_stop = self.cds
-                in_seq = self.sequence[cds_start+vstart:cds_start+vstop]
-                in_ref = [vv.sequence for vv in vset if vv.variant_type == "REF"][0]
+    # def sanity_check(self):
+    #     def get_sanity_vector():
+    #         match, complement, mismatch = 0, 0, 0
+    #         for vpos, vset in self.variantsets.iteritems():
+    #             vstart, vstop = vpos
+    #             cds_start, cds_stop = self.cds
+    #             in_seq = self.sequence[cds_start+vstart:cds_start+vstop]
+    #             in_ref = [vv.sequence for vv in vset if vv.variant_type == "REF"][0]
 
-                # gotta do the str() to extract sequence because Seq() doesn't suport
-                # equality check yet.
-                if str(in_seq) == str(in_ref):
-                    match += 1
-                elif str(in_seq) == str(in_ref.reverse_complement()):
-                    complement += 1
-                else:
-                    mismatch += 1
-            # in an ideal world this would always be x, 0, 0.
-            return match, complement, mismatch
+    #             # gotta do the str() to extract sequence because Seq() doesn't suport
+    #             # equality check yet.
+    #             if str(in_seq) == str(in_ref):
+    #                 match += 1
+    #             elif str(in_seq) == str(in_ref.reverse_complement()):
+    #                 complement += 1
+    #             else:
+    #                 mismatch += 1
+    #         # in an ideal world this would always be x, 0, 0.
+    #         return match, complement, mismatch
 
-        match, complement, mismatch = get_sanity_vector()
+    #     match, complement, mismatch = get_sanity_vector()
 
-        # this triplet should now be x, 0, 0 if everything was fine.
-        # Reality is we still have mismatching parts though in a few percents of variants.
-        # In one specific case we figured out that it was simply due to the fact that the DNA
-        # reference had T and the RNA reference had G on that position, and Annovar annotated it
-        # with the DNA reference and thus didn't match because we use RNA reference.
-        # Since then we moved to a Transcript database that Annovar uses but sequences are still
-        # not in 1-1 relation with transcript metadata information (Annovar's fault).
-        return match, complement, mismatch
+    #     # this triplet should now be x, 0, 0 if everything was fine.
+    #     # Reality is we still have mismatching parts though in a few percents of variants.
+    #     # In one specific case we figured out that it was simply due to the fact that the DNA
+    #     # reference had T and the RNA reference had G on that position, and Annovar annotated it
+    #     # with the DNA reference and thus didn't match because we use RNA reference.
+    #     # Since then we moved to a Transcript database that Annovar uses but sequences are still
+    #     # not in 1-1 relation with transcript metadata information (Annovar's fault).
+    #     return match, complement, mismatch
 
-    def print_vars(self, wrap=80):
+    # def print_vars(self, wrap=80):
 
-        wrap = wrap / 3 * 3  # round down to a multiple of 3 so codons don't wrap over lines
-        raw_seq = str(self.sequence)
-        raw_seq_codonize = raw_seq[:self.cds[0]].lower()
-        c = self.cds[0]
-        raw_seq_codonize += ''.join((raw_seq[c+i:c+i+3].upper() if i%6 == 0 else
-            raw_seq[c+i:c+i+3].lower() for i in range(0, len(raw_seq)-c, 3)))
-        raw_seq = raw_seq_codonize
+    #     wrap = wrap / 3 * 3  # round down to a multiple of 3 so codons don't wrap over lines
+    #     raw_seq = str(self.sequence)
+    #     raw_seq_codonize = raw_seq[:self.cds[0]].lower()
+    #     c = self.cds[0]
+    #     raw_seq_codonize += ''.join((raw_seq[c+i:c+i+3].upper() if i%6 == 0 else
+    #         raw_seq[c+i:c+i+3].lower() for i in range(0, len(raw_seq)-c, 3)))
+    #     raw_seq = raw_seq_codonize
 
-        lines = [' ' * len(raw_seq)]
+    #     lines = [' ' * len(raw_seq)]
 
-        def insert_at(position, annotation):
-            span = len(annotation)
-            for i, ll in enumerate(lines):
-                if ll[position:position+span].strip(' ') == '':
-                    # we have room to insert our annotation (all spaces)
-                    lines[i] = ll[:position] + annotation + ll[position+span:]
-                    break
-            else:  # none of the annotation lines were blank at the required position
-                lines.append(' ' * len(raw_seq))  # ...so add new blank line
-                insert_at(position, annotation)  # ...and add our annotation
+    #     def insert_at(position, annotation):
+    #         span = len(annotation)
+    #         for i, ll in enumerate(lines):
+    #             if ll[position:position+span].strip(' ') == '':
+    #                 # we have room to insert our annotation (all spaces)
+    #                 lines[i] = ll[:position] + annotation + ll[position+span:]
+    #                 break
+    #         else:  # none of the annotation lines were blank at the required position
+    #             lines.append(' ' * len(raw_seq))  # ...so add new blank line
+    #             insert_at(position, annotation)  # ...and add our annotation
 
-        insert_at(self.cds[0], '\CDS start')
-        insert_at(self.cds[1]-8, 'CDS end/')
+    #     insert_at(self.cds[0], '\CDS start')
+    #     insert_at(self.cds[1]-8, 'CDS end/')
 
-        for (vstart, vend), vset in self.variantsets.iteritems():
-            for vv in vset:
-                if vv.variant_type in ('INS', 'FSI'):
-                    insert_at(self.cds[0] + vstart, '\%s' % str(vv.sequence))
-                elif vv.variant_type in ('DEL', 'FSD'):
-                    insert_at(self.cds[0] + vstart, 'x' * (vend - vstart + 1)) # TODO
-                elif vv.variant_type in ('SNV', 'SNP'):
-                    insert_at(self.cds[0] + vstart, str(vv.sequence))
+    #     for (vstart, vend), vset in self.variantsets.iteritems():
+    #         for vv in vset:
+    #             if vv.variant_type in ('INS', 'FSI'):
+    #                 insert_at(self.cds[0] + vstart, '\%s' % str(vv.sequence))
+    #             elif vv.variant_type in ('DEL', 'FSD'):
+    #                 insert_at(self.cds[0] + vstart, 'x' * (vend - vstart + 1)) # TODO
+    #             elif vv.variant_type in ('SNV', 'SNP'):
+    #                 insert_at(self.cds[0] + vstart, str(vv.sequence))
 
-        lines = [raw_seq] + lines
-        # pad first line with spaces so that we can wrap at codon boundary
-        lines = ['   '[:-(self.cds[0] % 3)] + ll for ll in lines]
-        if wrap:
-            for i in range(0, len(raw_seq), wrap):
-                for is_annot_line, ll in enumerate(lines):
-                    curr_line = ll[i:i+wrap]
-                    if curr_line.strip(' ') != '':
-                        print '.' if is_annot_line else ' ', curr_line
-        else:
-            print '\n'.join(lines)
+    #     lines = [raw_seq] + lines
+    #     # pad first line with spaces so that we can wrap at codon boundary
+    #     lines = ['   '[:-(self.cds[0] % 3)] + ll for ll in lines]
+    #     if wrap:
+    #         for i in range(0, len(raw_seq), wrap):
+    #             for is_annot_line, ll in enumerate(lines):
+    #                 curr_line = ll[i:i+wrap]
+    #                 if curr_line.strip(' ') != '':
+    #                     print '.' if is_annot_line else ' ', curr_line
+    #     else:
+    #         print '\n'.join(lines)
 
 
 
