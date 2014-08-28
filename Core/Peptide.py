@@ -32,33 +32,6 @@ class Peptide(MetadataLogger, Seq):
         self.proteins = {}
         self.vars = {}
         self.transcripts = {}
-        # if _proteins is None:
-        #     self.proteins = {}
-        # else:
-        #     self.proteins = _proteins
-
-        # if _vars is None:
-        #     self.vars = {}
-        # else:
-        #     self.vars = _vars
-
-        # if _transcripts is None:
-        #     self.transcripts = {}
-        # else:
-        #     self.transcripts = _transcripts
-
-
-    def add_origin(self, _origin):
-        """
-        
-        :param _origin: Pointer to the protein the peptide could originate from
-        :type _origin: Fred2.Core.Protein.Protein.
-        """
-
-        self.origins.append(_origin)
-        self.vars = dict(self.vars.items() + _origin.vars.items())
-        self.transcripts[_origin.orig_transcript.transcript_id] = \
-                                                    _origin.orig_transcript
 
 
     def __getitem__(self, index):
@@ -69,7 +42,11 @@ class Peptide(MetadataLogger, Seq):
             position :attr:`index`.
         """
         item = self[index]
-        return Peptide(item, self.origins)
+        new_pept = Peptide(item)
+        new_pept.proteins = self.proteins
+        new_pept.vars = self.vars
+        new_pept.transcripts = self.transcripts
+        return new_pept
 
 
     def __repr__(self):

@@ -6,20 +6,18 @@
 """
 __author__ = 'brachvogel', 'szolek', 'walzer'
 
-#import warnings
+# import warnings
 # import logging
 # import itertools
 # import re
-#from operator import itemgetter, attrgetter
+# from operator import itemgetter, attrgetter
 
 from Bio.Seq import Seq
-#from Bio.SeqIO import SeqRecord
-#from Bio.Alphabet import generic_rna, generic_protein
+from Bio.Alphabet import IUPAC
 
 from Fred2.Core.Protein import Protein
-#from Fred2.Core.Variant import Variant
 from Fred2.Core.Base import MetadataLogger
-from Bio.Alphabet import IUPAC
+
 
 class Transcript(MetadataLogger, Seq):
     """Transcript Class
@@ -61,6 +59,14 @@ class Transcript(MetadataLogger, Seq):
         """
         item = self[index]
         return Transcript(self.transcript_id, item, self.vars)
+
+
+    def __repr__(self):
+        lines = [str(self)]
+        for vpos, vset in self.vars.iteritems():
+            lines.append('%s: '%vpos +', '.join([('%s %s' % \
+            (v.coding.protPos, v.coding.aaMutationSyntax)) for v in vset]))
+        return self.transcript_id + '\n\t' + '\n\t'.join(lines)
 
 
     def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
