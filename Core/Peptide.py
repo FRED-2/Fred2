@@ -47,6 +47,7 @@ class Peptide(MetadataLogger, Seq):
 
     def add_origin(self, _origin):
         """
+        
         :param _origin: Pointer to the protein the peptide could originate from
         :type _origin: Fred2.Core.Protein.Protein.
         """

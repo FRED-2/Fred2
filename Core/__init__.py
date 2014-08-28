@@ -3,6 +3,9 @@
 # as part of this package.
 __author__ = 'walzer'
 
+__all__ = ["Allele", "Base", "Generator", "Peptide", "Protein", "Transcript", 
+           "Variant"]
+
 from operator import attrgetter
 from Base import fred2_attrgetter
 

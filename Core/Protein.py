@@ -6,13 +6,16 @@
 """
 __author__ = 'brachvogel'
 
+from collections import OrderedDict
+from itertools import product
+import re
+
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
-#from Peptide import Peptide, PeptideSet
+from Peptide import Peptide
 from Fred2.Core.Base import MetadataLogger
-from itertools import product
-import re
+
 
 
 
@@ -43,6 +46,34 @@ class Protein(MetadataLogger, Seq):
         """
         item = self[index]
         return Protein(item, self.gene_id, self.orig_transcript, self.vars)
+
+    def __repr__(self):
+        #return str(self.sequence)
+        lines = []
+        for vpos, vset in self.variantsets.iteritems():
+            lines.append('%s-%s: '%vpos +', '.join([('%s %s %s' % (v.variant_type, v.sample_id, v.sequence)) for v in vset]))
+        return self.origin.id + '\n\t' + '\n\t'.join(lines)
+
+
+def generate_peptides_from_protein(protein, window_size):
+    """
+    Creates all peptides for a given window size, from a given protein. The
+    result is a generator.
+    """
+    def vars_in_window(start, end):
+        res = OrderedDict()
+        for pos in protein.vars:
+            if w_start <= start < w_end or w_start < end < w_end:
+                res.append(((start, end), mut))
+        return res
+
+    seq = str(self)
+    
+    for i in range(len(protein)+1-window_size):
+        new_vars = vars_in_window(i, i+window_size)
+        (seq[i:i+window_size] for i in range(len(protein)+1-window_size))
+
+    
 
 
     def peptides_in_window(self, w_start, length, is_recursion=0):
@@ -289,12 +320,6 @@ class Protein(MetadataLogger, Seq):
 
         return PeptideSet(result_peptides)
 
-    def __repr__(self):
-        #return str(self.sequence)
-        lines = []
-        for vpos, vset in self.variantsets.iteritems():
-            lines.append('%s-%s: '%vpos +', '.join([('%s %s %s' % (v.variant_type, v.sample_id, v.sequence)) for v in vset]))
-        return self.origin.id + '\n\t' + '\n\t'.join(lines)
 
     def list_variants(self):
         variants = []
