@@ -13,7 +13,7 @@ import re
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
-from Peptide import Peptide
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Base import MetadataLogger
 
 
@@ -55,25 +55,65 @@ class Protein(MetadataLogger, Seq):
         return self.origin.id + '\n\t' + '\n\t'.join(lines)
 
 
-def generate_peptides_from_protein(protein, window_size):
+def generate_peptides_from_protein(proteins, window_size):
     """
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
+    :param protein:
+    :type protein: Fred2.Core.Protein.Protein.
     """
-    def vars_in_window(start, end):
-        res = OrderedDict()
-        for pos in protein.vars:
-            if w_start <= start < w_end or w_start < end < w_end:
-                res.append(((start, end), mut))
+
+    def vars_in_window(protein, start, end):
+        """
+        Find all variants that belong (according to their position) to a 
+        peptide. If the protein did not have any variants returns None
+        :param start: starting position of a specific window
+        :type start: int.
+        :param end: end position (inclusive) of a specific window
+        :type end: int.
+        """
+        if protein.vars is not None:
+            res = OrderedDict()
+
+            for var in protein.vars:
+                t_id = protein.orig_transcript.transcript_id # transcript-var-id
+                pos = var.get_protein_position(t_id)
+                if start <= pos and pos <= end:
+                    res[pos] = var
+            return res
+        else:
+            return None
+
+    def gen_peptide_info(seq):
+        """
+        Generate a single peptide
+        """
+        res = []
+        for i in range(len(seq)+1-window_size):
+            pep_seq = seq[i:i+window_size]
+             # get the variants within that peptide:
+            pep_var = vars_in_window(seq, i, i+window_size)
+            res.append(pep_seq, pep_var)
         return res
 
-    seq = str(self)
-    
-    for i in range(len(protein)+1-window_size):
-        new_vars = vars_in_window(i, i+window_size)
-        (seq[i:i+window_size] for i in range(len(protein)+1-window_size))
 
-    
+
+    final_peptides = {} # sequence : peptide-instance
+
+    for prot in proteins:
+        # generate all peptide sequences per protein:
+        for (pep, _vars) in gen_peptide_info(str(prot)):
+
+            if pep in final_peptides:
+                t_id = prot.orig_transcript.transcript_id
+                final_peptides[pep].proteins[t_id] = prot
+                final_peptides[pep].vars[t_id] = _vars
+                final_peptides[pep].transcripts[t_id] = prot.orig_transcript
+            else:
+                final_peptides[pep] = Peptide(pep)
+    return final_peptides.values()
+
+
 
 
     def peptides_in_window(self, w_start, length, is_recursion=0):

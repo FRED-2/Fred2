@@ -7,9 +7,9 @@
 __author__ = 'brachvogel', 'szolek', 'walzer'
 
 #import warnings
-import logging
-import itertools
-import re
+# import logging
+# import itertools
+# import re
 #from operator import itemgetter, attrgetter
 
 from Bio.Seq import Seq
@@ -25,8 +25,7 @@ class Transcript(MetadataLogger, Seq):
     """Transcript Class
     """
 
-    def __init__(self, _gene_id, _transcript_id, _seq, _start, _stop, 
-                 _vars=None):
+    def __init__(self, _gene_id, _transcript_id, _seq, _vars=None):
         """
 
         :param _transcript_id: Transcript RefSeqID
@@ -46,8 +45,6 @@ class Transcript(MetadataLogger, Seq):
         Seq.__init__(self, _seq, IUPAC.IUPACUnambiguousRNA)
         self.gene_id = _gene_id
         self.transcript_id = _transcript_id
-        self.start = _start
-        self.stop = _stop
         if vars is not None:
             self.vars = _vars
         else:
@@ -63,8 +60,7 @@ class Transcript(MetadataLogger, Seq):
             position :attr:`index`.
         """
         item = self[index]
-        return Transcript(self.transcript_id, item, self.start, self.stop, 
-                          self.vars)
+        return Transcript(self.transcript_id, item, self.vars)
 
 
     def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
@@ -72,11 +68,9 @@ class Transcript(MetadataLogger, Seq):
         """
         Override of Bio.Seq.translate()
         """
-        # get coding segment of transcript:
-        pruned_seq = Seq(str(self)[self.start-1:self.stop])
 
         # translate to a protein sequence
-        prot_seq = str(pruned_seq.translate())
+        prot_seq = str(self.translate())
 
         # only transfer the non-synonymous variants to the protein
         new_vars = [x for x in self.vars if x.isSynonymous]

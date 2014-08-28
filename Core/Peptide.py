@@ -15,12 +15,12 @@ from Fred2.Core.Base import MetadataLogger
 
 class Peptide(MetadataLogger, Seq):
 
-    def __init__(self, _seq, _origins=None, _vars=None, _transcripts=None):
+    def __init__(self, _seq): #, _proteins=None, _vars=None, _transcripts=None):
         """
         :param _seq: String sequence in one letter amino acid code
         :type _seq: str.
-        :param _origins: list of pointers to the originatin proteins.
-        :type _origins: Fred2.Core.Protein.Protein.
+        :param _proteins: dict of transcript_Ids to protein instances.
+        :type _proteins: {str: Fred2.Core.Protein.Protein}.
         :param _vars: dictionary for variants according to position.
         :type _vars: {int:Fred2.Core.Variant.Variant}.
         :param _transcripts: dictionary for transcripts according to their id.
@@ -29,20 +29,23 @@ class Peptide(MetadataLogger, Seq):
         
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, IUPAC.IUPACProtein)
-        if _origins is None:
-            self.origins = []
-        else:
-            self.origins = _origins
+        self.proteins = {}
+        self.vars = {}
+        self.transcripts = {}
+        # if _proteins is None:
+        #     self.proteins = {}
+        # else:
+        #     self.proteins = _proteins
 
-        if _vars is None:
-            self.vars = {}
-        else:
-            self.vars = _vars
+        # if _vars is None:
+        #     self.vars = {}
+        # else:
+        #     self.vars = _vars
 
-        if _transcripts is None:
-            self.transcripts = {}
-        else:
-            self.transcripts = _transcripts
+        # if _transcripts is None:
+        #     self.transcripts = {}
+        # else:
+        #     self.transcripts = _transcripts
 
 
     def add_origin(self, _origin):
