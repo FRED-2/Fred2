@@ -108,7 +108,6 @@ def generate_transcripts_from_variants(vars, dbadapter):
             v = vs.pop()
 
             if v.isHomozygous:
-                print "in homo case"
                 seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
                 usedVs.append(v)
                 for s in _generate_combinations(vs, seq, usedVs, offset, transOff):
@@ -118,10 +117,10 @@ def generate_transcripts_from_variants(vars, dbadapter):
                 tmp_seq = seq[:]
                 tmp_usedVs = usedVs[:]
                 tmp_offset = offset
-                print "in hetero case before first branch"
+
                 for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, tmp_offset, transOff):
                     yield s
-                print "after first branch"
+
                 _update_var_offset(usedVs, tId+":FRED2_%i"%transOff, tId+":FRED2_%i"%(transOff+1))
                 transOff += 1
                 seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)

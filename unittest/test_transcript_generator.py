@@ -13,6 +13,7 @@ import unittest
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 from Fred2.Core.Generator import generate_transcripts_from_variants
 from Fred2.IO.MartsAdapter import MartsAdapter
+from Fred2.IO.ADBAdapter import EAdapterFields
 
 
 class TranskriptGeneratorTestCase(unittest.TestCase):
@@ -40,9 +41,21 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         """
         vars = [self.non_syn_hetero_snp]
         trans = [t for t in generate_transcripts_from_variants(vars, self.db_adapter)]
-        print trans
         self.assertTrue(len(trans) == 2)
 
+
+
+    def test_trans_post_in_var_is_correct(self):
+        """
+        :return:
+        """
+        trans = self.db_adapter.get_transcript_information(self.trid)[EAdapterFields.SEQ]
+        print trans
+
+        print "SNP reference %s at transcript pos %i , transcript base %s at same position"% (self.non_syn_hetero_snp.ref,
+                                            self.non_syn_hetero_snp.get_transcript_position(self.trid),
+                                            trans[self.non_syn_hetero_snp.get_transcript_position(self.trid)])
+        self.assertTrue(self.non_syn_hetero_snp.ref == trans[self.non_syn_hetero_snp.get_transcript_position(self.trid)])
 
 
 if __name__ == '__main__':
