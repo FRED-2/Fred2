@@ -60,10 +60,11 @@ class Transcript(MetadataLogger, Seq):
 
     def __repr__(self):
         lines = [str(self)]
+        t_id = self.transcript_id.split(":FRED2_")[0]
         for vpos, vset in self.vars.iteritems():
             lines.append('%s: '%vpos +', ' + ('%s %s' % \
             (vset.get_transcript_position(self.transcript_id), \
-                vset.coding[self.transcript_id].aaMutationSyntax)))
+                vset.coding[t_id].aaMutationSyntax)))
         return self.transcript_id + '\n\t' + '\n\t'.join(lines)
 
 
