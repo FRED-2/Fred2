@@ -39,8 +39,9 @@ class Transcript(MetadataLogger, Seq):
         Seq.__init__(self, _seq, IUPAC.IUPACUnambiguousRNA)
         self.gene_id = _gene_id
         self.transcript_id = _transcript_id
-        if vars is not None:
-            self.vars = dict((v.coding.tranPos, v) for v in vars)
+        if _vars is not None:
+            self.vars = dict((v.get_transcript_position(_transcript_id), v) \
+                for v in _vars)
         else:
             self.vars = dict()
 
@@ -76,7 +77,7 @@ class Transcript(MetadataLogger, Seq):
 
         # only transfer the non-synonymous variants to the protein as an
         # ordered dict, also translate into protein positions
-        new_vars = OrderedDict((y.coding.protPos, y) for y in \
+        new_vars = dict((y.coding.protPos, y) for y in \
                                self.vars.itervalues()  if y.isSynonymous)
 
         gene_id = self.gene_id
