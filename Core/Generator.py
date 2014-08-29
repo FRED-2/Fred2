@@ -2,10 +2,10 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 __author__ = 'schubert'
-
+from Fred2.Core.Base import COMPLEMENT
 from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import VariationType
-from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields, COMPLEMENT
+from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 #Private module functions. It should not be possible to import these!
 
 def _update_var_offset(vars, transId_old, transId_new):
@@ -29,7 +29,7 @@ def _incorp_snp(seq, var, transId, offset):
     """
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
-
+    var.offsets[transId] = offset
     seq[var.get_transcript_position(transId)] = var.ref
     return seq, offset
 
@@ -116,19 +116,20 @@ def generate_transcripts_from_variants(vars, dbadapter):
                 vs_tmp = vs[:]
                 tmp_seq = seq[:]
                 tmp_usedVs = usedVs[:]
-                tmp_offset = offset
 
-                for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, tmp_offset, transOff):
+                for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset, transOff):
                     yield s
 
-                _update_var_offset(usedVs, tId+":FRED2_%i"%transOff, tId+":FRED2_%i"%(transOff+1))
-                transOff += 1
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
+                new_trans = int(s[0].split("_")[-1])+1
+                _update_var_offset(usedVs, tId+":FRED2_%i"%transOff, tId+":FRED2_%i"%(new_trans))
+
+                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%(new_trans), offset)
+
                 usedVs.append(v)
-                for s in _generate_combinations(tId, vs, seq, usedVs, offset, transOff):
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset, new_trans):
                     yield s
         else:
-            yield seq, usedVs
+            yield tId+":FRED2_%i"%transOff, seq, usedVs
 
     #1) get all transcripts and sort the variants to transcripts
 
@@ -162,5 +163,5 @@ def generate_transcripts_from_variants(vars, dbadapter):
 
         vs.sort(key=lambda v: v.genomePos, reverse=True)
 
-        for varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0, 0):
+        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0, 0):
             yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)

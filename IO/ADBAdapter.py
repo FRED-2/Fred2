@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-from string import maketrans
 
 __author__ = 'schubert'
 
@@ -12,7 +11,7 @@ Strands are alway encode with + and -
 '''
 
 EAdapterFields = (lambda **enums: type('Enum', (), enums))(GENE=0, STRAND=1, SEQ=2, TRANSID=3, PROTID=4)
-COMPLEMENT = maketrans('atgcATGC', 'tacgTACG')
+
 
 
 class ADBAdapter:

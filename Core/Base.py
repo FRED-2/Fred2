@@ -11,6 +11,9 @@ from Bio.Seq import Seq
 from Bio.SeqIO import SeqRecord
 from Bio.Alphabet import IUPAC
 
+from string import maketrans
+
+COMPLEMENT = maketrans('atgcATGC', 'tacgTACG')
 
 class MetadataLogger(object):
     # This class provides a simple interface for assigning additional metadata to any object in our
