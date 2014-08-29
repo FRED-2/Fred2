@@ -1,8 +1,6 @@
 """Unit test for protein class
 """
 
-from collections import OrderedDict
-
 import unittest
 
 from Fred2.Core.Protein import Protein, generate_peptides_from_protein
@@ -31,7 +29,7 @@ class TestProteinClass(unittest.TestCase):
         self.assertEqual(str(self.single_protein), "ASDERWQTGHKILPMNVFCY",
                          'incorrect sequence')
         self.assertIsNone(self.single_protein.orig_transcript)
-        self.assertEqual(self.single_protein.vars, OrderedDict())
+        self.assertEqual(self.single_protein.vars, {})
 
 
     def test1_2_generate_peptides_novariants(self):
@@ -51,11 +49,9 @@ class TestProteinClass(unittest.TestCase):
 
         # # Print peptide generator results:
         # for pep in pep_set:
-        #     print pep, pep.proteins.keys()
-        for pep in pep_set:
-            print pep, pep.proteins.iteritems()
-            print pep, str(pep.vars.iteritems())
-            print pep, str(pep.transcripts.iteritems())
+        #     print pep, pep.proteins.items()
+        #     print pep, pep.vars.items()
+        #     print pep, pep.transcripts.items()
 
         # The total number of fragments should be 14
         # which is the sum over the individual originating proteins

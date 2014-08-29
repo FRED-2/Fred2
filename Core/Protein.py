@@ -56,11 +56,11 @@ class Protein(MetadataLogger, Seq):
         return Protein(item, self.gene_id, self.orig_transcript, self.vars)
 
     def __repr__(self):
-        lines = [str(self)] # the prot sequence
+        lines = ["sequ:"+str(self)] # the prot sequence
         for vpos, vset in self.vars.iteritems():
-            lines.append('%s: '%vpos +', '.join([('%s %s' % \
+            lines.append('var at %s: '%vpos +', '.join([('%s %s' % \
             (v.coding.protPos, v.coding.aaMutationSyntax)) for v in vset]))
-        return self.orig_transcript.transcript_id + '\n\t' + '\n\t'.join(lines)
+        return self.transcript_id + ', ' + ', '.join(lines)
 
 
 def generate_peptides_from_protein(proteins, window_size):

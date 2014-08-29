@@ -7,7 +7,7 @@ __author__ = 'schubert'
 
 Transcript sequences are always only coding region! First coding base has index i=1
 Variant position start at conding region of the transcript
-Strands are alway encode with + and -
+Strands are always encoded with + and -
 '''
 
 EAdapterFields = (lambda **enums: type('Enum', (), enums))(GENE=0, STRAND=1, SEQ=2, TRANSID=3, PROTID=4)
