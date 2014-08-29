@@ -39,9 +39,10 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         1 hetero vars = 2 transcripts
         :return:
         """
-        vars = [self.non_syn_hetero_snp]
+        vars = [self.non_syn_hetero_snp, self.non_frame_shift_del]
         trans = [t for t in generate_transcripts_from_variants(vars, self.db_adapter)]
-        self.assertTrue(len(trans) == 2)
+        print trans
+        self.assertTrue(len(trans) == 3)
 
 
 

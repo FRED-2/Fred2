@@ -110,7 +110,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             if v.isHomozygous:
                 seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
                 usedVs.append(v)
-                for s in _generate_combinations(vs, seq, usedVs, offset, transOff):
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset, transOff):
                     yield s
             else:
                 vs_tmp = vs[:]
@@ -161,6 +161,6 @@ def generate_transcripts_from_variants(vars, dbadapter):
             raise KeyError("Transcript with ID %s not found in DB"%tId)
 
         vs.sort(key=lambda v: v.genomePos, reverse=True)
-        print vs
+
         for varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0, 0):
             yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
