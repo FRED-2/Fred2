@@ -14,6 +14,8 @@ from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 from Fred2.Core.Generator import generate_transcripts_from_variants
 from Fred2.IO.MartsAdapter import MartsAdapter
 
+from Fred2.IO.DummyAdapter import DummyAdapter
+from Fred2.unittest.VariantsForTesting import *
 
 class TranskriptGeneratorTestCase(unittest.TestCase):
 
@@ -30,6 +32,7 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
                                {"NM_001114377":MutationSyntax("NM_001114377",737, 183,"","")}, True, True)
 
         self.db_adapter = MartsAdapter()
+
 
     def test_non_syn_hetero_snp_trans_number(self):
         """

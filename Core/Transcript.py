@@ -59,12 +59,15 @@ class Transcript(MetadataLogger, Seq):
 
 
     def __repr__(self):
+        # get sequence:
         lines = [str(self)]
+        # get all variants:
         t_id = self.transcript_id.split(":FRED2_")[0]
         for vpos, vset in self.vars.iteritems():
             lines.append('%s: '%vpos +', ' + ('%s %s' % \
             (vset.get_transcript_position(self.transcript_id), \
                 vset.coding[t_id].aaMutationSyntax)))
+
         return self.transcript_id + '\n\t' + '\n\t'.join(lines)
 
 
@@ -79,8 +82,8 @@ class Transcript(MetadataLogger, Seq):
 
         # only transfer the non-synonymous variants to the protein as an
         # ordered dict, also translate into protein positions
-        new_vars = dict((y.coding.protPos, y) for y in \
-                               self.vars.itervalues()  if y.isSynonymous)
+        new_vars = dict((y.get_protein_position(self.transcript_id), y) \
+            for y in self.vars.itervalues()  if y.isSynonymous)
 
         gene_id = self.gene_id
         return Protein(prot_seq, gene_id, self.transcript_id, self, new_vars)
