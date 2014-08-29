@@ -52,6 +52,10 @@ class TestProteinClass(unittest.TestCase):
         # # Print peptide generator results:
         # for pep in pep_set:
         #     print pep, pep.proteins.keys()
+        for pep in pep_set:
+            print pep, pep.proteins.iteritems()
+            print pep, pep.vars.iteritems()
+            print pep, pep.transcripts.iteritems()
 
         # The total number of fragments should be 14
         # which is the sum over the individual originating proteins
