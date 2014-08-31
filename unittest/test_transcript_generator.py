@@ -80,7 +80,7 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         CCCCCCCCTTCTTTCCCCCC
         """
         dummy_db = DummyAdapter()
-        dummy_vars = [var_1] #, var_2, var_3, var_4, var_5]
+        dummy_vars = [var_1, var_2] #, var_3, var_4, var_5]
     
         for trans in generate_transcripts_from_variants(dummy_vars, dummy_db):
             print trans
