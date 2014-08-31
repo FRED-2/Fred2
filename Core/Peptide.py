@@ -16,19 +16,28 @@ from Fred2.Core.Base import MetadataLogger
 
 
 class Peptide(MetadataLogger, Seq):
+    """
+    Peptides, belonging to one or several proteins.
+
+    .. note::
+
+        For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq`
+        (from Biopython)
+
+    :param dict(str,Protein) proteins: dict of transcript_IDs to protein
+                                       instances that could generate that 
+                                       peptide
+    :param dict(int,Variant) vars: dict of positions to variant instances that
+                                   affeced the peptide
+    :param dict(str,Transcript) transcripts: dict of transcript_IDs to 
+                                             transcript instances that could 
+                                             have generated the peptide
+    """
 
     def __init__(self, _seq):
         """
-        :param _seq: String sequence in one letter amino acid code
-        :type _seq: str.
-        :param _proteins: dict of transcript_Ids to protein instances.
-        :type _proteins: {str: Fred2.Core.Protein.Protein}.
-        :param _vars: dictionary for variants according to position.
-        :type _vars: {int:Fred2.Core.Variant.Variant}.
-        :param _transcripts: dictionary for transcripts according to their id.
-        :type _transcripts: {str: Fred2.Core.Transcript.Transcript}.
+        :param str _seq: sequence of the peptide in one letter amino acid code
         """
-
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, IUPAC.IUPACProtein)
         self.proteins = {}
@@ -38,10 +47,11 @@ class Peptide(MetadataLogger, Seq):
 
     def __getitem__(self, index):
         """
-
-        :param index: (int) position in the peptide sequence
-        :returns: Peptide -- A Peptide consisting of the single letter at
-            position :attr:`index`.
+        Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
+        
+        :param int index: position in the peptide sequence
+        :returns: (Peptide) -- A Peptide consisting of the single letter at
+                  position :attr:`index`.
         """
         item = self[index]
         new_pept = Peptide(item)

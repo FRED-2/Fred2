@@ -1,40 +1,66 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+"""
+.. module:: Base
+   :synopsis: This module contains base classes for all other modules.
+.. moduleauthor:: schubert, szolek, walzer
+
+"""
 __author__ = 'szolek', 'walzer'
 
 import re
 from collections import defaultdict
-from operator import attrgetter
+from string import maketrans
 
 from Bio.Seq import Seq
 from Bio.SeqIO import SeqRecord
 from Bio.Alphabet import IUPAC
 
-from string import maketrans
-
 COMPLEMENT = maketrans('atgcATGC', 'tacgTACG')
 
-class MetadataLogger(object):
-    # This class provides a simple interface for assigning additional metadata to any object in our
-    # data model. Examples: storing ANNOVAR columns like depth, base count, dbSNP id, quality
-    # information for variants, prediction scores for peptides etc.
-    # Normally used by custom toolbox functions and importers.
 
+class MetadataLogger(object):
+    """
+    This class provides a simple interface for assigning additional metadata to
+    any object in our data model. Examples: storing ANNOVAR columns like depth,
+    base count, dbSNP id, quality information for variants, prediction scores 
+    for peptides etc. Normally used by custom toolbox functions and importers.
+
+    The saved values are accessed via :meth:`~Fred2.Core.Base.log_metadata` and
+    :meth:`~Fred2.Core.Base.get_metadata`
+    
+    """
     def __init__(self):
-        self.metadata = defaultdict(list)
+        """
+        """
+        self.__metadata = defaultdict(list)
 
     def log_metadata(self, label, value):
-        self.metadata[label].append(value)
+        """
+        Inserts a new metadata
+
+        :param str label: key for the metadata that will be added
+        :param list(object) value: any kindy of additional value that should be
+                                   kept
+        """
+        self.__metadata[label].append(value)
 
     def get_metadata(self, label, only_first=False):
-        # although defaultdict *would* return [] if it didn't find label in self.metadata, it would
-        # come with the side effect of adding label as a key to the defaultdict, so a getter is
-        # justified in this case.
+        """
+        Getter for the saved metadata with the key :attr:`label`
+
+        :param str label: key for the metadata that is inferred
+        :param bool only_first: true if only the the first element of the 
+                                matadata list is to be returned
+        """
+        # although defaultdict *would* return [] if it didn't find label in 
+        # self.metadata, it would come with the side effect of adding label as 
+        #a key to the defaultdict, so a getter is justified in this case.
         if not only_first:
-            return self.metadata[label] if label in self.metadata else []
+            return self.__metadata[label] if label in self.__metadata else []
         else:
-            return self.metadata[label][0] if self.metadata[label] else None
+            return self.__metadata[label][0] if self.__metadata[label] else None
 
 
 class FrameshiftNode(object):

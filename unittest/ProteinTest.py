@@ -3,7 +3,8 @@
 
 import unittest
 
-from Fred2.Core.Protein import Protein, generate_peptides_from_protein
+from Fred2.Core.Protein import Protein
+from Fred2.Core.Generator import generate_peptides_from_protein
 
 class TestProteinClass(unittest.TestCase):
     def setUp(self):

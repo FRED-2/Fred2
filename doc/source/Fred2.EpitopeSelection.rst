@@ -8,6 +8,6 @@ Fred2.EpitopeSelection.EpitopeSelection
 
 .. automodule:: Fred2.EpitopeSelection.EpitopeSelection
     :members:
-    :undoc-members:
+    :special-members:
     :show-inheritance:
 

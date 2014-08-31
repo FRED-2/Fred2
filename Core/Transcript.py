@@ -17,23 +17,27 @@ from Fred2.Core.Base import MetadataLogger
 
 
 class Transcript(MetadataLogger, Seq):
-    """Transcript Class
+    """A Transcript is the mRNA sequence containing at no or several variations.
+
+    .. note::
+
+        For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq`
+        (from Biopython)
+
+    :param str gene_id: Genome ID
+    :param str transcript_id: Transcript RefSeqID
+    :param dict(int,Variant) vars: Dict of Variants for specific positions in
+                                   the transcript. key=position, value=Variant
     """
 
     def __init__(self, _gene_id, _transcript_id, _seq, _vars=None):
         """
-
-        :param _transcript_id: Transcript RefSeqID
-        :type _transcript_id: str.
-        :param _seq: Transcript RefSeq sequence
-        :type _seq: str.
-        :param _start: true start position of transcript, positions starting at
-                       1
-        :type _start: int.
-        :param _stop: true stop position of transcript
-        :type _stop: int.
-        :param _vars: List of variants for the transcript.
-        :type _vars: [Fred2.Core.Variant].
+        :param str _gene_id: input genome ID
+        :param str _transcript_id: input transcript RefSeqID
+        :param str _seq: Transcript RefSeq sequence
+        :param dict(int,Variant) _vars: Dict of Variants for specific positions 
+                                        in the transcript. key=position, 
+                                        value=Variant
         """
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, IUPAC.IUPACUnambiguousRNA)
@@ -48,11 +52,11 @@ class Transcript(MetadataLogger, Seq):
 
     def __getitem__(self, index):
         """
-        Overrides Bio.Seq.__getitem__
+        Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        :param index: (int) position 
-        :returns: Transcript -- A Transcript consisting of the single letter at
-            position :attr:`index`.
+        :param int index: position 
+        :returns: (Transcript) -- A Transcript consisting of the single
+        letter at position :attr:`index`.
         """
         item = self[index]
         return Transcript(self.transcript_id, item, self.vars)
@@ -74,7 +78,11 @@ class Transcript(MetadataLogger, Seq):
     def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
                   cds=False):
         """
-        Override of Bio.Seq.translate()
+        Overrides :meth:`Bio.Seq.Seq.translate` (from Biopython) and enables 
+        the translation from a transcript to a protein instance
+
+        :param returns: (Protein) -- the protein that corresponds to the 
+                        transcript
         """
 
         # translate to a protein sequence

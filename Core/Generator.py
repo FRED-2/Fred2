@@ -1,11 +1,22 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+"""
+.. module:: Generator
+   :synopsis: Contains functions to transform variants to transcripts and 
+              proteins to peptides. Transition of transcripts to proteins
+              is done via :meth:`~Fred2.Core.Transcript.translate`
+.. moduleauthor:: schubert
+
+"""
 __author__ = 'schubert'
 from Fred2.Core.Base import COMPLEMENT
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import VariationType
 from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
+
+################################################################################
 #Private module functions. It should not be possible to import these!
 
 def _update_var_offset(vars, transId_old, transId_new):
@@ -21,11 +32,12 @@ def _update_var_offset(vars, transId_old, transId_new):
 def _incorp_snp(seq, var, transId, offset):
     """
     incorporates a snp into the given transcript sequence
-    :param seq: (list) transcript sequence as a list
-    :param var: (Variant) the snp variant to incorporate
-    :param transId: (str) the transcript ID of seq
-    :param offset: (int) the offset which has to be added onto the transcript position of the variant
-    :return: (list) the modified seq, (int) the modified offset
+    :param list seq: transcript sequence as a list
+    :param Variant var: the snp variant to incorporate
+    :param str transId: the transcript ID of seq
+    :param int offset: the offset which has to be added onto the transcript
+                       position of the variant
+    :return: (list,int) the modified seq, the modified offset
     """
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
@@ -37,11 +49,12 @@ def _incorp_snp(seq, var, transId, offset):
 def _incorp_insertion(seq, var, transId, offset):
     """
     incorporates a snp into the given transcript sequence
-    :param seq: (list) transcript sequence as a list
-    :param var: (Variant) the snp variant to incorporate
-    :param transId: (str) the transcript ID of seq
-    :param offset: (int) the offset which has to be added onto the transcript position of the variant
-    :return: (list) modified sequence, (int) the modified offset
+    :param list seq: (list) transcript sequence as a list
+    :param Variant var: the snp variant to incorporate
+    :param str transId: the transcript ID of seq
+    :param int offset: the offset which has to be added onto the transcript
+                       position of the variant
+    :return: (list,int) modified sequence, the modified offset
     """
     if var.type not in [VariationType.INS, VariationType.FSINS]:
         raise TypeError("%s is not a insertion"%str(var))
@@ -55,11 +68,12 @@ def _incorp_insertion(seq, var, transId, offset):
 def _incorp_deletion(seq, var, transId, offset):
     """
     incorporates a snp into the given transcript sequence
-    :param seq: (list) transcript sequence as a list
-    :param var: (Variant) the snp variant to incorporate
-    :param transId: (str) the transcript ID of seq
-    :param offset: (int) the offset which has to be added onto the transcript position of the variant
-    :return: (list) modified sequence, (int) the modified offset
+    :param list seq: transcript sequence as a list
+    :param Variant var: the snp variant to incorporate
+    :param str transId: the transcript ID of seq
+    :param int offset: the offset which has to be added onto the transcript 
+                       position of the variant
+    :return: (list,int) -- modified sequence, the modified offset
     """
     if var.type not in [VariationType.DEL, VariationType.FSDEL]:
         raise TypeError("%s is not a deletion"%str(var))
@@ -83,16 +97,20 @@ _incorp = {
 # Public transcript generator functions
 
 
-
+################################################################################
+#        V A R I A N T S     = = >    T R A N S C R I P T S
+################################################################################
 
 
 def generate_transcripts_from_variants(vars, dbadapter):
     """
     generates all possible transcript variations of the given variants
 
-    :param vars: (list(Variation)) A list of variants for which transcripts should be build
-    :param dbadapter: (ADBAdapter) a DBAdapter to fetch the transcript sequences
-    :return: (Generator(Transcripts)) a generator of transcripts with all possible variations determined by the given
+    :param list(Variant) vars: A list of variants for which transcripts should 
+                               be build
+    :param ADBAdapter dbadapter: a DBAdapter to fetch the transcript sequences
+    :return: (Generator(Transcripts)) -- a generator of transcripts with all 
+             possible variations determined by the given
              variant list
     """
     def _generate_combinations(tId, vs, seq, usedVs, offset, transOff):
@@ -165,3 +183,58 @@ def generate_transcripts_from_variants(vars, dbadapter):
 
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0, 0):
             yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
+
+
+
+
+
+################################################################################
+#        P R O T E I N    = = >    P E P T I D E
+################################################################################
+
+def generate_peptides_from_protein(proteins, window_size):
+    """
+    Creates all peptides for a given window size, from a given protein. The
+    result is a generator.
+
+    :param Protein protein: list of proteins from which a list of unique
+                            peptides should be generated
+    :param int window_size: size of peptide fragments
+    """
+
+    def gen_peptide_info(protein):
+        # Generate a peptide seqs and find the variants within each sequence
+
+        res = []
+        seq = str(protein)
+        for i in range(len(protein)+1-window_size):
+            # generate peptide fragment
+            end = i+window_size
+            pep_seq = seq[i:end]
+
+             # get the variants within that peptide:
+            if protein.vars is not None:
+                pep_var = dict((pos, var) for pos, var in \
+                            protein.vars.iteritems() if i <= pos <= end)
+            else:
+                pep_var = None
+
+            res.append((pep_seq, pep_var))
+        return res
+
+
+    final_peptides = {} # sequence : peptide-instance
+
+    for prot in proteins:
+        # generate all peptide sequences per protein:
+        for (pep, _vars) in gen_peptide_info(prot):
+
+            t_id = prot.transcript_id
+            if pep not in final_peptides:
+                final_peptides[pep] = Peptide(pep)
+
+            final_peptides[pep].proteins[t_id] = prot
+            final_peptides[pep].vars[t_id] = _vars
+            final_peptides[pep].transcripts[t_id] = prot.orig_transcript
+
+    return final_peptides.values()

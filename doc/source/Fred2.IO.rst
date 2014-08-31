@@ -8,7 +8,7 @@ Fred2.IO.ADBAdapter
 
 .. automodule:: Fred2.IO.ADBAdapter
     :members:
-    :undoc-members:
+    :special-members:
     :show-inheritance:
 
 Fred2.IO.DummyAdaper
@@ -16,7 +16,7 @@ Fred2.IO.DummyAdaper
 
 .. automodule:: Fred2.IO.DummyAdaper
     :members:
-    :undoc-members:
+    :special-members:
     :show-inheritance:
 
 Fred2.IO.MartsAdapter
@@ -24,7 +24,7 @@ Fred2.IO.MartsAdapter
 
 .. automodule:: Fred2.IO.MartsAdapter
     :members:
-    :undoc-members:
+    :special-members:
     :show-inheritance:
 
 Fred2.IO.RefSeqAdapter
@@ -32,7 +32,7 @@ Fred2.IO.RefSeqAdapter
 
 .. automodule:: Fred2.IO.RefSeqAdapter
     :members:
-    :undoc-members:
+    :special-members:
     :show-inheritance:
 
 Fred2.IO.UniProtAdapter
@@ -40,5 +40,5 @@ Fred2.IO.UniProtAdapter
 
 .. automodule:: Fred2.IO.UniProtAdapter
     :members:
-    :undoc-members:
+    :special-members:
     :show-inheritance:
