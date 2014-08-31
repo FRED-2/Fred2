@@ -49,7 +49,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'FRED2'
+project = u'FRED'
 copyright = u'2014, Schbert Walzer Brachvogel'
 
 # The version info for the project you're documenting, acts as replacement for

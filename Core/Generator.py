@@ -32,7 +32,8 @@ def _update_var_offset(vars, transId_old, transId_new):
 def _incorp_snp(seq, var, transId, offset):
     """
     incorporates a snp into the given transcript sequence
-    :param list seq: transcript sequence as a list
+
+    :param list(char) seq: transcript sequence as a list
     :param Variant var: the snp variant to incorporate
     :param str transId: the transcript ID of seq
     :param int offset: the offset which has to be added onto the transcript
@@ -41,15 +42,18 @@ def _incorp_snp(seq, var, transId, offset):
     """
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
+    #DEBUG:
+    print "incorporate SNP:", str(var)
     var.offsets[transId] = offset
-    seq[var.get_transcript_position(transId)] = var.ref
+    seq[var.get_transcript_position(transId)] = var.obs
     return seq, offset
 
 
 def _incorp_insertion(seq, var, transId, offset):
     """
-    incorporates a snp into the given transcript sequence
-    :param list seq: (list) transcript sequence as a list
+    incorporates an insertion into the given transcript sequence
+
+    :param list(char) seq: (list) transcript sequence as a list
     :param Variant var: the snp variant to incorporate
     :param str transId: the transcript ID of seq
     :param int offset: the offset which has to be added onto the transcript
@@ -59,16 +63,19 @@ def _incorp_insertion(seq, var, transId, offset):
     if var.type not in [VariationType.INS, VariationType.FSINS]:
         raise TypeError("%s is not a insertion"%str(var))
 
+    #DEBUG:
+    print "incorporate INS:", str(var)
     var.offsets[transId] = offset
     pos = var.get_transcript_position(transId)
     seq[pos+1:pos+1] = var.obs
-    return seq, offset + len(var.observed)
+    return seq, offset + len(var.obs)
 
 
 def _incorp_deletion(seq, var, transId, offset):
     """
-    incorporates a snp into the given transcript sequence
-    :param list seq: transcript sequence as a list
+    incorporates a deletion into the given transcript sequence
+
+    :param list(char) seq: transcript sequence as a list
     :param Variant var: the snp variant to incorporate
     :param str transId: the transcript ID of seq
     :param int offset: the offset which has to be added onto the transcript 
@@ -78,6 +85,8 @@ def _incorp_deletion(seq, var, transId, offset):
     if var.type not in [VariationType.DEL, VariationType.FSDEL]:
         raise TypeError("%s is not a deletion"%str(var))
 
+    #DEBUG:
+    print "incorporate DEL:", str(var)
     var.offsets[transId] = offset
     pos = var.get_transcript_position(transId)
     s = slice(pos, pos+len(var.ref))
@@ -113,7 +122,8 @@ def generate_transcripts_from_variants(vars, dbadapter):
              possible variations determined by the given
              variant list
     """
-    def _generate_combinations(tId, vs, seq, usedVs, offset, transOff):
+    generate_transcripts_from_variants.transOff = 0
+    def _generate_combinations(tId, vs, seq, usedVs, offset):
         """
          recursive variant combination generator
         :param tId:
@@ -126,28 +136,30 @@ def generate_transcripts_from_variants(vars, dbadapter):
             v = vs.pop()
 
             if v.isHomozygous:
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
+                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%generate_transcripts_from_variants.transOff, offset)
                 usedVs.append(v)
-                for s in _generate_combinations(tId, vs, seq, usedVs, offset, transOff):
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
             else:
                 vs_tmp = vs[:]
                 tmp_seq = seq[:]
                 tmp_usedVs = usedVs[:]
 
-                for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset, transOff):
+                for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset):
                     yield s
 
-                new_trans = int(s[0].split("_")[-1])+1
-                _update_var_offset(usedVs, tId+":FRED2_%i"%transOff, tId+":FRED2_%i"%(new_trans))
+                # new_trans = int(s[0].split("_")[-1])+1
+                old_trans = generate_transcripts_from_variants.transOff
+                generate_transcripts_from_variants.transOff += 1
+                _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(generate_transcripts_from_variants.transOff))
 
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%(new_trans), offset)
+                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%generate_transcripts_from_variants.transOff, offset)
 
                 usedVs.append(v)
-                for s in _generate_combinations(tId, vs, seq, usedVs, offset, new_trans):
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
         else:
-            yield tId+":FRED2_%i"%transOff, seq, usedVs
+            yield tId+":FRED2_%i"%generate_transcripts_from_variants.transOff, seq, usedVs
 
     #1) get all transcripts and sort the variants to transcripts
 
@@ -181,7 +193,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
 
         vs.sort(key=lambda v: v.genomePos, reverse=True)
 
-        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0, 0):
+        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
             yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
 
 

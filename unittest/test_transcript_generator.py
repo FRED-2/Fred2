@@ -16,7 +16,7 @@ from Fred2.IO.MartsAdapter import MartsAdapter
 from Fred2.IO.ADBAdapter import EAdapterFields
 
 from Fred2.IO.DummyAdapter import DummyAdapter
-from Fred2.unittest.VariantsForTesting import *
+from Fred2.UnitTest.VariantsForTesting import *
 
 class TranskriptGeneratorTestCase(unittest.TestCase):
 
@@ -72,6 +72,20 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
     #                                         trans[v.get_transcript_position(self.trid)])
     #         print
     #         self.assertTrue(v.ref == trans[v.get_transcript_position(self.trid)-1])
+
+    def test_transcript_gen(self):
+        """
+        test varian incorporation
+        CCCCCCCCCCCCCCC
+        CCCCCCCCTTCTTTCCCCCC
+        """
+        dummy_db = DummyAdapter()
+        dummy_vars = [var_1] #, var_2, var_3, var_4, var_5]
+    
+        for trans in generate_transcripts_from_variants(dummy_vars, dummy_db):
+            print trans
+        self.assertTrue(True)
+
 
 
 if __name__ == '__main__':

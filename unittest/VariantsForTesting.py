@@ -46,7 +46,7 @@ mut_syn1_5 = MutationSyntax("tsc_1", # transcript_id
 # SNP, HOMOZYGOUS
 var_1 = Variant(
     "var_1", VariationType.SNP, "chr1",
-    1,                    # Genomic Position 
+    2,                    # Genomic Position 
     "C", "T",             # reference , observed
     {"tsc_1":mut_syn1_1}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -54,15 +54,15 @@ var_1 = Variant(
 # SNP, HETEROZYGOUS
 var_2 = Variant(
     "var_2", VariationType.SNP, "chr1",
-    2,                    # Genomic Position 
+    5,                    # Genomic Position 
     "C", "T",             # reference , observed
     {"tsc_1":mut_syn1_2}, # dict of (transcrip_id : mutSnytaxes)
-    False, False)         # isHomozygous?, isSynonymous?
+    True, False)         # isHomozygous?, isSynonymous?
 
 # +F-SHIFT, HOMOZYGOUS
 var_3 = Variant(
     "var_3", VariationType.FSINS, "chr1",
-    3,                    # Genomic Position 
+    7,                    # Genomic Position 
     "", "TT",             # reference , observed
     {"tsc_1":mut_syn1_3}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -70,7 +70,7 @@ var_3 = Variant(
 # -F-SHIFT, HOMOZYGOUS
 var_4 = Variant(
     "var_4", VariationType.FSDEL, "chr1",
-    7,                    # Genomic Position 
+    20,                    # Genomic Position 
     "CC", "",             # reference , observed
     {"tsc_1":mut_syn1_4}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -78,7 +78,7 @@ var_4 = Variant(
 # INSERTION, HOMOZYGOUS
 var_5 = Variant(
     "var_5", VariationType.INS, "chr1",
-    4,                    # Genomic Position 
+    10,                    # Genomic Position 
     "", "TTT",            # reference , observed
     {"tsc_1":mut_syn1_5}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
