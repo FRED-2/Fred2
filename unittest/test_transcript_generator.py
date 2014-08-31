@@ -75,12 +75,11 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
 
     def test_transcript_gen(self):
         """
-        test varian incorporation
-        CCCCCCCCCCCCCCC
-        CCCCCCCCTTCTTTCCCCCC
+        test variant incorporation
+
         """
         dummy_db = DummyAdapter()
-        dummy_vars = [var_1, var_2] #, var_3, var_4, var_5]
+        dummy_vars = [ var_3] #, var_4, var_5]
     
         for trans in generate_transcripts_from_variants(dummy_vars, dummy_db):
             print trans

@@ -25,14 +25,20 @@ mut_syn1_3 = MutationSyntax("tsc_1", # transcript_id
                             "")      # aaMutationSyntax - irrelevant
 
 mut_syn1_4 = MutationSyntax("tsc_1", # transcript_id
-                            20,      # pos in transc
-                            7,       # pos in protein
+                            9,      # pos in transc
+                            3,       # pos in protein
                             "",      # cdsMutationSyntax - irrelevant
                             "")      # aaMutationSyntax - irrelevant
 
 mut_syn1_5 = MutationSyntax("tsc_1", # transcript_id
                             10,      # pos in transc
                             4,       # pos in protein
+                            "",      # cdsMutationSyntax - irrelevant
+                            "")      # aaMutationSyntax - irrelevant
+
+mut_syn1_6 = MutationSyntax("tsc_1", # transcript_id
+                            20,      # pos in transc
+                            7,       # pos in protein
                             "",      # cdsMutationSyntax - irrelevant
                             "")      # aaMutationSyntax - irrelevant
 
@@ -46,7 +52,7 @@ mut_syn1_5 = MutationSyntax("tsc_1", # transcript_id
 # SNP, HOMOZYGOUS
 var_1 = Variant(
     "var_1", VariationType.SNP, "chr1",
-    2,                    # Genomic Position 
+    20,                    # Genomic Position 
     "C", "T",             # reference , observed
     {"tsc_1":mut_syn1_1}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -70,15 +76,24 @@ var_3 = Variant(
 # -F-SHIFT, HOMOZYGOUS
 var_4 = Variant(
     "var_4", VariationType.FSDEL, "chr1",
-    20,                    # Genomic Position 
-    "CC", "",             # reference , observed
+    12,                   # Genomic Position 
+    "CCCCC", "",          # reference , observed
     {"tsc_1":mut_syn1_4}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
 
 # INSERTION, HOMOZYGOUS
 var_5 = Variant(
     "var_5", VariationType.INS, "chr1",
-    10,                    # Genomic Position 
+    10,                   # Genomic Position 
     "", "TTT",            # reference , observed
     {"tsc_1":mut_syn1_5}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
+
+# -F-SHIFT, HOMOZYGOUS, INVALID
+var_6 = Variant(
+    "var_4", VariationType.FSDEL, "chr1",
+    20,                   # Genomic Position 
+    "CC", "",             # reference , observed
+    {"tsc_1":mut_syn1_4}, # dict of (transcrip_id : mutSnytaxes)
+    True, False)          # isHomozygous?, isSynonymous?
+

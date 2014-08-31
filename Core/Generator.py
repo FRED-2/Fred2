@@ -43,9 +43,10 @@ def _incorp_snp(seq, var, transId, offset):
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
     #DEBUG:
-    print "incorporate SNP:", str(var)
+    print "incorporate SNP:", str(var), " pos=", var.get_transcript_position(transId)
+    print "offset: ",offset
     var.offsets[transId] = offset
-    seq[var.get_transcript_position(transId)] = var.obs
+    seq[var.get_transcript_position(transId)-1] = var.obs
     return seq, offset
 
 
@@ -65,9 +66,11 @@ def _incorp_insertion(seq, var, transId, offset):
 
     #DEBUG:
     print "incorporate INS:", str(var)
+    print "offset: ",offset, " pos=", var.get_transcript_position(transId)
+
     var.offsets[transId] = offset
     pos = var.get_transcript_position(transId)
-    seq[pos+1:pos+1] = var.obs
+    seq[pos:pos] = var.obs
     return seq, offset + len(var.obs)
 
 
@@ -86,9 +89,11 @@ def _incorp_deletion(seq, var, transId, offset):
         raise TypeError("%s is not a deletion"%str(var))
 
     #DEBUG:
-    print "incorporate DEL:", str(var)
+    print "incorporate DEL:", str(var), " pos=", var.get_transcript_position(transId)
+    print "offset: ",offset
+
     var.offsets[transId] = offset
-    pos = var.get_transcript_position(transId)
+    pos = var.get_transcript_position(transId) -1
     s = slice(pos, pos+len(var.ref))
     del seq[s]
     return seq, offset - len(var.ref)
