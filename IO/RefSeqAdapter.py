@@ -8,7 +8,7 @@ import logging
 from IO.ADBAdapter import ADBAdapter
 from Bio import SeqIO
 
-
+#TODO: refactor ... function based on old code
 class RefSeqAdapter(ADBAdapter):
     def __init__(self, prot_file=None, prot_vers=None, mrna_file=None, mrna_vers=None):
         self.refseq_prot = self.load(prot_file)

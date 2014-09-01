@@ -8,7 +8,7 @@ import warnings
 import bisect
 from Bio import SeqIO
 
-
+#TODO: refactor ... function based on old code
 class UniProtDB:
     def __init__(self, name='fdb'):
         """
