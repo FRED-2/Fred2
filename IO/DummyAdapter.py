@@ -33,9 +33,9 @@ class DummyAdapter(ADBAdapter):
             EAdapterFields.STRAND: "+", # normal 5' to 3'
         }
         tsc_2 = {
-            EAdapterFields.SEQ: "AAAAACCCCCGGGGG", # 15 * C
+            EAdapterFields.SEQ: "GGGGGCCCCCAAAAA", # 15 * C
             EAdapterFields.GENE: "gene_1", # gene id
-            EAdapterFields.STRAND: "-", # normal 5' to 3'
+            EAdapterFields.STRAND: "+", # normal 5' to 3'
         }
 
         res = {
