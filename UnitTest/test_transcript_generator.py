@@ -105,36 +105,71 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
 
 
 
+    # def test_offset_single(self):
+    #     """
+    #     tests if offset is correctly handled when several variants for one 
+    #     transcript occur. still only one transcript with one transcript variant.
+    #     reference transcript: AAAAACCCCCGGGGG
 
-    def test_offset_single(self):
+    #     Each variant so that it is clearly down stream of
+    #     it's predecessor
+
+    #     """
+    #     dummy_db = DummyAdapter()
+
+    #     # 1) INS, SNP, DEL
+    #     dummy_vars = [ var_3, var_7, var_6]
+    #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        
+    #     self.assertEqual(str(trans), "AAAAACCTTCTCGGG")
+
+    #     # 2.) INS, DEL, INS
+    #     dummy_vars = [ var_9, var_4, var_8]
+    #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+    #     self.assertEqual(str(trans), "AATTAAACCCCGTTT")
+
+
+    def test_heterozygous_variants(self):
         """
-        tests if offset is correctly handled when several variants for one 
-        transcript occur. still only one transcript with one transcript variant.
-        reference transcript: AAAAACCCCCGGGGG
+        Create multiple transcript variants for a transcript, given a set
+        containing heterozygous variants .
 
-        Each variant so that it is clearly down stream of
-        it's predecessor
+        Variants:
+        HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
 
+        Reference sequence:
+        AAAAACCCCCGGGGG
+        AAATTTCGGGGG (DEL,INS,DEL)
+        AAATTTCCCCCGGGGG (DEL,INS)
+        AAAAATTTCGGGGG (INS,DEL)
+        AAAAATTTCCCCCGGGGG (INS)
+
+        GGGGGCCCCCAAAAA
+        GGGTTTCAAAAA (DEL,INS,DEL)
+        GGGTTTCCCCCAAAAA (DEL,INS)
+        GGGGGTTTCAAAAA (INS,DEL)
+        GGGGGTTTCCCCCAAAAA (INS)
         """
+
         dummy_db = DummyAdapter()
 
-        # 1) INS, SNP, DEL, SNP
-        dummy_vars = [ var_3, var_7, var_6]
-        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-        
-        self.assertEqual(str(trans), "AAAAACCTTCTCGGG")
+        # 1) INS, SNP, DEL
+        dummy_vars = [ var_10, var_11, var_12]
+        trans =[t for t in generate_transcripts_from_variants(dummy_vars, dummy_db)]
+        #print trans
 
-        # 2.) INS, DEL, INS, SNP
-         dummy_vars = [ var_1]
-         trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-         self.assertEqual(str(trans), "ATAAACCCCCGGGGG")
+        trans = map(str, trans)
 
+        self.assertEqual(len(trans), 8)
+        self.assertTrue("AAATTTCGGGGG" in trans)
+        self.assertTrue("AAATTTCCCCCGGGGG" in trans)
+        self.assertTrue("AAAAATTTCGGGGG" in trans)
+        self.assertTrue("AAAAATTTCCCCCGGGGG" in trans)
 
-        # 3.) DEL, INS, DEL, SNP
-        # dummy_vars = [ var_4]
-        # trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-        # self.assertEqual(str(trans), "AAAAACCCCG")
-
+        self.assertTrue("GGGTTTCAAAAA" in trans)
+        self.assertTrue("GGGTTTCAAAAA" in trans)
+        self.assertTrue("GGGTTTCCCCCAAAAA" in trans)
+        self.assertTrue("GGGGGTTTCCCCCAAAAA" in trans)
 
 if __name__ == '__main__':
     unittest.main()
