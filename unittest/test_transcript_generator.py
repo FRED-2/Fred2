@@ -73,17 +73,36 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
     #         print
     #         self.assertTrue(v.ref == trans[v.get_transcript_position(self.trid)-1])
 
-    def test_transcript_gen(self):
+    def test_simple_incorporation(self):
         """
-        test variant incorporation
+        test simple variant incorporation: input reference transcript
+        AAAAACCCCCGGGGG
 
+        variant 3: insert TT after pos 7
+
+        variant 1: SNP C -> T at pos 2
+
+        variant 4: del CCCCC after pos 9
         """
         dummy_db = DummyAdapter()
-        dummy_vars = [ var_3] #, var_4, var_5]
-    
-        for trans in generate_transcripts_from_variants(dummy_vars, dummy_db):
-            print trans
-        self.assertTrue(True)
+
+        # INSERTIONS:
+        dummy_vars = [ var_3]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        
+        self.assertEqual(str(trans), "AAAAACCTTCCCGGGGG")
+
+        # SNPs:
+        dummy_vars = [ var_1]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        self.assertEqual(str(trans), "ATAAACCCCCGGGGG")
+
+
+        # DELETIONS:
+        dummy_vars = [ var_4]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        self.assertEqual(str(trans), "AAAAACCCCG")
+
 
 
 

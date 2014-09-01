@@ -28,7 +28,7 @@ class DummyAdapter(ADBAdapter):
         relevant: GENE = gene id, STRAND = +/-, SEQ = transcript sequence
         """
         tsc_1 = {
-            EAdapterFields.SEQ: "AAAAACCCCTTTTTG", # 15 * C
+            EAdapterFields.SEQ: "AAAAACCCCCGGGGG", # 15 * C
             EAdapterFields.GENE: "gene_1", # gene id
             EAdapterFields.STRAND: "+", # normal 5' to 3'
         }

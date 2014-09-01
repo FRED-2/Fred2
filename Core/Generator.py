@@ -93,7 +93,7 @@ def _incorp_deletion(seq, var, transId, offset):
     print "offset: ",offset
 
     var.offsets[transId] = offset
-    pos = var.get_transcript_position(transId) -1
+    pos = var.get_transcript_position(transId)
     s = slice(pos, pos+len(var.ref))
     del seq[s]
     return seq, offset - len(var.ref)
@@ -127,21 +127,22 @@ def generate_transcripts_from_variants(vars, dbadapter):
              possible variations determined by the given
              variant list
     """
-    generate_transcripts_from_variants.transOff = 0
     def _generate_combinations(tId, vs, seq, usedVs, offset):
         """
          recursive variant combination generator
+
         :param tId:
         :param vs:
         :param seq:
         :param offset:
         :return:
         """
+        transOff = generate_transcripts_from_variants.transOff
         if vs:
             v = vs.pop()
 
             if v.isHomozygous:
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%generate_transcripts_from_variants.transOff, offset)
+                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
                 usedVs.append(v)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
@@ -153,18 +154,19 @@ def generate_transcripts_from_variants(vars, dbadapter):
                 for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset):
                     yield s
 
-                # new_trans = int(s[0].split("_")[-1])+1
+                # update the transcript variant id
                 old_trans = generate_transcripts_from_variants.transOff
                 generate_transcripts_from_variants.transOff += 1
-                _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(generate_transcripts_from_variants.transOff))
+                transOff = generate_transcripts_from_variants.transOff
+                _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(transOff))
 
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%generate_transcripts_from_variants.transOff, offset)
+                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
 
                 usedVs.append(v)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
         else:
-            yield tId+":FRED2_%i"%generate_transcripts_from_variants.transOff, seq, usedVs
+            yield tId+":FRED2_%i"%transOff, seq, usedVs
 
     #1) get all transcripts and sort the variants to transcripts
 
@@ -198,6 +200,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
 
         vs.sort(key=lambda v: v.genomePos, reverse=True)
 
+        generate_transcripts_from_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
             yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
 
