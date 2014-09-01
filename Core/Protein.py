@@ -27,11 +27,12 @@ class Protein(MetadataLogger, Seq):
         (from Biopython)
 
     :param str gene_id: ID of the genome
-    :param str _transcript_id: ID of the corresponding transcript 
+    :param str transcript_id: ID of the corresponding transcript 
     :param Transcript orig_transcript: Reference to the originating transcript
-    :param dict(int,Variant) vars: Nonsynonymous variants that are
-                                   assoziated with the protein. key=position
-                                   within protein, value=Variant at that pos
+    :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
+                                          assoziated with the protein. 
+                                          key=position within protein, 
+                                          value=list of variants at that pos
     """
 
     def __init__(self, _seq, _gene_id, _transcript_id, _orig_transcript=None, 
@@ -44,10 +45,10 @@ class Protein(MetadataLogger, Seq):
                                    from
         :param Transcript _orig_transcript: Reference to the originating 
                                             transcript
-        :param dict(int,Variant) _vars: Nonsynonymous variants that are
-                                        assoziated with the protein. 
-                                        key=position within protein, 
-                                        value=Variant at that pos
+        :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
+                                              assoziated with the protein. 
+                                              key=position within protein, 
+                                              value=list of variants at that pos
         """
         # Init parent type:
         MetadataLogger.__init__(self)
@@ -56,7 +57,7 @@ class Protein(MetadataLogger, Seq):
         if _vars is None:
             self.vars = dict()
         else:
-            self.vars = _vars  # {prot-position: variantset}
+            self.vars = _vars  # {prot-position: list(variant)}
         self.orig_transcript = _orig_transcript
         self.transcript_id = _transcript_id
         self.gene_id = _gene_id

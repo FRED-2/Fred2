@@ -162,7 +162,7 @@ class Variant(MetadataLogger):
             raise KeyError("Transcript ID %s not associated with variant %s"%
                            (trans_variant_id, self.__str__()))
 
-    def get_protein_position(self, transcriptId):
+    def get_protein_position(self, trans_variant_id):
         """
         returns the specific protein position of a given transcript_id. If 
         variant is not associated with the given transcript id the function 
@@ -171,8 +171,9 @@ class Variant(MetadataLogger):
         :param str transcriptId: A transcript_id
         :return: (int) -- the protein position of the variant
         """
+        trans_id = trans_variant_id.split(":FRED2_")[0]
         try:
-            return self.coding[transcriptId].protPos
+            return self.coding[trans_id].protPos
         except KeyError:
             raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (str(transcriptId), self.__str__()))
+                           (str(trans_variant_id), self.__str__()))

@@ -214,8 +214,7 @@ def generate_peptides_from_protein(proteins, window_size):
     """
 
     def gen_peptide_info(protein):
-        # Generate a peptide seqs and find the variants within each sequence
-
+        # Generate peptide sequences and find the variants within each
         res = []
         seq = str(protein)
         for i in range(len(protein)+1-window_size):

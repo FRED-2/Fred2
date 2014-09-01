@@ -6,9 +6,8 @@ __author__ = 'schubert'
 '''
 Unit Test for Transcript Generator
 '''
-
-
 import unittest
+
 from Fred2.Core.Base import COMPLEMENT
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 from Fred2.Core.Generator import generate_transcripts_from_variants,_incorp
@@ -35,18 +34,18 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         self.db_adapter = MartsAdapter()
 
 
-    # def test_non_syn_hetero_snp_trans_number(self):
-    #     """
-    #     tests if the number of generated transcripts for a heterozygous transcript is correct
+    def test_non_syn_hetero_snp_trans_number(self):
+        """
+        tests if the number of generated transcripts for a heterozygous transcript is correct
 
-    #     1 hetero vars = 2 transcripts
-    #     :return:
-    #     """
-    #     vars = [self.non_syn_hetero_snp, self.non_frame_shift_del,self.syn_homo_snp]
-    #     trans = [t for t in generate_transcripts_from_variants(vars, self.db_adapter)]
-    #     print trans
-    #     print "\ndiff: ", [ (a,b) for a,b in zip(str(trans[0]), str(trans[1])) if a != b]
-    #     self.assertTrue(len(trans) == 2**sum(not v.isHomozygous for v in vars))
+        1 hetero vars = 2 transcripts
+        :return:
+        """
+        vars = [self.non_syn_hetero_snp, self.non_frame_shift_del,self.syn_homo_snp]
+        trans = [t for t in generate_transcripts_from_variants(vars, self.db_adapter)]
+        print trans
+        print "\ndiff: ", [ (a,b) for a,b in zip(str(trans[0]), str(trans[1])) if a != b]
+        self.assertTrue(len(trans) == 2**sum(not v.isHomozygous for v in vars))
 
 
     # def test_trans_post_in_var_is_correct(self):
@@ -73,60 +72,60 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
     #         print
     #         self.assertTrue(v.ref == trans[v.get_transcript_position(self.trid)-1])
 
-    # def test_simple_incorporation(self):
-    #     """
-    #     test simple variant incorporation. only 1 variant in 1 transcript.
-    #     input reference transcript: AAAAACCCCCGGGGG
+    def test_simple_incorporation(self):
+        """
+        test simple variant incorporation. only 1 variant in 1 transcript.
+        input reference transcript: AAAAACCCCCGGGGG
 
-    #     variant 3: insert TT after pos 7
+        variant 3: insert TT after pos 7
 
-    #     variant 1: SNP C -> T at pos 2
+        variant 1: SNP C -> T at pos 2
 
-    #     variant 4: del CCCCC after pos 9
-    #     """
-    #     dummy_db = DummyAdapter()
+        variant 4: del CCCCC after pos 9
+        """
+        dummy_db = DummyAdapter()
 
-    #     # INSERTIONS:
-    #     dummy_vars = [ var_3]
-    #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        # INSERTIONS:
+        dummy_vars = [ var_3]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
         
-    #     self.assertEqual(str(trans), "AAAAACCTTCCCGGGGG")
+        self.assertEqual(str(trans), "AAAAACCTTCCCGGGGG")
 
-    #     # SNPs:
-    #     dummy_vars = [ var_1]
-    #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-    #     self.assertEqual(str(trans), "ATAAACCCCCGGGGG")
-
-
-    #     # DELETIONS:
-    #     dummy_vars = [ var_4]
-    #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-    #     self.assertEqual(str(trans), "AAAAACCCCG")
+        # SNPs:
+        dummy_vars = [ var_1]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        self.assertEqual(str(trans), "ATAAACCCCCGGGGG")
 
 
+        # DELETIONS:
+        dummy_vars = [ var_4]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        self.assertEqual(str(trans), "AAAAACCCCG")
 
-    # def test_offset_single(self):
-    #     """
-    #     tests if offset is correctly handled when several variants for one 
-    #     transcript occur. still only one transcript with one transcript variant.
-    #     reference transcript: AAAAACCCCCGGGGG
 
-    #     Each variant so that it is clearly down stream of
-    #     it's predecessor
 
-    #     """
-    #     dummy_db = DummyAdapter()
+    def test_offset_single(self):
+        """
+        tests if offset is correctly handled when several variants for one 
+        transcript occur. still only one transcript with one transcript variant.
+        reference transcript: AAAAACCCCCGGGGG
 
-    #     # 1) INS, SNP, DEL
-    #     dummy_vars = [ var_3, var_7, var_6]
-    #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        Each variant so that it is clearly down stream of
+        it's predecessor
+
+        """
+        dummy_db = DummyAdapter()
+
+        # 1) INS, SNP, DEL
+        dummy_vars = [ var_3, var_7, var_6]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
         
-    #     self.assertEqual(str(trans), "AAAAACCTTCTCGGG")
+        self.assertEqual(str(trans), "AAAAACCTTCTCGGG")
 
-    #     # 2.) INS, DEL, INS
-    #     dummy_vars = [ var_9, var_4, var_8]
-    #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-    #     self.assertEqual(str(trans), "AATTAAACCCCGTTT")
+        # 2.) INS, DEL, INS
+        dummy_vars = [ var_9, var_4, var_8]
+        trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        self.assertEqual(str(trans), "AATTAAACCCCGTTT")
 
 
     def test_heterozygous_variants(self):

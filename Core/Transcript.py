@@ -9,8 +9,10 @@
 """
 __author__ = 'brachvogel', 'szolek', 'walzer'
 
+import warnings
+
 from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC
+from Bio.Alphabet import generic_rna
 
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Base import MetadataLogger
@@ -40,12 +42,12 @@ class Transcript(MetadataLogger, Seq):
                                         value=Variant
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq, IUPAC.IUPACUnambiguousRNA)
+        Seq.__init__(self, _seq, generic_rna)
         self.gene_id = _gene_id
         self.transcript_id = _transcript_id
         if _vars is not None:
-            self.vars = dict((v.get_transcript_position(_transcript_id), v) \
-                for v in _vars)
+            self.vars = {v.get_transcript_position(_transcript_id): \
+            v for v in _vars}
         else:
             self.vars = dict()
 
@@ -84,14 +86,20 @@ class Transcript(MetadataLogger, Seq):
         :param returns: (Protein) -- the protein that corresponds to the 
                         transcript
         """
-
         # translate to a protein sequence
-        prot_seq = str(self.translate())
+        if len(str(self)) % 3 != 0:
+            raise ValueError('ERROR while translating: lenght of transcript %s \
+is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
+
+        prot_seq = str(Seq.translate(self))
 
         # only transfer the non-synonymous variants to the protein as an
         # ordered dict, also translate into protein positions
-        new_vars = dict((y.get_protein_position(self.transcript_id), y) \
-            for y in self.vars.itervalues()  if y.isSynonymous)
+        new_vars = dict()
+        for var in self.vars.values():
+            if not var.isSynonymous:
+                pos = var.get_protein_position(self.transcript_id)
+                new_vars.setdefault(pos, []).append(var)
 
         gene_id = self.gene_id
         return Protein(prot_seq, gene_id, self.transcript_id, self, new_vars)
