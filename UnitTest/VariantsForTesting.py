@@ -179,13 +179,13 @@ var_11 = Variant(
 
 # -DEL(-2), HETEROZYGOUS
 mut_syn2_12 = MutationSyntax("tsc_1", # transcript_id
-                             6,       # pos in transc
-                             2,       # pos in protein
+                             7,       # pos in transc
+                             3,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 var_12 = Variant(
     "var_12", VariationType.DEL, "chr1",
-    6,                     # Genomic Position 
+    7,                     # Genomic Position 
     "CCCC", "",            # reference , observed
     {"tsc_1":mut_syn2_12,
      "tsc_2":mut_syn2_12}, # dict of (transcrip_id : mutSnytaxes)
