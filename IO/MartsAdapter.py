@@ -43,6 +43,7 @@ class MartsAdapter(ADBAdapter):
         self.biomart_filter = """<Filter name="%s" value="%s" filter_list=""/>"""
         self.biomart_attribute = """<Attribute name="%s"/>"""
 
+    #TODO: refactor ... function based on old code
     def get_product_sequence(self, product_refseq):
         """
         fetches product sequence for the given id
@@ -102,6 +103,7 @@ class MartsAdapter(ADBAdapter):
             self.sequence_proxy[product_refseq] = tsvselect[0]["Protein"]
             return self.sequence_proxy[product_refseq]
 
+    #TODO: refactor ... function based on old code
     def get_transcript_sequence(self, transcript_refseq):
         """
         Fetches transcript sequence for the given id
@@ -217,6 +219,7 @@ class MartsAdapter(ADBAdapter):
             return self.ids_proxy[transcript_refseq]
         return None
 
+    #TODO: refactor ... function based on old code
     def get_variant_gene(self, chrom, start, stop):
         """
         Fetches the important db ids and names for given chromosomal location
@@ -244,6 +247,7 @@ class MartsAdapter(ADBAdapter):
             logging.warning(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
             return ''
 
+    #TODO: refactor ... function based on old code
     def get_all_variant_gene(self, locations):
         """
         Fetches the important db ids and names for given chromosomal location
@@ -274,6 +278,7 @@ class MartsAdapter(ADBAdapter):
         #     logging.warn(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
         #     return ''
 
+    #TODO: refactor ... function based on old code
     def get_variant_ids(self, **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
@@ -355,6 +360,7 @@ class MartsAdapter(ADBAdapter):
         self.ids_proxy[g] = result.values()
         return result.values()
 
+    #TODO: refactor ... function based on old code
     def get_all_variant_ids(self, **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
