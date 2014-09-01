@@ -144,7 +144,7 @@ class Variant(MetadataLogger):
     def __repr__(self):
         return "Variant(%s%i%s)"%(self.ref, self.genomePos, self.obs)
 
-    def get_transcript_position(self, transcriptId):
+    def get_transcript_position(self, trans_variant_id):
         """
         returns the specific transcript position of a given transcript_id. 
         If variant is not associated with the given transcript id the function 
@@ -154,16 +154,13 @@ class Variant(MetadataLogger):
         :return: (int) -- transcript position
         :raises: KeyError
         """
-        offsetID = ""
-        transID = transcriptId.split(":FRED2_")
-        if len(transID) > 1:
-            offsetID = transID[1]
+        trans_id = trans_variant_id.split(":FRED2_")[0]
         try:
-            return self.coding[transID[0]].tranPos + \
-                   self.offsets.get((transID[0], offsetID), 0)
+            return self.coding[trans_id].tranPos + \
+                   self.offsets.get(trans_variant_id, 0)
         except KeyError:
             raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (str(transID[0]), self.__str__()))
+                           (trans_variant_id, self.__str__()))
 
     def get_protein_position(self, transcriptId):
         """

@@ -42,11 +42,13 @@ def _incorp_snp(seq, var, transId, offset):
     """
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
+    var.offsets[transId] = offset
     #DEBUG:
     print "incorporate SNP:", str(var), " pos=", var.get_transcript_position(transId)
     print "offset: ",offset
-    var.offsets[transId] = offset
+    print "var.offset: ",var.offsets[transId]
     seq[var.get_transcript_position(transId)-1] = var.obs
+
     return seq, offset
 
 
