@@ -9,13 +9,12 @@
 """
 __author__ = 'szolek', 'walzer'
 
-import re
+
+from abc import ABCMeta
 from collections import defaultdict
 from string import maketrans
 
-from Bio.Seq import Seq
-from Bio.SeqIO import SeqRecord
-from Bio.Alphabet import IUPAC
+
 
 COMPLEMENT = maketrans('atgcATGC', 'tacgTACG')
 
@@ -63,9 +62,8 @@ class MetadataLogger(object):
             return self.__metadata[label][0] if self.__metadata[label] else None
 
 
-
 #Metaclass for Plugins
-class PluginRegister(type):
+class PluginRegister(ABCMeta):
     """
         This class is an allows automatic registration of new plugins.
     """
