@@ -120,13 +120,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
     """
     def _generate_combinations(tId, vs, seq, usedVs, offset):
         """
-         recursive variant combination generator
-
-        :param tId:
-        :param vs:
-        :param seq:
-        :param offset:
-        :return:
+        recursive variant combination generator
         """
         transOff = generate_transcripts_from_variants.transOff
         if vs:

@@ -1,3 +1,6 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
 from abc import ABCMeta, abstractmethod
 
 __author__ = 'schubert'

@@ -156,6 +156,12 @@ class Variant(MetadataLogger):
 
     def get_transcript_position(self, trans_variant_id):
         """
+        .. note::
+
+            May only be used for transcript variants that were created from
+            this variant via 
+            :func:`Generator.generate_transcripts_from_variants`.
+
         returns the specific transcript position of a given transcript_id. 
         If variant is not associated with the given transcript id the function 
         throws a KeyError
@@ -174,6 +180,12 @@ class Variant(MetadataLogger):
 
     def get_protein_position(self, trans_variant_id):
         """
+        .. note::
+
+            May only be used for transcript variants that were created from
+            this variant via 
+            :func:`Generator.generate_transcripts_from_variants`.
+
         returns the specific protein position of a given transcript_id. If 
         variant is not associated with the given transcript id the function 
         throws a KeyError

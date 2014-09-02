@@ -44,8 +44,9 @@ class Transcript(MetadataLogger, Seq):
         self.gene_id = _gene_id
         self.transcript_id = _transcript_id
         if _vars is not None:
-            self.vars = {v.get_transcript_position(_transcript_id): \
-            v for v in _vars}
+            self.vars = {v.get_transcript_position(_transcript_id): v \
+                         for v in _vars}
+
         else:
             self.vars = dict()
 
@@ -71,7 +72,7 @@ class Transcript(MetadataLogger, Seq):
         for vpos, var in self.vars.iteritems():
             lines.append('\t pos %i: %s'%(vpos, var))
 
-        lines += ["\t  SEQUENCE: %s (mRNA)"%str(self)]
+        lines += ["SEQUENCE: %s (mRNA)"%str(self)]
 
         return '\n\t'.join(lines) + '\n'
 
