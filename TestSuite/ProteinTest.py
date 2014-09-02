@@ -135,8 +135,6 @@ class TestProteinClass(unittest.TestCase):
         ## GENERATE Peptides:
         peptides = generate_peptides_from_protein(proteins,2)
 
-        # print peptides
-        # print len(peptides)
 
     def test4_peptides_from_variants(self):
         """
@@ -152,23 +150,24 @@ class TestProteinClass(unittest.TestCase):
 
         trans-var2: KNPRG
         2: peps(3): KNPR, NPRG
+
+        Output:
+        -------
+        PEPTIDE: PPGA
+            TRANSCRIPT: tsc_1:FRED2_3
+                 Variant(15CC)
+                 Variant(1C)
+        PEPTIDE: KPPG
+            TRANSCRIPT: tsc_1:FRED2_3
+                 Variant(1C)
+        PEPTIDE: TKPP
+            TRANSCRIPT: tsc_1:FRED2_3
+                 Variant(1C)
         
-
-PEPTIDE: PPGA
-    TRANSCRIPT: tsc_1:FRED2_3
-         Variant(15CC)
-         Variant(1C)
-PEPTIDE: KPPG
-    TRANSCRIPT: tsc_1:FRED2_3
-         Variant(1C)
-PEPTIDE: TKPP
-    TRANSCRIPT: tsc_1:FRED2_3
-         Variant(1C)
-
-PEPTIDE: KNPR
-    TRANSCRIPT: tsc_1:FRED2_0
-PEPTIDE: NPRG
-    TRANSCRIPT: tsc_1:FRED2_0
+        PEPTIDE: KNPR
+            TRANSCRIPT: tsc_1:FRED2_0
+        PEPTIDE: NPRG
+            TRANSCRIPT: tsc_1:FRED2_0
         """
 
         peps_trans1 = ["KNPR", "NPRG"]
@@ -191,8 +190,11 @@ PEPTIDE: NPRG
         peptides = generate_peptides_from_protein(proteins, 4)
 
         sequences = [str(pep) for pep in peptides]
+
+        # Check if all peptides are generated as expected
         self.assertTrue(all(pep in sequences for pep in expected))
-        self.assertEqual(len(peptides), 5)
+        # no duplicates or more than the expected ones:
+        self.assertEqual(len(peptides), len(expected))
 
         vari_peps = [pep.get_all_variants() for pep in peptides \
                      if str(pep) in peps_trans2]
