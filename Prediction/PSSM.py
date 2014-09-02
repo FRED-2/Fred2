@@ -200,7 +200,8 @@ class APSSMPredictor(AEpitopePrediction):
 
         #group peptides by length and
         result = {}
-        for length, pep_seq in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:
                 warnings.warn("Peptide length of %i not supported"%length, RuntimeWarning)
@@ -209,13 +210,14 @@ class APSSMPredictor(AEpitopePrediction):
             for a in allales_string:
                 pssm = __load_allele_model(a, length)
                 ##here is the prediction and result object missing##
-                score = sum(pssm[i][pep_seq[i]] for i in xrange(length))
-                result.setdefault(pep_seqs[pep_seq], []).append((self.name, a, score))
+                for p in peps:
+                    score = sum(pssm[i][p[i]] for i in xrange(length))
+                    result.setdefault(str(p), []).append((p, self.name, a, score))
 
         return result
 
 
-class Syfpeithi(AEpitopePrediction):
+class Syfpeithi(APSSMPredictor):
     """
         Represents the Syfpeithi PSSM predictor
     """
@@ -243,7 +245,7 @@ class Syfpeithi(AEpitopePrediction):
         return super(Syfpeithi, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class BIMAS(AEpitopePrediction):
+class BIMAS(APSSMPredictor):
     """
         Represents the BIMAS PSSM predictor
     """
