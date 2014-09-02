@@ -213,7 +213,8 @@ def generate_peptides_from_protein(proteins, window_size):
     :param int window_size: size of peptide fragments
     """
     def frameshift_influences(tid, _vars, res, start):
-        # find variants that influence the current peptide
+        # find variants out side the peptide frame, still influencing it via a
+        # frameshift
         accu = [] # accumulator for relevant variants
 
         _vars.sort(key=lambda v: v.genomePos) # necessary?
@@ -237,8 +238,6 @@ def generate_peptides_from_protein(proteins, window_size):
                 break
 
 
-
-
     def gen_peptide_info(protein):
         # Generate peptide sequences and find the variants within each
         res = []
@@ -258,7 +257,6 @@ def generate_peptides_from_protein(proteins, window_size):
                 frameshift_influences(protein.transcript_id, 
                                       protein.orig_transcript.vars.values(), 
                                       pep_var, i)
-                print pep_var
             else:
                 pep_var = []
 
@@ -270,14 +268,14 @@ def generate_peptides_from_protein(proteins, window_size):
 
     for prot in proteins:
         # generate all peptide sequences per protein:
-        for (pep, _vars) in gen_peptide_info(prot):
+        for (seq, _vars) in gen_peptide_info(prot):
 
             t_id = prot.transcript_id
-            if pep not in final_peptides:
-                final_peptides[pep] = Peptide(pep)
+            if seq not in final_peptides:
+                final_peptides[seq] = Peptide(seq)
 
-            final_peptides[pep].proteins[t_id] = prot
-            final_peptides[pep].vars[t_id] = _vars
-            final_peptides[pep].transcripts[t_id] = prot.orig_transcript
+            final_peptides[seq].proteins[t_id] = prot
+            final_peptides[seq].vars[t_id] = _vars
+            final_peptides[seq].transcripts[t_id] = prot.orig_transcript
 
     return final_peptides.values()

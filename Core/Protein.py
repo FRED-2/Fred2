@@ -71,7 +71,7 @@ class Protein(MetadataLogger, Seq):
         :returns: Protein -- A protein consisting of the single letter at
                   position :attr:`index`.
         """
-        item = self[index]
+        item = str(self)[index]
         return Protein(item, self.gene_id, self.orig_transcript, self.vars)
 
     def __repr__(self):
