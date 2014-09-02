@@ -43,8 +43,8 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         """
         vars = [self.non_syn_hetero_snp, self.non_frame_shift_del,self.syn_homo_snp]
         trans = [t for t in generate_transcripts_from_variants(vars, self.db_adapter)]
-        print trans
-        print "\ndiff: ", [ (a,b) for a,b in zip(str(trans[0]), str(trans[1])) if a != b]
+        # print trans
+        # print "\ndiff: ", [ (a,b) for a,b in zip(str(trans[0]), str(trans[1])) if a != b]
         self.assertTrue(len(trans) == 2**sum(not v.isHomozygous for v in vars))
 
 
@@ -134,6 +134,7 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         containing heterozygous variants .
 
         Variants:
+        3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
         HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
 
         Reference sequence:
@@ -153,9 +154,11 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         dummy_db = DummyAdapter()
 
         # 1) INS, SNP, DEL
-        dummy_vars = [ var_10, var_11, var_12]
-        trans =[t for t in generate_transcripts_from_variants(dummy_vars, dummy_db)]
-        #print trans
+        dummy_vars = [var_10, var_11, var_12]
+        trans_gener = generate_transcripts_from_variants(dummy_vars, dummy_db)
+        trans = [t for t in trans_gener]
+
+        print "\n\n\nTEST HETERO\n\n\n", trans
 
         trans = map(str, trans)
 

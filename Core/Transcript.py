@@ -63,16 +63,17 @@ class Transcript(MetadataLogger, Seq):
 
 
     def __repr__(self):
-        # get sequence:
-        lines = [str(self)]
+        lines = []
+        lines += ["TRANSCRIPT: %s " % self.transcript_id]
+        
         # get all variants:
-        t_id = self.transcript_id.split(":FRED2_")[0]
-        for vpos, vset in self.vars.iteritems():
-            lines.append('%s: '%vpos +', ' + ('%s %s' % \
-            (vset.get_transcript_position(self.transcript_id), \
-            vset.coding[t_id].aaMutationSyntax)))
+        lines += ["VARIANTS:"]
+        for vpos, var in self.vars.iteritems():
+            lines.append('\t pos %i: %s'%(vpos, var))
 
-        return self.transcript_id + '\n\t' + '\n\t'.join(lines)
+        lines += ["\t  SEQUENCE: %s (mRNA)"%str(self)]
+
+        return '\n\t'.join(lines) + '\n'
 
 
     def translate(self, table='Standard', stop_symbol='*', to_stop=False, 

@@ -147,7 +147,7 @@ var_9 = Variant(
 #      H E T E R O Z Y G O U S     V A R I A N T S
 ################################################################################
 
-# -DEL(-2), HETEROZYGOUS, pos 3
+# 3-DEL(-2), HETEROZYGOUS, pos 3
 mut_syn2_10 = MutationSyntax("tsc_1", # transcript_id
                              3,       # pos in transc
                              1,       # pos in protein
@@ -162,7 +162,7 @@ var_10 = Variant(
     False, False)          # isHomozygous?, isSynonymous?
 
 
-# -INS(+3), HOMOZYGOUS, pos
+# 5-INS(+3), HOMOZYGOUS, pos 5
 mut_syn2_11 = MutationSyntax("tsc_1", # transcript_id
                              5,       # pos in transc
                              2,       # pos in protein
@@ -177,7 +177,7 @@ var_11 = Variant(
     True, False)           # isHomozygous?, isSynonymous?
 
 
-# -DEL(-2), HETEROZYGOUS
+# 7-DEL(-4), HETEROZYGOUS, pos 7
 mut_syn2_12 = MutationSyntax("tsc_1", # transcript_id
                              7,       # pos in transc
                              3,       # pos in protein
