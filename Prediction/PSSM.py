@@ -185,6 +185,8 @@ class APSSMPredictor(AEpitopePrediction):
         """
         def __load_allele_model(allele,length):
             allele_model = "%s_%s_%i"%(self.name, allele, length)
+
+            #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.PSSMMatrices", fromlist=[allele_model]), allele_model)
 
 
@@ -256,7 +258,7 @@ class BIMAS(APSSMPredictor):
                  'HLA-B*51:02', 'HLA-B*40:06', 'HLA-B*40:06', 'HLA-B*51:02', 'HLA-B*37:01', 'HLA-A*11:01',
                  'HLA-B*08:01', 'HLA-B*44:03', 'HLA-A*68:01', 'HLA-B*51:03', 'HLA-B*52:01', 'HLA-A*02:01',
                  'HLA-A*01:01', 'HLA-C*07:02', 'HLA-C*03:01', 'HLA-B*40:01', 'HLA-B*51:01', 'HLA-B*39:02',
-                 'HLA-B*52:01', 'HLA-Cw*04:01', 'HLA-B*27:02', 'HLA-B*39:01']
+                 'HLA-B*52:01', 'HLA-C*04:01', 'HLA-B*27:02', 'HLA-B*39:01']
     __supported_length = [8, 9]
     __name = "bimas"
 
