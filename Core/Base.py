@@ -90,6 +90,28 @@ class APluginRegister(abc.ABCMeta):
         return cls.__name__ + ": " + ", ".join([sc.__name__ for sc in cls])
 
 
+class ACleavagePrediction(object):
+    __metaclass__ = APluginRegister
+
+    @abc.abstractproperty
+    def name(self):
+        """
+        Returns the name of the predictor
+
+        :return:
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def predict(self, _aa_seq,  **kwargs):
+        """
+        Predicts the proteom cleavage site of the given sequences
+
+        :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
+        :return: Returns a Result object for the specified Bio.Seq
+        """
+        raise NotImplementedError
+
 class AEpitopePrediction(object):
     __metaclass__ = APluginRegister
 
