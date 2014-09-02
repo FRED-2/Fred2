@@ -151,9 +151,31 @@ class TestProteinClass(unittest.TestCase):
         1: peps(3): TKPP, KPPG, PPGA
 
         trans-var2: KNPRG
-        2: peps(3): KNP, NPR, PRG
+        2: peps(3): KNPR, NPRG
         
+
+PEPTIDE: PPGA
+    TRANSCRIPT: tsc_1:FRED2_3
+         Variant(15CC)
+         Variant(1C)
+PEPTIDE: KPPG
+    TRANSCRIPT: tsc_1:FRED2_3
+         Variant(1C)
+PEPTIDE: TKPP
+    TRANSCRIPT: tsc_1:FRED2_3
+         Variant(1C)
+
+PEPTIDE: KNPR
+    TRANSCRIPT: tsc_1:FRED2_0
+PEPTIDE: NPRG
+    TRANSCRIPT: tsc_1:FRED2_0
         """
+
+        peps_trans1 = ["KNPR", "NPRG"]
+        peps_trans2 = ["PPGA", "KPPG", "TKPP"]
+        expected_vars = ["Variant(1C)", "Variant(15CC)"]
+        expected = peps_trans1 + peps_trans2
+
         dummy_db = DummyAdapter()
         dummy_vars = [var_13, var_14]
 
@@ -166,11 +188,21 @@ class TestProteinClass(unittest.TestCase):
             except ValueError:
                 pass
 
-        peptides = generate_peptides_from_protein(proteins,4)
+        peptides = generate_peptides_from_protein(proteins, 4)
 
-        for pept in peptides:
-            print pept.__repr__()
+        sequences = [str(pep) for pep in peptides]
+        self.assertTrue(all(pep in sequences for pep in expected))
+        self.assertEqual(len(peptides), 5)
 
+        vari_peps = [pep.get_all_variants() for pep in peptides \
+                     if str(pep) in peps_trans2]
+
+        vars_ = [str(var) for varlist in vari_peps for var in varlist]
+
+        # Check that for the peptides from the transcript containing the 
+        # variants, we also get all expected variants. Especally the first
+        # variant needs to be present in all peptides
+        self.assertTrue(all(var in vars_ for var in expected_vars))
 
 
 if __name__ == '__main__':

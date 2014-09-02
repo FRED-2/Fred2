@@ -27,10 +27,10 @@ class Peptide(MetadataLogger, Seq):
     :param dict(str,Protein) proteins: dict of transcript_IDs to protein
                                        instances that could generate that 
                                        peptide
-    :param dict(int,list(Variant)) vars: dict of positions to a list of variants
-                                         that affeced the peptide, (including
-                                         frameshifts that started not directly
-                                         within the peptide)
+    :param dict(str,list(Variant)) vars: dict of transcript_IDs to a list of 
+                                         variants that affeced the peptide, 
+                                         (including frameshifts that started not
+                                         directly within the peptide)
     :param dict(str,Transcript) transcripts: dict of transcript_IDs to 
                                              transcript instances that could 
                                              have generated the peptide
@@ -55,7 +55,7 @@ class Peptide(MetadataLogger, Seq):
         :returns: (Peptide) -- A Peptide consisting of the single letter at
                   position :attr:`index`.
         """
-        item = self[index]
+        item = str(self)[index]
         new_pept = Peptide(item)
         new_pept.proteins = self.proteins
         new_pept.vars = self.vars
@@ -66,10 +66,6 @@ class Peptide(MetadataLogger, Seq):
     def __repr__(self):
         lines = ["PEPTIDE: %s"%str(self)]
 
-        # print self.vars
-        # for vpos, vset in self.vars.iteritems():
-        #     lines.append("pos %i: %s"% vpos, vset)
-
         for t_id in self.transcripts:
             lines.append("TRANSCRIPT: %s"%t_id)
             lines.append("\t VARIANTS:")
@@ -79,3 +75,5 @@ class Peptide(MetadataLogger, Seq):
 
         return '\n\t'.join(lines) + '\n'
 
+    def get_all_variants(self):
+        return [var for var_list in self.vars.values() for var in var_list]

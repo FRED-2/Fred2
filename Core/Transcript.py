@@ -9,8 +9,6 @@
 """
 __author__ = 'brachvogel', 'szolek', 'walzer'
 
-import warnings
-
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_rna
 
@@ -60,7 +58,7 @@ class Transcript(MetadataLogger, Seq):
         :returns: (Transcript) -- A Transcript consisting of the single
         letter at position :attr:`index`.
         """
-        item = self[index]
+        item = str(self)[index]
         return Transcript(self.transcript_id, item, self.vars)
 
 
