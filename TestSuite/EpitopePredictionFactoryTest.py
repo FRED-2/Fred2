@@ -1,7 +1,7 @@
 __author__ = 'schubert'
 
-from Prediction import *
-from Prediction import EpitopePredictorFactory
+from EpitopePrediction import *
+from EpitopePrediction import EpitopePredictorFactory
 
 
 dummy = EpitopePredictorFactory("DummyEpitopePredictor")

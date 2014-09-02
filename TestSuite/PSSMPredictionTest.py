@@ -12,7 +12,7 @@ from Core.Allele import Allele
 from Core.Peptide import Peptide
 
 #Preidctions
-from Prediction import EpitopePredictorFactory
+from EpitopePrediction import EpitopePredictorFactory
 
 
 class TestCasePSSM(unittest.TestCase):
