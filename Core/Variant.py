@@ -115,6 +115,10 @@ class Variant(MetadataLogger):
     :param bool isHomozygous: defines if variant is homozygous or not
     :param bool isSynonymous: defines if variant is a synonymous mutation 
                               or not
+    :param dict(str,int) offsets: the position offset this variant has in a 
+                                  specific transcript-variant
+                                  key=transcript-variant-id (xxx:FRED2_nn)
+                                  value=offset
     :param defaultdict(list) metadata: meta information (not relevant for core
                                        functionality of Fred2)
 
@@ -144,6 +148,12 @@ class Variant(MetadataLogger):
     def __repr__(self):
         return "Variant(%s%i%s)"%(self.ref, self.genomePos, self.obs)
 
+    def get_transcript_offset(self):
+        return len(self.obs) - len(self.ref)
+
+    def get_shift(self):
+        return self.get_transcript_offset() % 3
+
     def get_transcript_position(self, trans_variant_id):
         """
         returns the specific transcript position of a given transcript_id. 
@@ -160,7 +170,7 @@ class Variant(MetadataLogger):
                    self.offsets.get(trans_variant_id, 0)
         except KeyError:
             raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (trans_variant_id, self.__str__()))
+                           (trans_variant_id, str(self)))
 
     def get_protein_position(self, trans_variant_id):
         """
@@ -172,8 +182,11 @@ class Variant(MetadataLogger):
         :return: (int) -- the protein position of the variant
         """
         trans_id = trans_variant_id.split(":FRED2_")[0]
-        try:
-            return self.coding[trans_id].protPos
+        try: 
+            # get actual transcript position
+            tpos = self.coding[trans_id].tranPos + \
+                   self.offsets.get(trans_variant_id, 0)
         except KeyError:
             raise KeyError("Transcript ID %s not associated with variant %s"%
                            (str(trans_variant_id), self.__str__()))
+        return (tpos//3) + 1 # generate protein pos from transcript pos
