@@ -214,7 +214,7 @@ def generate_peptides_from_protein(proteins, window_size):
     """
     def frameshift_influences(tid, _vars, res, start):
         # find variants that influence the current peptide
-        accu = dict() # accumulator for relevant variants
+        accu = [] # accumulator for relevant variants
 
         _vars.sort(key=lambda v: v.genomePos) # necessary?
         shift = 0
@@ -228,12 +228,12 @@ def generate_peptides_from_protein(proteins, window_size):
                 # does a variant yield a frame shift?
                 if shift + new_shift:
                     shift += new_shift
-                    accu.setdefault(pos, []).append(var)
+                    accu.append(var)
                 else:
                     accu = {}
             # here: var.get_protein_position >= start, we are done!
             else:
-                res.update(accu)
+                res += accu
                 break
 
 
@@ -251,16 +251,16 @@ def generate_peptides_from_protein(proteins, window_size):
              # get the variants affecting the peptide:
             if protein.vars:
                 # variants within the peptide:
+                pep_var = [var for pos, var_list in protein.vars.iteritems() \
+                           for var in var_list if i <= pos <= end]
 
-                pep_var = dict((pos, var) \
-                          for pos, var in protein.vars.iteritems() \
-                          if i <= pos <= end)
                 # variants that affect the peptide via frameshift
                 frameshift_influences(protein.transcript_id, 
                                       protein.orig_transcript.vars.values(), 
                                       pep_var, i)
+                print pep_var
             else:
-                pep_var = {}
+                pep_var = []
 
             res.append((pep_seq, pep_var))
         return res
