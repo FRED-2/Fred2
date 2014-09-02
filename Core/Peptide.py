@@ -64,18 +64,18 @@ class Peptide(MetadataLogger, Seq):
 
 
     def __repr__(self):
-        lines = ["peptide: %s"%str(self)]
+        lines = ["PEPTIDE: %s"%str(self)]
 
         # print self.vars
         # for vpos, vset in self.vars.iteritems():
         #     lines.append("pos %i: %s"% vpos, vset)
 
         for t_id in self.transcripts:
-            lines.append("transcript: %s"%t_id)
-            lines.append("\t variants:")
+            lines.append("TRANSCRIPT: %s"%t_id)
+            lines.append("\t VARIANTS:")
 
-            for (pos, _vars) in self.vars[t_id].items():
-                lines.append("\t pos %d: %s" % (pos, ', '.join([str(var) for var in _vars])))
+            for var in self.vars[t_id]:
+                lines.append("\t %s" %var)
 
         return '\n\t'.join(lines) + '\n'
 
