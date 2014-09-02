@@ -72,7 +72,7 @@ class Transcript(MetadataLogger, Seq):
         for vpos, vset in self.vars.iteritems():
             lines.append('%s: '%vpos +', ' + ('%s %s' % \
             (vset.get_transcript_position(self.transcript_id), \
-                vset.coding[t_id].aaMutationSyntax)))
+            vset.coding[t_id].aaMutationSyntax)))
 
         return self.transcript_id + '\n\t' + '\n\t'.join(lines)
 

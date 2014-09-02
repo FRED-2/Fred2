@@ -26,7 +26,7 @@ class TestProteinClass(unittest.TestCase):
         self.prot_set.append(Protein("IIVRCIT", 'gene 1', 'set entry 3'))
         self.prot_set.append(Protein("IVRC", 'gene 1', 'set entry 4'))
 
-    def test1_1_protein_construction_novariants(self):
+    def test1_protein_construction_novariants(self):
         """
         Test if a single protein is correctly constructed from a given sequence
         and gene ID.
@@ -41,7 +41,7 @@ class TestProteinClass(unittest.TestCase):
         self.assertEqual(self.single_protein.vars, {})
 
 
-    def test1_2_generate_peptides_novariants(self):
+    def test2_generate_peptides_novariants(self):
         """
         Test if a list of proteins is correctly broken into peptide fragments.
         Here the proteins are constructed from their sequence, having no
@@ -73,7 +73,7 @@ class TestProteinClass(unittest.TestCase):
 
 
     # Using a protein made from variants:
-    def test_2_protein_from_variants(self):
+    def test3_protein_from_variants(self):
         """
         Generate some transcripts from the 3 input variants
         (should give 8 transcripts, check also if all fields are complete)
@@ -111,8 +111,6 @@ class TestProteinClass(unittest.TestCase):
                 proteins.append(trans.translate())
             except ValueError:
                 pass
-                #print "invalid transcripts, due to non multiple of 3 length: ",\
-                #      trans
 
         self.assertEqual(len(proteins), 4)
 
@@ -137,9 +135,41 @@ class TestProteinClass(unittest.TestCase):
         ## GENERATE Peptides:
         peptides = generate_peptides_from_protein(proteins,2)
 
-        print peptides
-        print len(peptides)
+        # print peptides
+        # print len(peptides)
 
+    def test4_peptides_from_variants(self):
+        """
+        Ref trancript: AAAAACCCCCGGGGG
+        ref protein:   KNPRG
+        ref peps(3):   KNPR, NPRG
+
+        variant1: heterozygous, fs+1 in first aa
+        variant2: heterozygous, insertion +2 in last aa
+
+        trans-var1: TKPPGA
+        1: peps(3): TKPP, KPPG, PPGA
+
+        trans-var2: KNPRG
+        2: peps(3): KNP, NPR, PRG
+        
+        """
+        dummy_db = DummyAdapter()
+        dummy_vars = [var_13, var_14]
+
+        proteins = []
+        for trans in generate_transcripts_from_variants(dummy_vars, dummy_db):
+            ### GET PROTS:
+            # IGNORE invalid sequence lengths
+            try:
+                proteins.append(trans.translate())
+            except ValueError:
+                pass
+
+        peptides = generate_peptides_from_protein(proteins,4)
+
+        for pept in peptides:
+            print pept.__repr__()
 
 
 

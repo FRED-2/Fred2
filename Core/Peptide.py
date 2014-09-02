@@ -28,9 +28,9 @@ class Peptide(MetadataLogger, Seq):
                                        instances that could generate that 
                                        peptide
     :param dict(int,list(Variant)) vars: dict of positions to a list of variants
-                                        that affeced the peptide, (including
-                                        frameshifts that started not directly
-                                        within the peptide)
+                                         that affeced the peptide, (including
+                                         frameshifts that started not directly
+                                         within the peptide)
     :param dict(str,Transcript) transcripts: dict of transcript_IDs to 
                                              transcript instances that could 
                                              have generated the peptide
@@ -64,11 +64,18 @@ class Peptide(MetadataLogger, Seq):
 
 
     def __repr__(self):
-        lines = ["peptide: "+str(self)]
-        for vpos, vset in self.vars.iteritems():
-            lines.append('%s: '%vpos +', '.join([('%s' % v) for v in vset]))
-        lines.append("found in transcripts: \n" + ', '.join(\
-            [t_ids for t_ids in self.transcripts]))
+        lines = ["peptide: %s"%str(self)]
 
-        return '\n\t'.join(lines)
+        # print self.vars
+        # for vpos, vset in self.vars.iteritems():
+        #     lines.append("pos %i: %s"% vpos, vset)
+
+        for t_id in self.transcripts:
+            lines.append("transcript: %s"%t_id)
+            lines.append("\t variants:")
+
+            for (pos, _vars) in self.vars[t_id].items():
+                lines.append("\t pos %d: %s" % (pos, ', '.join([str(var) for var in _vars])))
+
+        return '\n\t'.join(lines) + '\n'
 

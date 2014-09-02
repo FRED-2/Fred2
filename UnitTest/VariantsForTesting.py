@@ -192,7 +192,30 @@ var_12 = Variant(
     False, False)          # isHomozygous?, isSynonymous?
 
 
+# -INS(+2), HETEROZYGOUS, pos 15
+mut_syn2_13 = MutationSyntax("tsc_1", # transcript_id
+                             15,      # pos in transc
+                             5,       # pos in protein
+                             "",      # cdsMutationSyntax - irrelevant
+                             "")      # aaMutationSyntax - irrelevant
+var_13 = Variant(
+    "var_13", VariationType.INS, "chr1",
+    15,                    # Genomic Position 
+    "", "CC",              # reference , observed
+    {"tsc_1":mut_syn2_13}, # dict of (transcrip_id : mutSnytaxes)
+    False, False)          # isHomozygous?, isSynonymous?
 
-
+# -INS(+1), HETEROZYGOUS, pos 1
+mut_syn2_14 = MutationSyntax("tsc_1", # transcript_id
+                             1,       # pos in transc
+                             1,       # pos in protein
+                             "",      # cdsMutationSyntax - irrelevant
+                             "")      # aaMutationSyntax - irrelevant
+var_14 = Variant(
+    "var_14", VariationType.INS, "chr1",
+    1,                     # Genomic Position 
+    "", "C",              # reference , observed
+    {"tsc_1":mut_syn2_14}, # dict of (transcrip_id : mutSnytaxes)
+    False, False)          # isHomozygous?, isSynonymous?
 
 

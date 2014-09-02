@@ -212,6 +212,32 @@ def generate_peptides_from_protein(proteins, window_size):
                             peptides should be generated
     :param int window_size: size of peptide fragments
     """
+    def frameshift_influences(tid, _vars, res, start):
+        # find variants that influence the current peptide
+        accu = dict() # accumulator for relevant variants
+
+        _vars.sort(key=lambda v: v.genomePos) # necessary?
+        shift = 0
+
+        for var in _vars:
+
+            pos = var.get_protein_position(tid)
+            new_shift = var.get_shift()
+
+            if pos < start:
+                # does a variant yield a frame shift?
+                if shift + new_shift:
+                    shift += new_shift
+                    accu.setdefault(pos, []).append(var)
+                else:
+                    accu = {}
+            # here: var.get_protein_position >= start, we are done!
+            else:
+                res.update(accu)
+                break
+
+
+
 
     def gen_peptide_info(protein):
         # Generate peptide sequences and find the variants within each
@@ -222,12 +248,19 @@ def generate_peptides_from_protein(proteins, window_size):
             end = i+window_size
             pep_seq = seq[i:end]
 
-             # get the variants within that peptide:
-            if protein.vars is not None:
-                pep_var = dict((pos, var) for pos, var in \
-                            protein.vars.iteritems() if i <= pos <= end)
+             # get the variants affecting the peptide:
+            if protein.vars:
+                # variants within the peptide:
+
+                pep_var = dict((pos, var) \
+                          for pos, var in protein.vars.iteritems() \
+                          if i <= pos <= end)
+                # variants that affect the peptide via frameshift
+                frameshift_influences(protein.transcript_id, 
+                                      protein.orig_transcript.vars.values(), 
+                                      pep_var, i)
             else:
-                pep_var = None
+                pep_var = {}
 
             res.append((pep_seq, pep_var))
         return res
