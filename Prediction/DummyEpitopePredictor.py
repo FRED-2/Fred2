@@ -3,7 +3,7 @@ __author__ = 'schubert'
 '''
 This is just a dummy
 '''
-from Prediction import AEpitopePrediction
+from Fred2.Core.Base import AEpitopePrediction
 
 
 class DummyEpitopePredictor(AEpitopePrediction):

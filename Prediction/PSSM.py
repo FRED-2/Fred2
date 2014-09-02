@@ -4,17 +4,8 @@
 __author__ = 'walzer', 'schubert'
 
 import collections, itertools, warnings, abc
-from Fred2.Prediction import AEpitopePrediction
+from Fred2.Core.Base import AEpitopePrediction
 
-import logging
-import glob
-import csv
-from operator import attrgetter
-from itertools import groupby
-
-from Core.Base import MetadataLogger, AASequence, Score, fred2_attrgetter
-from Core.Allele import Allele
-import Core
 
 #DEPREcated
 #
@@ -257,9 +248,9 @@ class BIMAS(AEpitopePrediction):
         Represents the BIMAS PSSM predictor
     """
 
-    __alleles = ["A*03:01"]
+    __alleles = ["HLA-A*31:01"]
     __supported_length = [9, 10, 11]
-    __name = "syfpeithi"
+    __name = "bimas"
 
     @property
     def name(self):
@@ -274,7 +265,7 @@ class BIMAS(AEpitopePrediction):
         return self.__supported_length
 
     def convert_alleles(self, alleles):
-        pass
+        return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
