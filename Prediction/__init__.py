@@ -10,16 +10,33 @@ from Fred2.Prediction.PSSM import *
 from Fred2.Core.Base import PluginRegister
 
 
-
 class AEpitopePrediction(object):
     __metaclass__ = PluginRegister
 
     @abc.abstractproperty
-    def alleleModels(self):
+    def name(self):
+        """
+        Returns the name of the predictor
+
+        :return:
+        """
+        raise NotImplementedError
+
+    @abc.abstractproperty
+    def supportedAlleles(self):
         """
         Returns a list of valid allele models
 
         :return: List of allele names for which the predictor provides models
+        """
+        raise NotImplementedError
+
+    @abc.abstractproperty
+    def supportedLength(self):
+        """
+        Returns a list of supported peptide lenghts
+
+        :return: List of supported peptide lengths
         """
         raise NotImplementedError
 

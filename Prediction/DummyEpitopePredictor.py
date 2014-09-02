@@ -12,7 +12,7 @@ class DummyEpitopePredictor(AEpitopePrediction):
     __name__ = "DummyPredictor"
 
     @property
-    def alleleModels(self):
+    def supportedAlleles(self):
         return self.__alleles
 
     def predict(self, peptides, alleles=None, **kwargs):
