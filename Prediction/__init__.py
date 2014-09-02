@@ -30,3 +30,12 @@ class EpitopePredictorFactory(object):
             except KeyError:
                 raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
                                  "supported by FRED2 and inherits AEpitopePredictor.")
+
+    @staticmethod
+    def available_methods(self):
+        """
+        Returns a list of available epitope predictors
+
+        :return: list of epitope predictors represented as string
+        """
+        return AEpitopePrediction.registry.keys()
