@@ -241,6 +241,7 @@ def generate_peptides_from_protein(proteins, window_size):
     def gen_peptide_info(protein):
         # Generate peptide sequences and find the variants within each
         res = []
+
         seq = str(protein)
         for i in range(len(protein)+1-window_size):
             # generate peptide fragment
@@ -253,9 +254,9 @@ def generate_peptides_from_protein(proteins, window_size):
                 pep_var = [var for pos, var_list in protein.vars.iteritems() \
                            for var in var_list if i <= pos <= end]
 
-                # variants that affect the peptide via frameshift
+                # outside variants that affect the peptide via frameshift:
                 frameshift_influences(protein.transcript_id, 
-                                      protein.orig_transcript.vars.values(), 
+                                      protein.orig_transcript.vars.values(),
                                       pep_var, i)
             else:
                 pep_var = []

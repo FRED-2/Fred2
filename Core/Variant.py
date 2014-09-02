@@ -189,4 +189,4 @@ class Variant(MetadataLogger):
         except KeyError:
             raise KeyError("Transcript ID %s not associated with variant %s"%
                            (str(trans_variant_id), self.__str__()))
-        return (tpos//3) + 1 # generate protein pos from transcript pos
+        return max((tpos//3) + 1, 0) # generate protein pos from transcript pos

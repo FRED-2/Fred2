@@ -75,10 +75,17 @@ class Protein(MetadataLogger, Seq):
         return Protein(item, self.gene_id, self.orig_transcript, self.vars)
 
     def __repr__(self):
-        lines = ["sequ:"+str(self)] # the prot sequence
-        for vpos, vset in self.vars.iteritems():
-            lines.append('var at %s: '%vpos +', '.join([('%s %s' % \
-            (v.coding.protPos, v.coding.aaMutationSyntax)) for v in vset]))
-        return self.transcript_id + ', ' + ', '.join(lines)
+        # Header:
+        lines = []
+        lines += ["PROTEIN: %s (aa-seq)" % str(self)]
+        lines += ["\t  %s (orig transcript)"%self.transcript_id]
 
+        # Variants:
+
+        lines += ["\t VARIANTS:"]
+        for vpos, vset in self.vars.iteritems():
+            for v in vset:
+                lines.append('\t pos %i: %s'%(vpos, v))
+
+        return '\n\t'.join(lines) + '\n'
 
