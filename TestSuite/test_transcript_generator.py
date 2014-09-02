@@ -130,33 +130,12 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         AAATTTCCCCCGGGGG (DEL,INS)
         AAAAATTTCCGGGG (INS,DEL)
         AAAAATTTCCCCCGGGGG (INS)
- TRANSCRIPT: tsc_1:FRED2_0
-    VARIANTS:
-         pos 5: Variant(5TTT)
-    SEQUENCE: AAAAATTTCCCCCGGGGG (mRNA)
-, TRANSCRIPT: tsc_1:FRED2_1
-    VARIANTS:
-         pos 10: Variant(CCCC7)
-         pos 5: Variant(5TTT)
-    SEQUENCE: AAAAATTTCCGGGG (mRNA)
-, TRANSCRIPT: tsc_1:FRED2_2
-    VARIANTS:
-         pos 3: Variant(5TTT)
-    SEQUENCE: AAATTTCCCCCGGGGG (mRNA)
-, TRANSCRIPT: tsc_1:FRED2_3
-    VARIANTS:
-         pos 8: Variant(CCCC7)
-         pos 3: Variant(5TTT)
-    SEQUENCE: AAATTTCCGGGG (mRNA)
 
         GGGGGCCCCCAAAAA
         GGGTTTCAAAAA (DEL,INS,DEL)
         GGGTTTCCCCCAAAAA (DEL,INS)
         GGGGGTTTCAAAAA (INS,DEL)
         GGGGGTTTCCCCCAAAAA (INS)
-Variants:
-3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
-HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
         """
 
         dummy_db = DummyAdapter()
