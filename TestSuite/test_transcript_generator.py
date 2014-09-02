@@ -15,7 +15,7 @@ from Fred2.IO.MartsAdapter import MartsAdapter
 from Fred2.IO.ADBAdapter import EAdapterFields
 
 from Fred2.IO.DummyAdapter import DummyAdapter
-from Fred2.UnitTest.VariantsForTesting import *
+from Fred2.TestSuite.VariantsForTesting import *
 
 class TranskriptGeneratorTestCase(unittest.TestCase):
 
