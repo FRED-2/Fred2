@@ -2,8 +2,8 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: FastA
-   :synopsis: Module handles fasta file IO
+.. module:: Reader
+   :synopsis: Module handles reading of files. line reading and FASTA reading
 .. moduleauthor:: brachvogel
 
 """
@@ -14,6 +14,9 @@ from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Transcript import Transcript
 
+####################################
+#       F A S T A  -  R E A D E R
+####################################
 def get_sequence(*argv, **kwargs):
     """
     Read a (couple of) peptide, protein or rna sequence from a FASTA file.
@@ -50,7 +53,6 @@ and 'Transcript'."%type)
 
 
     ####################################
-    res = [] # result list
 
     # open all specified files:
     for name in argv:
@@ -59,24 +61,32 @@ and 'Transcript'."%type)
             for id, seq in SimpleFastaParser(handle):
                 # generate element:
                 seq = seq.upper()
-                res.append(_create_single_sequ(seq, id))
-    return res
+                yield _create_single_sequ(seq, id))
 
-# An example:
-# if __name__ == '__main__':
-#     root_dir = "/Users/pbrach/files/projects/Hiwi-Kohlbacher-2014/Galaxy/develop_fred2/"
-#     files = [root_dir + "peptides_1to2.fasta",
-#              root_dir + "peptides_3to4.fasta",
-#              root_dir + "peptides_5to6.fasta",
-#              root_dir + "peptides_7to8.fasta"]
+####################################
+#       L I N E  -  R E A D E R
+####################################
+def read_lines(*argv, **kwargs):
+   for name in argv:
+        with open(name, 'r') as handle:
+            # iterate over all lines:
+            for line in handle:
+                # generate element:
+                yield line.strip()
 
-#     single_file_lower = root_dir + "peptides_1to8_lower.fasta"
-#     get_sequence(*files)
-#     get_sequence(single_file_lower, type="Peptide")
+if __name__ == '__main__':
+    root_dir = "/Users/pbrach/files/projects/Hiwi-Kohlbacher-2014/Galaxy/develop_fred2/"
+    files = [root_dir + "peptides_1to2.fasta",
+             root_dir + "peptides_3to4.fasta",
+             root_dir + "peptides_5to6.fasta",
+             root_dir + "peptides_7to8.fasta"]
 
+    single_file_lower = root_dir + "peptides_1to8_lower.fasta"
 
-
-
+    cnt = 0
+    for line in read_lines(single_file_lower, type="Peptide"):
+        cnt += 1
+        print cnt, line
 
 
 
