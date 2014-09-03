@@ -10,9 +10,33 @@
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
+from Fred2.Core.Allele import Allele
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Transcript import Transcript
+
+def _check_type(type, allowed=['Peptide', 'Protein','Transcript']):
+    """
+    :param str type: the wrong type
+    """
+    if not type in allowed:
+        raise ValueError("An invalid sequence object type was specified for parsing\
+a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
+
+
+
+def _create_single_sequ(sequ, id, type):
+    if type == "Peptide":
+        return Peptide(sequ)
+
+    elif type == "Protein":
+        return Protein(sequ, "unknown", id)
+
+    elif type == "Transcript":
+        return Transcript("unkown", id, sequ)
+
+    elif type == "Allele":
+        return Allele(sequ)
 
 ####################################
 #       F A S T A  -  R E A D E R
@@ -35,44 +59,55 @@ def get_sequence(*argv, **kwargs):
     """
     type = kwargs.get("type", "Peptide")
 
-    print type
-    def _create_single_sequ(sequ, id):
-        if type == "Peptide":
-            return Peptide(sequ)
-    
-        elif type == "Protein":
-            return Protein(sequ, "unknown", id)
-    
-        elif type == "Transcript":
-            return Transcript("unkown", id, sequ)
-    
-        else:
-            raise ValueError("An invalid sequence object type was specified for\
-parsing a FASTA file. Type was %s but allowed types are: 'Peptide', 'Protein' \
-and 'Transcript'."%type)
+    _check_type(type)
 
-
-    ####################################
-
+    collect = {}
     # open all specified files:
     for name in argv:
         with open(name, 'r') as handle:
             # iterate over all FASTA entries:
             for id, seq in SimpleFastaParser(handle):
                 # generate element:
-                seq = seq.upper()
-                yield _create_single_sequ(seq, id))
+                collect[seq.upper()] = id
+    
+    return [_create_single_sequ(seq, id) for seq, id in collect.items()]
 
 ####################################
 #       L I N E  -  R E A D E R
 ####################################
 def read_lines(*argv, **kwargs):
-   for name in argv:
+    """
+    Read a sequence directly from a line.
+    User needs to specify the correct type of the underlying sequences. It can
+    either be: Peptide, Protein or Transcript (for RNA).
+
+    :param *argv: a string list of absolute file names of the FASTA files to be
+                  read. Give as: get_sequence(*["path/name1", "path/name2"]).
+                  Alternatively 
+                  This field is required!
+    :param **kwargs: optional. Use get_sequence(*["path/name1", "path/name2",
+                     type="Protein"). Possible types are Peptide', 'Protein'
+                     and 'Transcript'.
+    :returns: (list(SequenceType)) -- a list of the specified sequence type
+              derived from the FASTA file sequences.
+    """
+    type = kwargs.get("type", "Peptide")
+
+    _check_type(type,['Peptide', 'Protein', 'Transcript', 'Allele'])
+
+    collect = set()
+    for name in argv:
         with open(name, 'r') as handle:
             # iterate over all lines:
             for line in handle:
                 # generate element:
-                yield line.strip()
+                collect.add(line.strip().upper())
+
+    return [_create_single_sequ(seq, "generic_id_"+str(id), type) \
+            for id, seq in enumerate(collect)]
+
+
+
 
 if __name__ == '__main__':
     root_dir = "/Users/pbrach/files/projects/Hiwi-Kohlbacher-2014/Galaxy/develop_fred2/"
@@ -83,10 +118,6 @@ if __name__ == '__main__':
 
     single_file_lower = root_dir + "peptides_1to8_lower.fasta"
 
-    cnt = 0
-    for line in read_lines(single_file_lower, type="Peptide"):
-        cnt += 1
-        print cnt, line
-
-
-
+    objects = read_lines(single_file_lower, type="Peptide")
+    for elem in objects:
+        print elem
