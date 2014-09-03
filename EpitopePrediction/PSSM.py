@@ -3,7 +3,8 @@
 # as part of this package.
 __author__ = 'walzer', 'schubert'
 
-import collections, itertools, warnings, abc
+import collections, itertools, warnings,pandas
+from Fred2.Core.Result import Result
 from Fred2.Core.Base import AEpitopePrediction
 
 
@@ -38,9 +39,10 @@ class APSSMEpitopePredictor(AEpitopePrediction):
             pep_seqs = {str(peptides):peptides}
 
         if alleles is None:
-            allales_string = self.supportedAlleles
+            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(self.supportedAlleles),
+                                                                       self.supportedAlleles)}
         else:
-            allales_string = self.convert_alleles(alleles)
+            allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
@@ -51,14 +53,22 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                 warnings.warn("Peptide length of %i not supported"%length, RuntimeWarning)
                 continue
 
-            for a in allales_string:
-                pssm = __load_allele_model(a, length)
+            for a in allales_string.iterkeys():
+                try:
+                    pssm = __load_allele_model(a, length)
+                except Exception:
+                    warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
+                    continue
+                result[allales_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
                     score = sum(pssm[i][p[i]] for i in xrange(length))
-                    result.setdefault(str(p), []).append((p, self.name, a, score))
+                    result[allales_string[a]][str(p)] = score
 
-        return result
+        df_result = Result.from_dict(result)
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
+                                                        names=['Seq','Method'])
+        return df_result
 
 
 class Syfpeithi(APSSMEpitopePredictor):
@@ -94,13 +104,13 @@ class BIMAS(APSSMEpitopePredictor):
         Represents the BIMAS PSSM predictor
     """
 
-    __alleles = ['HLA-B*04:01', 'HLA-A*31:01', 'HLA-B*58:01', 'HLA-Cw*06:02', 'HLA-A*03:01', 'HLA-B*35:01',
-                 'HLA-B*35:01', 'HLA-B*15:01', 'HLA-A*02:05', 'HLA-B*27:05', 'HLA-B*27:05', 'HLA-A*33:02',
-                 'HLA-B*39:01', 'HLA-B*38:01', 'HLA-B*40:', 'HLA-A*24:02', 'HLA-B*51:01', 'HLA-B*07:02', 'HLA-B*08:01',
-                 'HLA-B*51:02', 'HLA-B*40:06', 'HLA-B*40:06', 'HLA-B*51:02', 'HLA-B*37:01', 'HLA-A*11:01',
-                 'HLA-B*08:01', 'HLA-B*44:03', 'HLA-A*68:01', 'HLA-B*51:03', 'HLA-B*52:01', 'HLA-A*02:01',
-                 'HLA-A*01:01', 'HLA-C*07:02', 'HLA-C*03:01', 'HLA-B*40:01', 'HLA-B*51:01', 'HLA-B*39:02',
-                 'HLA-B*52:01', 'HLA-C*04:01', 'HLA-B*27:02', 'HLA-B*39:01']
+    __alleles = ['B*04:01', 'A*31:01', 'B*58:01', 'Cw*06:02', 'A*03:01', 'B*35:01',
+                 'B*35:01', 'B*15:01', 'A*02:05', 'B*27:05', 'B*27:05', 'A*33:02',
+                 'B*39:01', 'B*38:01', 'B*40:', 'A*24:02', 'B*51:01', 'B*07:02', 'B*08:01',
+                 'B*51:02', 'B*40:06', 'B*40:06', 'B*51:02', 'B*37:01', 'A*11:01',
+                 'B*08:01', 'B*44:03', 'A*68:01', 'B*51:03', 'B*52:01', 'A*02:01',
+                 'A*01:01', 'C*07:02', 'C*03:01', 'B*40:01', 'B*51:01', 'B*39:02',
+                 'B*52:01', 'C*04:01', 'B*27:02', 'B*39:01']
     __supported_length = [8, 9]
     __name = "bimas"
 
@@ -125,11 +135,11 @@ class BIMAS(APSSMEpitopePredictor):
 
 
 class Epidemix(APSSMEpitopePredictor):
-    __alleles = ['HLA-B*27', 'HLA-A*11:01', 'HLA-B*27:05', 'HLA-B*07', 'HLA-B*27', 'HLA-A*01', 'HLA-B*44', 'HLA-A*03',
-                 'HLA-A*25', 'HLA-B*37:01', 'HLA-A*02:01', 'HLA-A*02:01', 'HLA-B*18:01', 'HLA-B*18:01', 'HLA-A*03',
-                 'HLA-A*24', 'HLA-A*25', 'HLA-A*02:01', 'HLA-A*11:01', 'HLA-A*24:02', 'HLA-B*08', 'HLA-B*08',
-                 'HLA-B*51:01', 'HLA-B*51:01']
-    __supported_length = ['9', '10', '8', '11']
+    __alleles = ['B*27', 'A*11:01', 'B*27:05', 'B*07', 'B*27', 'A*01', 'B*44', 'A*03',
+                 'A*25', 'B*37:01', 'A*02:01', 'A*02:01', 'B*18:01', 'B*18:01', 'A*03',
+                 'A*24', 'A*25', 'A*02:01', 'A*11:01', 'A*24:02', 'B*08', 'B*08',
+                 'B*51:01', 'B*51:01']
+    __supported_length = [9, 10, 8, 11]
     __name = "epidemix"
 
 

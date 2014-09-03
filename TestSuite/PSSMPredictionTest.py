@@ -8,6 +8,7 @@ import unittest
 
 
 # Variants and Generator
+import pandas
 from Core.Allele import Allele
 from Core.Peptide import Peptide
 
@@ -18,19 +19,25 @@ from EpitopePrediction import EpitopePredictorFactory
 class TestCasePSSM(unittest.TestCase):
 
     def setUp(self):
-        self.peptides = [Peptide("SYFPEITHI")]
-        self.alleles = [Allele("HLA-A*31:01")]
+        self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
+        self.alleles = [Allele("HLA-A*24:02")]
+        self.methods = ["BIMAS", "Epidemix"]
 
     def test_BIMAS_initialization(self):
         p = EpitopePredictorFactory("BIMAS")
         self.assertTrue(p.name == "bimas")
 
     def test_BIMAS_prediction(self):
-        p = EpitopePredictorFactory("BIMAS")
+        p = EpitopePredictorFactory("Epidemix")
         results = p.predict(self.peptides, self.alleles)
         print results
 
-
+    def test_multiple_prediction_and_concatination(self):
+        results = [EpitopePredictorFactory(method).predict(self.peptides, self.alleles) for method in self.methods]
+        df1 = results[0]
+        df2 = results[1]
+        df1a,df2a = df1.align(df2, fill_value=0)
+        print df1a+df2a
 
 if __name__ == '__main__':
     unittest.main()
