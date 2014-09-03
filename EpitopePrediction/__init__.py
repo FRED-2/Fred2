@@ -4,8 +4,8 @@
 __author__ = 'schubert'
 
 from Fred2.Core.Base import AEpitopePrediction
-from Fred2.Prediction.NetMHC import *
-from Fred2.Prediction.PSSM import *
+from Fred2.EpitopePrediction.NetMHC import *
+from Fred2.EpitopePrediction.PSSM import *
 
 
 class EpitopePredictorFactory(object):
