@@ -14,3 +14,9 @@ Copyright
 
 Installation
 ------------
+
+use the following commands:
+
+    $ python setup.py sdist
+    $ cd dist
+    $ pip install Fred2-2.0.0a1.tar.gz
