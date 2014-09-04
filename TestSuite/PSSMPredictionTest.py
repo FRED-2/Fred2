@@ -20,7 +20,7 @@ class TestCasePSSM(unittest.TestCase):
 
     def setUp(self):
         self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
-        self.alleles = [Allele("HLA-A*24:02")]
+        self.alleles = [Allele("HLA-A*24:02"),Allele("HLA-A*02:01")]
         self.methods = ["BIMAS", "Epidemix"]
 
     def test_BIMAS_initialization(self):
@@ -33,11 +33,12 @@ class TestCasePSSM(unittest.TestCase):
         print results
 
     def test_multiple_prediction_and_concatination(self):
-        results = [EpitopePredictorFactory(method).predict(self.peptides, self.alleles) for method in self.methods]
+        results = [EpitopePredictorFactory(method).predict(self.peptides, self.alleles) for method in self.methods[:1]]
         df1 = results[0]
         df2 = results[1]
-        df1a,df2a = df1.align(df2, fill_value=0)
-        print df1a+df2a
+        df1a, df2a = df1.align(df2, fill_value=0)
+        df3= df1a+df2a
+        print df3
 
 if __name__ == '__main__':
     unittest.main()
