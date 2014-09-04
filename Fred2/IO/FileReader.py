@@ -15,17 +15,17 @@ from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Transcript import Transcript
 
-def _check_type(type, allowed=['Peptide', 'Protein','Transcript']):
+def __check_type(type, allowed=['Peptide', 'Protein','Transcript']):
     """
     :param str type: the wrong type
     """
     if not type in allowed:
-        raise ValueError("An invalid sequence object type was specified for parsing\
-a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
+        raise ValueError("An invalid sequence object type was specified for \
+parsing a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
 
 
 
-def _create_single_sequ(sequ, id, type):
+def __create_single_sequ(sequ, id, type):
     if type == "Peptide":
         return Peptide(sequ)
 
@@ -57,20 +57,21 @@ def get_sequence(*argv, **kwargs):
     :returns: (list(SequenceType)) -- a list of the specified sequence type
               derived from the FASTA file sequences.
     """
-    type = kwargs.get("type", "Peptide")
+    _type = kwargs.get("type", "Peptide")
 
-    _check_type(type)
+    __check_type(_type)
 
     collect = {}
     # open all specified files:
     for name in argv:
         with open(name, 'r') as handle:
             # iterate over all FASTA entries:
-            for id, seq in SimpleFastaParser(handle):
+            for _id, seq in SimpleFastaParser(handle):
                 # generate element:
-                collect[seq.upper()] = id
+                collect[seq.upper()] = _id
     
-    return [_create_single_sequ(seq, id) for seq, id in collect.items()]
+    return [__create_single_sequ(seq, _id, _type) \
+            for seq, _id in collect.items()]
 
 ####################################
 #       L I N E  -  R E A D E R
@@ -91,9 +92,9 @@ def read_lines(*argv, **kwargs):
     :returns: (list(SequenceType)) -- a list of the specified sequence type
               derived from the FASTA file sequences.
     """
-    type = kwargs.get("type", "Peptide")
+    _type = kwargs.get("type", "Peptide")
 
-    _check_type(type,['Peptide', 'Protein', 'Transcript', 'Allele'])
+    __check_type(_type, ['Peptide', 'Protein', 'Transcript', 'Allele'])
 
     collect = set()
     for name in argv:
@@ -103,8 +104,8 @@ def read_lines(*argv, **kwargs):
                 # generate element:
                 collect.add(line.strip().upper())
 
-    return [_create_single_sequ(seq, "generic_id_"+str(id), type) \
-            for id, seq in enumerate(collect)]
+    return [__create_single_sequ(seq, "generic_id_"+str(_id), _type) \
+            for _id, seq in enumerate(collect)]
 
 
 
@@ -118,6 +119,6 @@ def read_lines(*argv, **kwargs):
 
 #     single_file_lower = root_dir + "peptides_1to8_lower.fasta"
 
-#     objects = read_lines(single_file_lower, type="Peptide")
+#     objects = read_lines(single_file_lower, type="Transcript")
 #     for elem in objects:
-#         print elem
+#         print elem.__repr__()
