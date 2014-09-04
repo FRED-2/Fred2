@@ -100,7 +100,7 @@ def main():
         peptides = generate_peptides_from_protein(proteins, args.length)
 
     elif args.pepfile:
-        peptides = FileReader.read_line(args.input, type="Peptide")
+        peptides = FileReader.read_line(args.input.upper(), type="Peptide")
 
     elif args.peptide:
         peptides = [Peptide(s) for s in args.input]
@@ -109,7 +109,7 @@ def main():
     if args.allelefile:
         alleles = FileReader.read_line(args.alleles, type="Allele")
     else:
-        alleles = [Allele(a) for a in args.alleles]
+        alleles = [Allele(a.upper()) for a in args.alleles]
 
     result = EpitopePredictorFactory(args.method).predict(peptides, alleles)
 
