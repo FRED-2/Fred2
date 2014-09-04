@@ -1,0 +1,12 @@
+
+Fred2.Apps
+==========
+
+
+Fred2.Apps.EpitopePrediction
+----------------------------
+
+.. automodule:: Fred2.Apps.EpitopePrediction
+    :members:
+    :special-members:
+    :show-inheritance:

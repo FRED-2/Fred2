@@ -2,4 +2,7 @@
 Fred2.HLAtyping
 ===============
 
-not yet ready!
+.. automodule:: Fred2.HLAtyping.HLAtyping
+    :members:
+    :special-members:
+    :show-inheritance:

@@ -4,7 +4,8 @@
 """
 .. module:: Reader
    :synopsis: Module handles reading of files. line reading and FASTA reading
-.. moduleauthor:: brachvogel
+.. moduleauthor:: 
+    brachvogel
 
 """
 

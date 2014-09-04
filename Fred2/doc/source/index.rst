@@ -15,8 +15,8 @@ Basis modules
 Prediction
 ==========
 .. toctree::
-    Fred2.Prediction
-
+    Fred2.EpitopePrediction
+    Fred2.CleavagePrediction
 
 Extensions
 ==========
@@ -24,7 +24,10 @@ Extensions
     Fred2.EpitopeSelection
     Fred2.HLAtyping
 
-
+Commandline Tools
+=================
+.. toctree::
+    Fred2.Apps
 
 
 

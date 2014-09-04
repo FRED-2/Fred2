@@ -11,10 +11,10 @@ Fred2.IO.ADBAdapter
     :special-members:
     :show-inheritance:
 
-Fred2.IO.DummyAdaper
+Fred2.IO.FileReader
 --------------------
 
-.. automodule:: Fred2.IO.DummyAdaper
+.. automodule:: Fred2.IO.FileReader
     :members:
     :special-members:
     :show-inheritance:

@@ -7,7 +7,7 @@ import logging
 
 from Bio import SeqIO
 
-from IO.ADBAdapter import ADBAdapter
+from Fred2.IO.ADBAdapter import ADBAdapter
 
 #TODO: refactor ... function based on old code
 class RefSeqAdapter(ADBAdapter):

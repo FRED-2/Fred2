@@ -42,6 +42,14 @@ Fred2.Core.Protein
     :special-members:
     :show-inheritance:
 
+Fred2.Core.Result
+-----------------
+
+.. automodule:: Fred2.Core.Result
+    :members:
+    :special-members:
+    :show-inheritance:
+
 Fred2.Core.Transcript
 ---------------------
 
