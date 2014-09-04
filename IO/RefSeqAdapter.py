@@ -3,10 +3,11 @@
 # as part of this package.
 __author__ = 'walzer'
 
-
 import logging
-from IO.ADBAdapter import ADBAdapter
+
 from Bio import SeqIO
+
+from IO.ADBAdapter import ADBAdapter
 
 #TODO: refactor ... function based on old code
 class RefSeqAdapter(ADBAdapter):

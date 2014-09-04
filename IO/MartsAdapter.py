@@ -3,13 +3,13 @@
 # as part of this package.
 __author__ = 'walzer', 'schubert'
 
-from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 import MySQLdb
 import csv
 import urllib2
 import warnings
 import logging
 
+from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 
 class MartsAdapter(ADBAdapter):
     def __init__(self, usr=None, host=None, pwd=None, db=None):
