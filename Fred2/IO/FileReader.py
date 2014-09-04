@@ -16,9 +16,6 @@ from Fred2.Core.Protein import Protein
 from Fred2.Core.Transcript import Transcript
 
 def __check_type(type, allowed=['Peptide', 'Protein','Transcript']):
-    """
-    :param str type: the wrong type
-    """
     if not type in allowed:
         raise ValueError("An invalid sequence object type was specified for \
 parsing a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
@@ -49,7 +46,6 @@ def get_sequence(*argv, **kwargs):
 
     :param *argv: a string list of absolute file names of the FASTA files to be
                   read. Give as: get_sequence(*["path/name1", "path/name2"]).
-                  Alternatively 
                   This field is required!
     :param **kwargs: optional. Use get_sequence(*["path/name1", "path/name2",
                      type="Protein"). Possible types are Peptide', 'Protein'
@@ -78,13 +74,13 @@ def get_sequence(*argv, **kwargs):
 ####################################
 def read_lines(*argv, **kwargs):
     """
-    Read a sequence directly from a line.
-    User needs to specify the correct type of the underlying sequences. It can
-    either be: Peptide, Protein or Transcript (for RNA).
+    Read a sequence directly from a line. User needs to manually specify the 
+    correct type of the underlying sequences. It can either be: 
+    Peptide, Protein or Transcript (for RNA).
 
-    :param *argv: a string list of absolute file names of the FASTA files to be
-                  read. Give as: get_sequence(*["path/name1", "path/name2"]).
-                  Alternatively 
+    :param *argv: a list of strings of absolute file names of the FASTA files 
+                  that are to be read. Give as: 
+                  get_sequence(*["path/name1", "path/name2"]).
                   This field is required!
     :param **kwargs: optional. Use get_sequence(*["path/name1", "path/name2",
                      type="Protein"). Possible types are Peptide', 'Protein'

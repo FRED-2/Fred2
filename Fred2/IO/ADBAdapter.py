@@ -24,6 +24,7 @@ class ADBAdapter:
     def get_product_sequence(self, product_refseq):
         """
         fetches product sequence for the given id
+
         :param product_refseq: given refseq id
         :return: list of dictionaries of the requested sequence, the respective strand and the associated gene name
         """
@@ -33,6 +34,7 @@ class ADBAdapter:
     def get_transcript_sequence(self, transcript_refseq):
         """
         Fetches transcript sequence for the given id
+        
         :param transcript_refseq:
         :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
         """
