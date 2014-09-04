@@ -96,7 +96,7 @@ def main():
 
     #fasta protein
     elif args.fasta:
-        proteins = FileReader.get_sequence(args.input, type="Protein")
+        proteins = FileReader.read_fasta(args.input, type="Protein")
         peptides = generate_peptides_from_protein(proteins, args.length)
 
     elif args.pepfile:

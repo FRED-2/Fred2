@@ -59,6 +59,9 @@ class RefSeqAdapter(ADBAdapter):
         else:
             logging.warning('no sequences loaded')
 
+    def get_transcript_information(self, transcript_refseq):
+        pass
+
 # from Bio import Entrez
 # >>> rec = Entrez.read(Entrez.esearch(db="protein", term="NP_001005218" ))
 # /usr/local/lib/python2.7/dist-packages/biopython-1.64-py2.7-linux-x86_64.egg/Bio/Entrez/__init__.py:451: UserWarning:

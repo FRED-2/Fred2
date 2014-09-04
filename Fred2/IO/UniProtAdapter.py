@@ -15,7 +15,9 @@ class UniProtDB:
         UniProtDB class to give quick access to entries (fast exact match searches) and convenient ways to produce
         combined fasta files. Search is done with python's fast search  based on a mix between boyer-moore and horspool
         (http://svn.python.org/view/python/trunk/Objects/stringlib/fastsearch.h?revision=68811&view=markup)
+
         :param name: a name for the UniProtDB object
+
         Usage examples:
             import UniProtDB
             db = UniProtDB.UniProtDB('uniprot') #give it a name
@@ -36,6 +38,7 @@ class UniProtDB:
         """
         read sequences from uniprot files (.dat or .fasta) or from lists or dicts of BioPython SeqRecords
         and make them available for fast search. Appending also with this function.
+
         :param sequence_file: uniprot files (.dat or .fasta)
         :return:
         """
@@ -65,6 +68,7 @@ class UniProtDB:
     def write_seqs(self, name):
         """
         writes all fasta entries in the current object into one fasta file
+
         :param name: the complete path with file name where the fasta is going to be written
         """
         with open(name, "w") as output:
@@ -73,6 +77,7 @@ class UniProtDB:
     def exists(self, seq):
         """
         fast check if given sequence exists (as subsequence) in one of the UniProtDB objects collection of sequences.
+
         :param seq: the subsequence to be searched for
         :return: True, if it is found somewhere, False otherwise
         """
@@ -88,6 +93,7 @@ class UniProtDB:
         """
         search for first occurrence of given sequence(s) in the UniProtDB objects collection returning (each) the fasta
         header front part of the first occurrence.
+
         :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
         :return: a dictionary of sequences to lists (of ids, 'null' if n/a)
         """
@@ -114,6 +120,7 @@ class UniProtDB:
         """
         search for all occurrences of given sequence(s) in the UniProtDB objects collection returning (each) the
         fasta header front part of all occurrences.
+
         :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
         :return: a dictionary of the given sequences to lists (of ids, 'null' if n/a)
         """

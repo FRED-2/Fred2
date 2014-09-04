@@ -80,8 +80,11 @@ class Syfpeithi(APSSMEpitopePredictor):
     """
         Represents the Syfpeithi PSSM predictor
     """
-    __alleles = ["A*03:01"]
-    __supported_length = [9, 10, 11]
+    __alleles = ['B*15:10', 'B*41:01', 'B*37:01', 'B*27:05', 'B*38:01', 'A*02:01', 'B*47:01', 'A*26:01', 'B*3701',
+                 'DRB1*11:01', 'B*50:01', 'B*07:02', 'A*68:01', 'A*24:02', 'DRB1*15:01', 'B*15:01', 'B*45:01',
+                 'A*11:01', 'A*03:01', 'B*40:01', 'DRB1*03:01', 'B*39:01', 'DRB1*01:01', 'B*51:01', 'B*39:02',
+                 'B*08:01', 'B*18:01', 'B*44:02', 'B*49:01', 'DRB1*07:01', 'B*14:02', 'A*01:01']
+    __supported_length = [8, 9, 10, 11]
     __name = "syfpeithi"
 
     @property
@@ -97,7 +100,7 @@ class Syfpeithi(APSSMEpitopePredictor):
         return self.__supported_length
 
     def convert_alleles(self, alleles):
-        pass
+        return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
@@ -166,3 +169,36 @@ class Epidemix(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         return super(Epidemix, self).predict(peptides, alleles=alleles, **kwargs)
+
+
+class Hammer(APSSMEpitopePredictor):
+    __alleles = ['DRB1*07:03', 'DRB1*07:01', 'DRB1*11:28', 'DRB1*11:21', 'DRB1*11:20', 'DRB1*04:26', 'DRB1*04:23',
+                 'DRB1*04:21', 'DRB5*01:05:', 'DRB1*08:17', 'DRB1*13:05', 'DRB1*13:04', 'DRB1*13:07', 'DRB1*13:01',
+                 'DRB1*13:02', 'DRB1*08:04', 'DRB1*08:06', 'DRB1*08:01', 'DRB1*01:01', 'DRB1*01:02', 'DRB1*08:02',
+                 'DRB1*13:11', 'DRB1*03:11', 'DRB1*11:07', 'DRB1*11:06', 'DRB1*11:04', 'DRB1*11:02', 'DRB1*11:01',
+                 'DRB1*04:08', 'DRB1*04:01', 'DRB1*04:02', 'DRB1*04:05', 'DRB1*04:04', 'DRB1*13:23', 'DRB1*13:22',
+                 'DRB1*13:21', 'DRB1*13:27', 'DRB1*08:13', 'DRB1*13:28', 'DRB1*03:06', 'DRB1*03:07', 'DRB1*03:05',
+                 'DRB1*11:14', 'DRB1*03:01', 'DRB1*15:02', 'DRB1*15:01', 'DRB1*15:06', 'DRB1*03:08', 'DRB1*03:09',
+                 'DRB1*04:10', 'DRB5*01:01']
+    __supported_length = [9]
+    __name = "hammer"
+
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    def convert_alleles(self, alleles):
+        return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def predict(self, peptides, alleles=None, **kwargs):
+        #with this implementation customizations of prediction algorithm is still possible
+        return super(Hammer, self).predict(peptides, alleles=alleles, **kwargs)

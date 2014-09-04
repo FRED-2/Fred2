@@ -39,7 +39,7 @@ def __create_single_sequ(sequ, id, type):
 ####################################
 #       F A S T A  -  R E A D E R
 ####################################
-def get_sequence(*argv, **kwargs):
+def read_fasta(*argv, **kwargs):
     """
     Read a (couple of) peptide, protein or rna sequence from a FASTA file.
     User needs to specify the correct type of the underlying sequences. It can
@@ -103,19 +103,3 @@ def read_lines(*argv, **kwargs):
 
     return [__create_single_sequ(seq, "generic_id_"+str(_id), _type) \
             for _id, seq in enumerate(collect)]
-
-
-
-
-# if __name__ == '__main__':
-#     root_dir = "/Users/pbrach/files/projects/Hiwi-Kohlbacher-2014/Galaxy/develop_fred2/"
-#     files = [root_dir + "peptides_1to2.fasta",
-#              root_dir + "peptides_3to4.fasta",
-#              root_dir + "peptides_5to6.fasta",
-#              root_dir + "peptides_7to8.fasta"]
-
-#     single_file_lower = root_dir + "peptides_1to8_lower.fasta"
-
-#     objects = read_lines(single_file_lower, type="Transcript")
-#     for elem in objects:
-#         print elem.__repr__()

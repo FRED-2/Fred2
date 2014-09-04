@@ -132,7 +132,7 @@ class MartsAdapter(ADBAdapter):
             except MySQLdb.Error, message:
                 warnings.warn("An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
                 return None
-                self.sequence_proxy[transcript_refseq] = transcript_sequence
+            self.sequence_proxy[transcript_refseq] = transcript_sequence
             return [{transcript_refseq: transcript_sequence}]
         else:
             filter = None
@@ -157,7 +157,6 @@ class MartsAdapter(ADBAdapter):
             tsvselect = [x for x in tsvreader]
             self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']
             return self.sequence_proxy[transcript_refseq]
-        return None
 
     def get_transcript_information(self, transcript_refseq):
         """
@@ -217,7 +216,6 @@ class MartsAdapter(ADBAdapter):
                                                       EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0
                                                       else "+"}
             return self.ids_proxy[transcript_refseq]
-        return None
 
     #TODO: refactor ... function based on old code
     def get_variant_gene(self, chrom, start, stop):

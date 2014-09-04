@@ -16,8 +16,8 @@ Strands are always encoded with + and -
 EAdapterFields = (lambda **enums: type('Enum', (), enums))(GENE=0, STRAND=1, SEQ=2, TRANSID=3, PROTID=4)
 
 
-
 class ADBAdapter:
+
     __metaclass__ = ABCMeta
 
     @abstractmethod
