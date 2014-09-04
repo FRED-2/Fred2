@@ -1,4 +1,4 @@
 *.pyc
 *.DS_Store
 
-doc/build/*
+Fred2/doc/build/*
