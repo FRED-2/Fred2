@@ -109,15 +109,15 @@ def read_lines(*argv, **kwargs):
 
 
 
-if __name__ == '__main__':
-    root_dir = "/Users/pbrach/files/projects/Hiwi-Kohlbacher-2014/Galaxy/develop_fred2/"
-    files = [root_dir + "peptides_1to2.fasta",
-             root_dir + "peptides_3to4.fasta",
-             root_dir + "peptides_5to6.fasta",
-             root_dir + "peptides_7to8.fasta"]
+# if __name__ == '__main__':
+#     root_dir = "/Users/pbrach/files/projects/Hiwi-Kohlbacher-2014/Galaxy/develop_fred2/"
+#     files = [root_dir + "peptides_1to2.fasta",
+#              root_dir + "peptides_3to4.fasta",
+#              root_dir + "peptides_5to6.fasta",
+#              root_dir + "peptides_7to8.fasta"]
 
-    single_file_lower = root_dir + "peptides_1to8_lower.fasta"
+#     single_file_lower = root_dir + "peptides_1to8_lower.fasta"
 
-    objects = read_lines(single_file_lower, type="Peptide")
-    for elem in objects:
-        print elem
+#     objects = read_lines(single_file_lower, type="Peptide")
+#     for elem in objects:
+#         print elem
