@@ -8,7 +8,8 @@ from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Base import AEpitopePrediction
 from Fred2.EpitopePrediction import EpitopePredictorFactory
 
-if __name__ == "__main__":
+
+def main():
     parser = argparse.ArgumentParser(description="Reads protein or peptide sequences and predicts peptides "+
                                                  "for a specified prediction method and HLA alleles.")
     parser.add_argument("-i", "--input",
@@ -164,3 +165,6 @@ if __name__ == "__main__":
         html_out = ".".join(output.split(".")[:-1])+".html"
         with open(html_out, "w") as html_o:
             html_o.write(begin_html+setting+table+end_html)
+
+if __name__ == "__main__":
+    main()
