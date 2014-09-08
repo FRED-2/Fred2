@@ -24,7 +24,7 @@ class Allele(MetadataLogger):
         :param str _name: input name in new nomenclature (A*01:01)
         """
         MetadataLogger.__init__(self)
-        name = _name.split("-")[-1]
+        name = _name.split("-")[-1].replace("HLA-", "")
         self.name = name
         self.locus, rest = name.split('*')
         self.supertype, self.subtype = rest.split(':')[:2]

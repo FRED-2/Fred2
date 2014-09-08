@@ -31,7 +31,7 @@ from coopr.opt import SolverFactory
 from Fred2.Core.Result import EpitopePredictionResult
 
 
-class EpitopeSelection(object):
+class OptiTope(object):
     """
         classdocs
 
@@ -105,7 +105,10 @@ class EpitopeSelection(object):
         #unstack multiindex df to get normal df based on first prediction method
         #and filter for binding epitopes
         res_df = _results.xs(_results.index.values[0][1], level="Method")
-        res_df = res_df[any(res_df[a] >= _threshold[a] for a in res_df.columns)]
+
+        print [res_df.loc[e,a.name] > self.__thresh[a.name]   for e in res_df.index for a in self.__alleleProb]
+        res_df = res_df.where([any(list(res_df.loc[e,a.name] > self.__thresh[a.name])) for a in self.__alleleProb for e in res_df.index],axis=0)
+        print res_df
 
         for tup in res_df.itertuples():
             p = tup[0]
@@ -335,7 +338,7 @@ class EpitopeSelection(object):
                     sys.exit()
 
                 self.__result = [self.__peptideSet[x] for x in self.__instance.x if self.__instance.x[x].value == 1.0]
-                self.__result.log_metadata("obj", res.Solution.Objective.Value)
+                #self.__result.log_metadata("obj", res.Solution.Objective.Value)
 
                # DEPRECATED CODE ... Dont know how to give additional information to user
                # if self.__instance.y.active:
