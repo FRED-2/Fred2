@@ -89,10 +89,10 @@ class Variant(MetadataLogger):
             self.log_metadata(meta, metadata[meta])
 
     def __repr__(self):  # TODO, just to have something for now
-        return ''.join([self.sample_id, '@chr', self.chromosome, ':', self.start, '=', self.reference, '>',  self.observed])
+        return ''.join([str(self.sample_id), '@chr', str(self.chromosome), ':', str(self.start), '=', str(self.reference), '>',  str(self.observed)])
 
     def __str__(self):  # TODO this is used e.g. in transcript.to_protein for the SeqRecord description - needs pos
-        return ''.join([self.sample_id, '@chr', self.chromosome, ':', self.start, '=', self.reference, '>',  self.observed])
+        return ''.join([str(self.sample_id), '@chr', str(self.chromosome), ':', str(self.start), '=', str(self.reference), '>',  str(self.observed)])
 
     def __len__(self):
         return len(self.observed)
@@ -129,9 +129,9 @@ class Variant(MetadataLogger):
         elif 'gene' in self.metadata and self.metadata['gene'][0]:
             self.gene = self.metadata['gene'][0]
         elif refseq_DB:
-            print self.gene
+            #~ print self.gene
             self.gene = refseq_DB.get_variant_gene(self.chromosome, self.start, self.stop)
-            print self.gene
+            #~ print self.gene
         else:
             logging.warning('No gene available')
         return self.gene

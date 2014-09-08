@@ -194,7 +194,7 @@ class MartsAdapter():
         """
         #TODO assert types
         #<!DOCTYPE Query><Query client="true" processor="TSV" limit="-1" header="1"><Dataset name="hsapiens_gene_ensembl" config="gene_ensembl_config"><Filter name="chromosomal_region" value="1:40367114:40367114,1:40702744:40702744,1:40705023:40705023,1:40771399:40771399,1:40777210:40777210,1:40881015:40881015,1:41235036:41235036,1:42048927:42048927,1:43002232:43002232,1:43308758:43308758,1:43393391:43630154,1:43772617:43772617,1:43772834:43772834" filter_list=""/><Attribute name="uniprot_genename"/></Dataset></Query>
-        queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+500])) for x in xrange(0, len(kwargs['genes']), 500)]
+        queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+300])) for x in xrange(0, len(kwargs['genes']), 300)]
         # if chrom + start + stop in self.gene_proxy:
         #     return self.gene_proxy[chrom + start + stop]
         #
@@ -253,6 +253,7 @@ class MartsAdapter():
 
         rq_n = self.biomart_head \
             + query \
+            + self.biomart_attribute%("uniprot_genename")  \
             + self.biomart_attribute%("ensembl_gene_id")  \
             + self.biomart_attribute%("ensembl_peptide_id")  \
             + self.biomart_attribute%("ensembl_transcript_id")  \
@@ -274,11 +275,13 @@ class MartsAdapter():
         if not ensemble_only:
             rq_x = self.biomart_head \
                 + query  \
+                + self.biomart_attribute%("uniprot_genename")  \
                 + self.biomart_attribute%("ensembl_gene_id")  \
                 + self.biomart_attribute%("ensembl_peptide_id")  \
                 + self.biomart_attribute%("ensembl_transcript_id")  \
                 + self.biomart_attribute%("refseq_peptide_predicted")  \
                 + self.biomart_attribute%("refseq_mrna_predicted")  \
+                + self.biomart_attribute%("strand")  \
                 + self.biomart_tail
 
             tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
@@ -319,7 +322,8 @@ class MartsAdapter():
             #         + self.biomart_filter%("start", kwargs['start'])  \
             #         + self.biomart_filter%("end", kwargs['stop'])
         elif 'genes' in kwargs:
-            queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+500])) for x in xrange(0, len(kwargs['genes']), 500)]
+            queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+250])) for x in xrange(0, len(kwargs['genes']), 250)]
+            logging.warning('***'+self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+250])) for x in xrange(0, len(kwargs['genes']), 250))
         else:
             logging.warning("wrong arguments to get_variant_ids")
         for query in queries:
@@ -338,13 +342,16 @@ class MartsAdapter():
 
             # logging.warning(rq_n)
 
-            tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
-            if ensemble_only:
-                result = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader}
-            else:
-                result = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
-                      if x['RefSeq Protein ID [e.g. NP_001005353]'] and x['RefSeq mRNA [e.g. NM_001195597]']}
-            end_result.update(result)
+            try:
+                tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+                if ensemble_only:
+                    result = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader}
+                else:
+                    result = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
+                          if x['RefSeq Protein ID [e.g. NP_001005353]'] and x['RefSeq mRNA [e.g. NM_001195597]']}
+                end_result.update(result)
+            except:
+                logging.error('Bad Mart Query: '+rq_n)
 
             if not ensemble_only:
                 rq_x = self.biomart_head \
@@ -355,17 +362,21 @@ class MartsAdapter():
                     + self.biomart_attribute%("ensembl_transcript_id")  \
                     + self.biomart_attribute%("refseq_peptide_predicted")  \
                     + self.biomart_attribute%("refseq_mrna_predicted")  \
+                    + self.biomart_attribute%("strand")  \
                     + self.biomart_tail
 
-                tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
+                try:
+                    tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
 
-                for x in tsvreader:
-                    if (x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']):
-                        end_result.setdefault(x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID'], x)
-                # result2 = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
-                #            if (x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]'])
-                #     this line is a troublemaker and does not help       or (not x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and not x['RefSeq mRNA predicted [e.g. XM_001125684]'])}
-                # end_result.setdefault(result2)
+                    for x in tsvreader:
+                        if (x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']):
+                            end_result.setdefault(x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID'], x)
+                    # result2 = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
+                    #            if (x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]'])
+                    #     this line is a troublemaker and does not help       or (not x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and not x['RefSeq mRNA predicted [e.g. XM_001125684]'])}
+                    # end_result.setdefault(result2)
+                except:
+                    logging.error('Bad Mart Query: '+rq_n)
 
         # g = None
         # for k, v in result.iteritems():

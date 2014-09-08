@@ -21,7 +21,7 @@ from Core.Peptide import Peptide, PeptideSet
 
 
 def write_peptide_file(pepset, file, length=None):
-    assert all(isinstance(a, AASequence) for a in pepset), "No list of AASequence"
+    assert all((isinstance(a, AASequence) for a in pepset)), "No list of AASequence"
     with open(file, 'w') as f:
         if length:
             f.writelines([str(x.seq) + '\n' for x in Core.lengthrestrict_list(pepset, length)])
@@ -30,7 +30,7 @@ def write_peptide_file(pepset, file, length=None):
 
 
 def write_peptide_fasta(pepset, fasta_file, length=None):
-    assert all(isinstance(a, AASequence) for a in pepset), "No list of AASequence"
+    assert all((isinstance(a, AASequence) for a in pepset)), "No list of AASequence"
     with open(fasta_file, 'w') as f:
         if length:
             SeqIO.write(Core.lengthrestrict_list(pepset, length), f, "fasta")
@@ -39,7 +39,7 @@ def write_peptide_fasta(pepset, fasta_file, length=None):
 
 
 def write_protein_fasta(proset, fasta_file):
-    assert all(isinstance(a, AASequence) for a in proset), "No list of AASequence"
+    assert all((isinstance(a, AASequence) for a in proset)), "No list of AASequence"
     with open(fasta_file, 'w') as f:
         SeqIO.write(proset, f, "fasta")
 
@@ -75,20 +75,23 @@ def read_COSMICtsv(filename, sample_id, just_dict=False):
     with open(filename, 'rb') as tsvfile:
         tsvreader = csv.DictReader((row for row in tsvfile if not row.startswith('##')), dialect='excel-tab')
         for row in tsvreader:
-            if not check_min_req_GSvar(row):
-                logging.warning("read_GSvar: Omitted row! Mandatory columns not present in: \n"+str(row))
-                #https://docs.python.org/2/library/warnings.html
-            else:
-                ld_var.append(row)
+            ld_var.append(row)
 
-    #test = sorted(ld_var,key=itemgetter('#chr','start'))
     if just_dict:
         return ld_var
 
     var_list = list()
     for v in ld_var:
+        c,start,end,ref,obs = [None]*5  # TODO there are ~80000 mutations in cosmic with only p. ...
         try:
             c,start,end = map(int,re.split(':|-', v['Mutation GRCh37 genome position']))
+        except:
+            try:
+                c,start,end = map(int,re.split(':|-', v['Mutation NCBI36 genome position']))
+            except:
+                logging.warning("No chromosomal mutation position" + str(v))
+                continue
+        try:
             if 'del' in v['Mutation CDS']:
                 ref = '-'
                 obs = v['Mutation CDS'].split('del')[-1]
@@ -97,15 +100,16 @@ def read_COSMICtsv(filename, sample_id, just_dict=False):
                 obs = '-'
             elif '>' in v['Mutation CDS']:
                 ref, obs = re.split('\d+|>', v['Mutation CDS'])[-2:]
-            if c and start and end and ref and obs:
-                var_list.append(Variant(c, start, end, ref, obs, sample_id, v))
+        except:
+            logging.warning("No mutation syntax given")
+            continue
+
+        if c and start and end and ref and obs:
+            var_list.append(Variant(c, start, end, ref, obs, sample_id, v))
             if v['Gene name'] and v['Gene name'] not in [' ', '-']:
                 var_list[-1].gene = v['Gene name']
 
-        except:
-            print 'tüdelü'
-
-
+    return var_list
 
 def read_GSvar(filename, sample_id, just_dict=False):
     """
