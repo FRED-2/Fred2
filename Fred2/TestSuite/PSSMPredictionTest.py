@@ -46,7 +46,7 @@ class TestCasePSSM(unittest.TestCase):
         df3a,df4a = df3.align(results[2], fill_value=0)
         df3 = df3a+df4a
         print df3
-        print df3.index.levels[]
+        print df3.index.levels
         df=df3.xs(df3.index.levels[0][1], level="Method")
         for p in df.itertuples():
             for a,s in zip(df.columns,p[1:]):
