@@ -22,3 +22,8 @@ class Result(DataFrame):
         This class is used as interface and cann be extended with custom short-cuts for the sometimes often tedious
         calls in pandas
     """
+
+class EpitopePredictionResult(Result):
+    """
+        Epitope prediction result
+    """

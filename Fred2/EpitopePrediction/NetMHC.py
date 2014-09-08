@@ -478,3 +478,6 @@ class NetMHCpan(ANetMHC):
 
     def supportedLength(self):
         return self.__length
+
+    def predict(self, peptides, alleles=None, **kwargs):
+        return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)

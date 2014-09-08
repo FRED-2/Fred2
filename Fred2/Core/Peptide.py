@@ -77,3 +77,15 @@ class Peptide(MetadataLogger, Seq):
 
     def get_all_variants(self):
         return [var for var_list in self.vars.values() for var in var_list]
+
+    def get_all_proteins(self):
+        return self.proteins.values()
+
+    def get_all_transcripts(self):
+        return self.transcripts.values()
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(str(self))

@@ -19,7 +19,7 @@ class Allele(MetadataLogger):
 
     :param str name: the name of the MHC allele (new nomenclature A*01:01)
     """
-    def __init__(self, _name):
+    def __init__(self, _name, prob=None):
         """
         :param str _name: input name in new nomenclature (A*01:01)
         """
@@ -28,6 +28,7 @@ class Allele(MetadataLogger):
         self.name = name
         self.locus, rest = name.split('*')
         self.supertype, self.subtype = rest.split(':')[:2]
+        self.prob = prob
 
         # TODO check semantics
 

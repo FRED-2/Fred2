@@ -4,7 +4,7 @@
 __author__ = 'walzer', 'schubert'
 
 import collections, itertools, warnings,pandas
-from Fred2.Core.Result import Result
+from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction
 
 
@@ -44,7 +44,6 @@ class APSSMEpitopePredictor(AEpitopePrediction):
         else:
             allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
-        print "alleles_string", allales_string, allales_string.keys()
         #group peptides by length and
         result = {}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -55,22 +54,21 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                 continue
 
             for a in allales_string.keys():
-                print a
                 try:
                     pssm = __load_allele_model(a, length)
                 except ImportError:
                     print "In Exception!\n"
                     warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
                     continue
-                print "imported module"
+
                 result[allales_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
                     score = sum(pssm[i][p[i]] for i in xrange(length))
-                    result[allales_string[a]][str(p)] = score
-                    print a, score, result
+                    result[allales_string[a]][pep_seqs[p]] = score
+                    #print a, score, result
 
-        df_result = Result.from_dict(result)
+        df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])
         return df_result
