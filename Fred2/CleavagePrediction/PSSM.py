@@ -14,16 +14,14 @@ import Bio
 from Fred2.Core.Base import ACleavageSitePrediction
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Peptide import Peptide
-from Fred2.Core.Result import CleavagePredictionResult
-
-'''
-NOTE: This implementation only supports cleavage site prediction not fragment prediction
-'''
+from Fred2.Core.Result import CleavageSitePredictionResult
 
 
-class APSSMCleavagePredictor(ACleavageSitePrediction):
+class APSSMCleavageSitePredictor(ACleavageSitePrediction):
     """
         Abstract base class for PSSM predictions.
+
+        This implementation only supports cleavage site prediction not fragment prediction
 
         Implements predict functionality
 
@@ -96,14 +94,34 @@ class APSSMCleavagePredictor(ACleavageSitePrediction):
                     score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-length:i]))
                     result[self.name][(seq_id, i-diff)] = score
 
-        df_result = CleavagePredictionResult.from_dict(result)
+        df_result = CleavageSitePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
                                                         names=['ID','Pos'])
 
         return df_result
 
 
-class PCM(APSSMCleavagePredictor):
+class APSSMCleavageFragmentPredictor(ACleavageSitePrediction):
+    """
+        Abstract base class for PSSM predictions.
+
+        This implementation only supports cleavage fragment prediction not site prediction
+
+        Implements predict functionality
+    """
+
+    def predict(self, _aa_seq,  **kwargs):
+        """
+        predicts
+
+        :param _aa_seq:
+        :param kwargs:
+        :return:
+        """
+
+
+
+class PCM(APSSMCleavageSitePredictor):
     """
         Implements the PCM cleavage prediction method
 
@@ -128,3 +146,4 @@ class PCM(APSSMCleavagePredictor):
 
     def predict(self, peptides, **kwargs):
         return super(PCM, self).predict(peptides, **kwargs)
+

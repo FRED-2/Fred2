@@ -3,10 +3,10 @@
 # as part of this package.
 __author__ = 'schubert'
 
-from Fred2.Core.Base import ACleavagePrediction
+from Fred2.Core.Base import ACleavageSitePrediction
 from Fred2.CleavagePrediction.PSSM import *
 
-class CleavagePredictorFactory(object):
+class CleavageSitePredictorFactory(object):
     class __metaclass__(type):
         def __init__(cls, name, bases, nmspc):
             type.__init__(cls, name, bases, nmspc)
