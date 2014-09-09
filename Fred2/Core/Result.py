@@ -27,3 +27,8 @@ class EpitopePredictionResult(Result):
     """
         Epitope prediction result
     """
+
+class CleavagePredictionResult(Result):
+    """
+        Epitope prediction result
+    """

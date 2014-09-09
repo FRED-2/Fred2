@@ -102,6 +102,15 @@ class ACleavagePrediction(object):
         """
         raise NotImplementedError
 
+    @abc.abstractproperty
+    def supportedLength(self):
+        """
+        Returns the supported lengths of the predictor
+
+        :return: list(int) - Supported peptide length
+        """
+        raise  NotImplementedError
+
     @abc.abstractmethod
     def predict(self, _aa_seq,  **kwargs):
         """

@@ -30,7 +30,7 @@ class APSSMEpitopePredictor(AEpitopePrediction):
             allele_model = "%s_%s_%i"%(self.name, allele, length)
 
             #TODO: what if there exists no allele model for this length?
-            return getattr( __import__("Fred2.Data.PSSMMatrices", fromlist=[allele_model]), allele_model)
+            return getattr( __import__("Fred2.Data.EpitopePSSMMatrices", fromlist=[allele_model]), allele_model)
 
 
         if isinstance(peptides, collections.Iterable):
