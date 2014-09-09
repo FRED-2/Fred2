@@ -4,7 +4,7 @@
 __author__ = 'schubert'
 
 from Fred2.Core.Base import ACleavagePrediction
-
+from Fred2.CleavagePrediction.PSSM import *
 
 class CleavagePredictorFactory(object):
     class __metaclass__(type):
@@ -27,7 +27,7 @@ class CleavagePredictorFactory(object):
                 return ACleavagePrediction.registry[_predictor](*args)
             except KeyError:
                 raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
-                                 "supported by FRED2 and inherits AEpitopePredictor.")
+                                 "supported by FRED2 and inherits ACleavagePrediction.")
 
     @staticmethod
     def available_methods(self):

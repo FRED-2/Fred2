@@ -90,7 +90,7 @@ class APluginRegister(abc.ABCMeta):
         return cls.__name__ + ": " + ", ".join([sc.__name__ for sc in cls])
 
 
-class ACleavagePrediction(object):
+class ACleavageSitePrediction(object):
     __metaclass__ = APluginRegister
 
     @abc.abstractproperty
@@ -110,6 +110,16 @@ class ACleavagePrediction(object):
         :return: list(int) - Supported peptide length
         """
         raise  NotImplementedError
+
+
+    @abc.abstractproperty
+    def cleavagePos(self):
+        """
+        parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
+
+        :return:
+        """
+        raise NotImplementedError
 
     @abc.abstractmethod
     def predict(self, _aa_seq,  **kwargs):

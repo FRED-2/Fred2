@@ -9,10 +9,11 @@ import pandas
 import warnings
 import abc
 
-from Bio.Alphabet import IUPAC
+import Bio
 
-from Fred2.Core.Base import ACleavagePrediction
+from Fred2.Core.Base import ACleavageSitePrediction
 from Fred2.Core.Protein import Protein
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Result import CleavagePredictionResult
 
 '''
@@ -20,22 +21,13 @@ NOTE: This implementation only supports cleavage site prediction not fragment pr
 '''
 
 
-class APSSMCleavagePredictor(ACleavagePrediction):
+class APSSMCleavagePredictor(ACleavageSitePrediction):
     """
         Abstract base class for PSSM predictions.
 
         Implements predict functionality
 
     """
-
-    @abc.abstractproperty
-    def cleavagePos(self):
-        """
-        parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
-
-        :return:
-        """
-        raise NotImplementedError
 
     def predict(self, aa_seq, length=None, **kwargs):
         """
@@ -48,17 +40,19 @@ class APSSMCleavagePredictor(ACleavagePrediction):
         :return: Returns a Result object with the prediction results
         """
         def __load_model(length):
-            model = "%s_%s_%i"%(self.name, length)
+            model = "%s_%i"%(self.name, length)
 
             #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[model]), model)
 
         if isinstance(aa_seq, collections.Iterable):
-            if any(not isinstance(p.alphabet, IUPAC.IUPACProtein) for p in aa_seq):
+            for p in aa_seq:
+                print isinstance(p, Peptide)
+            if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in aa_seq):
                 raise ValueError("Input is not of type Protein or Peptide")
             pep_seqs = {str(p):p for p in aa_seq}
         else:
-            if not isinstance(aa_seq.alphabet, IUPAC.IUPACProtein):
+            if (not isinstance(aa_seq, Peptide)) or (not isinstance(aa_seq, Protein)):
                 raise ValueError("Input is not of type Protein or Peptide")
             pep_seqs = {str(aa_seq):aa_seq}
 
@@ -68,39 +62,44 @@ class APSSMCleavagePredictor(ACleavagePrediction):
             raise ValueError("Length %i is not supported by this method"%length)
 
         #group peptides by length and
-        result = {}
-        result["Cleavage Score"] = {}
+        result = {"Seq":{},self.name:{}}
+
         try:
             pssm = __load_model(length)
         except ImportError:
             raise KeyError("No model found for %s with length %i"%(self.name, length))
 
         diff = length - self.cleavagePos
-        for seq in pep_seqs.iterkeys():
+        for j,seq in enumerate(pep_seqs.iterkeys()):
 
             #convention for peptides its always the first transcript ID after sorting
-            seq_id = pep_seqs[seq].transcript_id if isinstance(pep_seqs[seq], Protein) else \
-                                                    pep_seqs[seq].transcript_ids.keys().sort()[0]
+            try:
+                seq_id = pep_seqs[seq].transcript_id if isinstance(pep_seqs[seq], Protein) else \
+                                                    pep_seqs[seq].transcripts.keys().sort()[0]
+            except Exception:
+                seq_id = "seq_%i"%j
 
             #dynamicaly import prediction PSSMS for alleles and predict
             if len(seq) < length:
                 warnings.warn("Sequence length of %i is to small for specified window of %i"%(len(seq),length), RuntimeWarning)
                 continue
 
-            for i in xrange(len(seq)+diff):
+            for i in xrange(len(seq)):
                 if i < length:
-                    score = 0.0
-                elif i > (len(seq) - (length-1)):
-                    score = 0.0
-                else:
-                    score = sum(pssm[i][aa] for i,aa in enumerate(seq[i:i+length]))
 
-                result[seq[i - diff]][seq_id] = score
-                    #print a, score, result
+                    result["Seq"][(seq_id, i)] = seq[i]
+                    result[self.name][(seq_id, i)] = 0.0
+                else:
+                    result[self.name][(seq_id, i)] = 0.0
+                    result["Seq"][(seq_id, i)] = seq[i]
+
+                    score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-length:i]))
+                    result[self.name][(seq_id, i-diff)] = score
 
         df_result = CleavagePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
-                                                        names=['ID','Method'])
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
+                                                        names=['ID','Pos'])
+
         return df_result
 
 
@@ -120,8 +119,12 @@ class PCM(APSSMCleavagePredictor):
         return self.__supported_length
 
     @property
+    def cleavagePos(self):
+        return self.__cleavage_pos
+
+    @property
     def name(self):
         return self.__name
 
     def predict(self, peptides, **kwargs):
-        super(PCM, self).predict(peptides, **kwargs)
+        return super(PCM, self).predict(peptides, **kwargs)
