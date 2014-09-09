@@ -23,6 +23,7 @@
 from __future__ import division
 
 import itertools as itr
+import copy
 
 import coopr.environ
 from coopr.pyomo import *
@@ -42,7 +43,7 @@ class OptiTope(object):
             :param solver (String): the solver to be used (default glpsol)
     """
 
-    def __init__(self, _results, _alleles, _threshold, _k=10, solver="glpsol", verbosity=0):
+    def __init__(self, _results, _alleles, _threshold, k=10, solver="glpsol", verbosity=0):
         """
             Constructor
 
@@ -53,11 +54,11 @@ class OptiTope(object):
         if not isinstance(_results, EpitopePredictionResult):
             raise ValueError("first input parameter is not of type EpitopePredictionResult")
 
-
+        _alleles = copy.deepcopy(_alleles)
+        print map(lambda x: x.locus, _alleles)
         #test if allele prob is set, if not set allele prob uniform
         #if only partly set infer missing values (assuming uniformity of missing value)
         prob = []
-        total_a = len(_alleles)
         no_prob = []
         for a in _alleles:
             if a.prob is None:
@@ -65,33 +66,37 @@ class OptiTope(object):
             else:
                 prob.append(a)
 
-
-        if len(no_prob) == total_a:
-            for a in no_prob:
-                a.prob = 1.0/total_a
-        elif len(no_prob) > 0:
+        print no_prob
+        if len(no_prob) > 0:
             #group by locus
-            no_prob_grouped = {k:list(v) for k,v in itr.groupby(no_prob, key=lambda x: x.locus).iteritems()}
-            prob_grouped = dict(itr.groupby(no_prob, key=lambda x: x.locus))
+            no_prob_grouped = {}
+            prob_grouped = {}
+            for a in no_prob:
+                no_prob_grouped.setdefault(a.locus, []).append(a)
+            for a in prob:
+                prob_grouped.setdefault(a.locus, []).append(a)
 
+            print no_prob_grouped, prob_grouped
             for g, v in no_prob_grouped.iteritems():
-
+                total_loc_a = len(v)
                 if g in prob_grouped:
-                    total_loc_a = len(v)
-                    remaining_mass = 1 - sum(a.prob for a in prob_grouped[g])
+                    remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
                     for a in v:
                         a.prob = remaining_mass/total_loc_a
                 else:
-                    total_loc_a = len(v)
                     for a in v:
                         a.prob = 1.0/total_loc_a
+        probs = {a.name:a.prob for a in _alleles}
+        if verbosity:
+            for a in _alleles:
+                print a.name, a.prob
 
         #start constructing model
         self.__solver = SolverFactory(solver)
         self.__verbosity = verbosity
         self.__changed = True
         self.__alleleProb = _alleles
-        self.__k = _k
+        self.__k = k
         self.__result = None
         self.__thresh = _threshold
 
@@ -102,34 +107,38 @@ class OptiTope(object):
         imm = {}
         peps = {}
         cons = {}
+
         #unstack multiindex df to get normal df based on first prediction method
         #and filter for binding epitopes
-        res_df = _results.xs(_results.index.values[0][1], level="Method")
 
-        print [res_df.loc[e,a.name] > self.__thresh[a.name]   for e in res_df.index for a in self.__alleleProb]
-        res_df = res_df.where([any(list(res_df.loc[e,a.name] > self.__thresh[a.name])) for a in self.__alleleProb for e in res_df.index],axis=0)
-        print res_df
+        res_df = _results.xs(_results.index.values[0][1], level="Method")
+        res_df = res_df[[a.name for a in _alleles]]
+        res_df = res_df[res_df.apply(lambda x: any(x[a.name] > self.__thresh[a.name] for a in self.__alleleProb), axis=1)]
 
         for tup in res_df.itertuples():
             p = tup[0]
             seq = str(p)
             peps[seq] = p
             for a, s in itr.izip(res_df.columns, tup[1:]):
-                alleles_I[a].add(seq)
+                if s > self.__thresh[a]:
+                    alleles_I.setdefault(a, set()).add(seq)
                 imm[seq, a] = s
 
             prots = set(p.transcript_id for p in p.get_all_proteins())
             cons[seq] = len(prots)
             for prot in prots:
-                variations.append(prot.transcript_id)
-                epi_var.setdefault(prot.transcript_id, set()).add(seq)
+                variations.append(prot.gene_id)
+                epi_var.setdefault(prot.gene_id, set()).add(seq)
         self.__peptideSet = peps
 
         #calculate conservation
         variations = set(variations)
-        total = len(set(variations))
+        total = len(variations)
         for e, v in cons.iteritems():
-            cons[e] = v / total
+            try:
+                cons[e] = v / total
+            except ZeroDivisionError:
+                cons[e] = 1
         model = ConcreteModel()
 
         #set definition
@@ -137,14 +146,14 @@ class OptiTope(object):
 
         model.E = Set(initialize=set(peps.keys()))
 
-        model.A = Set(initialize=[a.name for a in self.__alleleProb])
+        model.A = Set(initialize=alleles_I.keys())
         model.E_var = Set(model.Q, initialize=lambda mode, v: epi_var[v])
         model.A_I = Set(model.A, initialize=lambda model, a: alleles_I[a])
 
 
         #parameter definition
         model.k = Param(initialize=self.__k, within=PositiveIntegers, mutable=True)
-        model.p = Param(model.A, initialize=lambda model, a: self.__thresh[a])
+        model.p = Param(model.A, initialize=lambda model, a: probs[a])
 
         model.c = Param(model.E, initialize=lambda model, e: cons[e])
 
@@ -158,6 +167,8 @@ class OptiTope(object):
         model.x = Var(model.E, within=Binary)
         model.y = Var(model.A, within=Binary)
 
+        print peps["KLLPRLPGV"]
+        print
         # Objective definition
         model.Obj = Objective(
             rule=lambda mode: sum(model.x[e] * sum(model.p[a] * model.i[e, a] for a in model.A) for e in model.E),
