@@ -81,15 +81,14 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
                 continue
 
             for i in xrange(len(seq)):
-                if i < length:
+                if i < (length-1):
 
                     result["Seq"][(seq_id, i)] = seq[i]
                     result[self.name][(seq_id, i)] = 0.0
                 else:
                     result[self.name][(seq_id, i)] = 0.0
                     result["Seq"][(seq_id, i)] = seq[i]
-
-                    score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-length:i]))
+                    score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-(length-1):(i+1)]))
                     result[self.name][(seq_id, i-diff)] = score
 
         df_result = CleavageSitePredictionResult.from_dict(result)

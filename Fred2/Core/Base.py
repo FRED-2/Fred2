@@ -116,6 +116,7 @@ class ACleavageSitePrediction(object):
     def cleavagePos(self):
         """
         parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
+        (starting from 1)
 
         :return:
         """

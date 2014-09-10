@@ -167,11 +167,9 @@ class OptiTope(object):
         model.x = Var(model.E, within=Binary)
         model.y = Var(model.A, within=Binary)
 
-        print peps["KLLPRLPGV"]
-        print
         # Objective definition
         model.Obj = Objective(
-            rule=lambda mode: sum(model.x[e] * sum(model.p[a] * model.i[e, a] for a in model.A) for e in model.E),
+            rule=lambda model: sum(model.x[e] * sum(model.p[a] * model.i[e, a] for a in model.A) for e in model.E),
             sense=maximize)
 
 
