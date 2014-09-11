@@ -13,8 +13,16 @@ class SVMEpitopePredictionTestCase(unittest.TestCase):
 
     def test_svmhc_simple(self):
         """
-        Output compared to SVMHC server output. 
+        Output compared to SVMHC server output.
         """
         pred = EpitopePredictorFactory("SVMHC")
+        r = pred.predict(self.peptides, self.alleles)
+        print r
+
+    def test_unitope_simple(self):
+        """
+        Classification in concordance with webservice
+        """
+        pred = EpitopePredictorFactory("UniTope")
         r = pred.predict(self.peptides, self.alleles)
         print r
