@@ -12,8 +12,14 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
     def setUp(self):
         self.peptides = [Peptide("KLLPRLPGV"), Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL")]
 
-
     def test_simple_assembly(self):
+        """
+        Simple test if everything works. Solution manually tested for optimality.
+
+        :return:
+        """
         pred = CleavageSitePredictorFactory("PCM")
         assembler = EpitopeAssembly(self.peptides,pred,solver="cplex",verbosity=1)
-        print assembler.solve()
+        r = assembler.solve()
+        print r
+        self.assertEqual(r, [Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL"), Peptide("KLLPRLPGV")])

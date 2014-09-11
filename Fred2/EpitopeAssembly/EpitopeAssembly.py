@@ -5,7 +5,7 @@ from __future__ import division
 __author__ = 'schubert'
 
 import itertools as itr
-
+import warnings
 
 import coopr.environ
 from coopr.pyomo import *
@@ -31,6 +31,10 @@ class EpitopeAssembly(object):
         if not isinstance(pred, ACleavageSitePrediction):
             raise ValueError("Cleave site predictor must be of type ACleavageSitePrediction")
 
+        if len(peptides) > 60:
+            warnings.warn("The peptide set exceeds 60. Above this level one has to expect " +
+                          "considerably long running times due to the complexity of the problem.")
+
         #Generate model
         #1. Generate peptides for which cleave sites have to be predicted
         #2. generate graph with dummy element
@@ -51,8 +55,9 @@ class EpitopeAssembly(object):
             else:
                 start_str = str(start)
                 stop_str = str(stop)
-                frag = Peptide(start_str[-supported_length:]+stop_str[:supported_length-cleavage_pos])
-                garf = Peptide(stop_str[-supported_length:]+start_str[:supported_length-cleavage_pos])
+                frag = Peptide(start_str[-cleavage_pos:]+stop_str[:supported_length-cleavage_pos])
+                garf = Peptide(stop_str[-cleavage_pos:]+start_str[:supported_length-cleavage_pos])
+
                 fragments[frag] = (start_str, stop_str)
                 fragments[garf] = (stop_str, start_str)
 
@@ -72,7 +77,7 @@ class EpitopeAssembly(object):
         E = filter(lambda x: x != "Dummy", seq_to_pep.keys())
         model.E = Set(initialize=E)
         model.E_prime = Set(initialize=seq_to_pep.keys())
-        model.ExE = Set(initialize=itr.combinations(E,2), dimen=2)
+        model.ExE = Set(initialize=itr.permutations(E,2), dimen=2)
 
         model.w_ab = Param(model.E_prime, model.E_prime, initialize=edge_matrix)
         model.card = Param(initialize=len(model.E_prime))
@@ -113,4 +118,4 @@ class EpitopeAssembly(object):
         if self.__verbosity > 0:
             res.write(num=1)
 
-        print [ (u,self.__instance.u[u].value) for u in self.__instance.u]
+        return [ self.__seq_to_pep[u] for u in sorted(self.__instance.u, key=lambda x: self.__instance.u[x].value)]
