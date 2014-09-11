@@ -9,6 +9,7 @@ from Fred2.Core.Result import Result
 from Fred2.Core.Base import AEpitopePrediction
 from tempfile import NamedTemporaryFile
 
+
 class ANetMHC(AEpitopePrediction):
     """
         Abstract class representing NetMHC prediction function. These are wrapper of external binaries

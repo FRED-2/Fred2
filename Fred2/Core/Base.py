@@ -227,3 +227,19 @@ class AEpitopePrediction(object):
         :return: Returns a Result object for the specified Peptides and Alleles
         """
         raise NotImplementedError
+
+
+class ASVM(object):
+    """
+        Base class for SVM prediction tools
+    """
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def encode(self, peptides):
+        """
+        Returns the feature encoding for peptides
+
+        :param List(Peptide)/Peptide peptides: List oder Peptide object
+        :return: list(Object) -- Feature encoding of the Peptide objects
+        """
