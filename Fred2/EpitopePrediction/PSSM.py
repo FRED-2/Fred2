@@ -57,7 +57,6 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                 try:
                     pssm = __load_allele_model(a, length)
                 except ImportError:
-                    print "In Exception!\n"
                     warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
                     continue
 

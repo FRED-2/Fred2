@@ -173,6 +173,7 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         else:
             pep_seqs = {str(peptides):peptides}
 
+        result = {self.name:{}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
@@ -186,11 +187,10 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
             except ImportError:
                 raise KeyError("No model found for %s with length %i"%(self.name, length))
 
-            result = {self.name:{}}
             for p in peps:
                 score = sum(pssm[i][aa] for i,aa in enumerate(p))
                 pep = pep_seqs[p][self.trailingN:-self.tralingC]
-                result[self.self.name][pep] = score
+                result[self.name][pep] = score
 
         df_result = CleavageFragmentPredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],

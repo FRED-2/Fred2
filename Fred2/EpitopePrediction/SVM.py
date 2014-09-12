@@ -43,7 +43,12 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
             encoding = self.encode(peps)
 
             for a in allales_string.keys():
-                model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, a, length))
+                try:
+                    model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, a, length))
+                    model = svmlight.read_model(model_path)
+                except OSError:
+                    warnings.warn("No model exists for peptides of length %i or allele %s."%(length, a.name))
+                    continue
 
                 model = svmlight.read_model(model_path)
                 pred = svmlight.classify(model, encoding.values())

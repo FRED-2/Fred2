@@ -39,3 +39,8 @@ class CleavageFragmentPredictionResult(Result):
     """
         Epitope prediction result
     """
+
+class TAPPredictionResult(Result):
+    """
+        Epitope prediction result
+    """

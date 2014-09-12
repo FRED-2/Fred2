@@ -167,7 +167,7 @@ class ACleavageFragmentPrediction(object):
     @abc.abstractmethod
     def predict(self, _aa_seq,  **kwargs):
         """
-        Predicts the proteom cleavage site of the given sequences
+        Predicts the probability that the fragment can be produced by the proteasom
 
         :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
         :return: Returns a Result object for the specified Bio.Seq
@@ -208,9 +208,11 @@ class AEpitopePrediction(object):
     @abc.abstractmethod
     def convert_alleles(self, alleles):
         """
-        Converts alleles into the interal allele representation of the predictor and returns a string representation
+        Converts alleles into the interal allele representation of the predictor
+        and returns a string representation
 
-        :param list(Allele) alleles: The alleles for which the internal predictor representation is needed
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
         :return: Returns a string representation of the input alleles
         """
         raise NotImplementedError
@@ -243,3 +245,36 @@ class ASVM(object):
         :param List(Peptide)/Peptide peptides: List oder Peptide object
         :return: list(Object) -- Feature encoding of the Peptide objects
         """
+        raise NotImplementedError
+
+
+class ATAPPrediction(object):
+    __metaclass__ = APluginRegister
+
+    @abc.abstractproperty
+    def name(self):
+        """
+        Returns the name of the predictor
+
+        :return:
+        """
+        raise NotImplementedError
+
+    @abc.abstractproperty
+    def supportedLength(self):
+        """
+        Returns the supported lengths of the predictor
+
+        :return: list(int) - Supported peptide length
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def predict(self, peptides,  **kwargs):
+        """
+        Predicts the TAP affinity for the given sequences
+
+        :param list(Peptide)/Peptide: Peptides for which TAP affinity should be predicted
+        :return: Returns a TAPResult object
+        """
+        raise NotImplementedError
