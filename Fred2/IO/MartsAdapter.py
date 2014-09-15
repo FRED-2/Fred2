@@ -211,6 +211,10 @@ class MartsAdapter(ADBAdapter):
 
             tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
             tsvselect = [x for x in tsvreader]
+            if not tsvselect:
+                warnings.warn("No entry found for ID %s"%transcript_refseq)
+                return None
+
             self.ids_proxy[transcript_refseq] = {EAdapterFields.SEQ: tsvselect[0]['Coding sequence'],
                                                       EAdapterFields.GENE: tsvselect[0]['Associated Gene Name'],
                                                       EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0

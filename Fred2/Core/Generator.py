@@ -10,6 +10,9 @@
 
 """
 __author__ = 'schubert'
+
+import warnings
+
 from Fred2.Core.Base import COMPLEMENT
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Transcript import Transcript
@@ -44,6 +47,12 @@ def _incorp_snp(seq, var, transId, offset):
         raise TypeError("%s is not a SNP"%str(var))
     var.offsets[transId] = offset
 
+    print transId, len(seq), var.get_transcript_position(transId)-1
+    if seq[var.get_transcript_position(transId)-1] != var.ref:
+        warnings.warn("For %s bp dos not mmatch ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
+        transId, str(var), var.get_transcript_position(transId) - 1, var.ref,
+        seq[var.get_transcript_position(transId) - 1]))
+
     seq[var.get_transcript_position(transId)-1] = var.obs
 
     return seq, offset
@@ -65,6 +74,7 @@ def _incorp_insertion(seq, var, transId, offset):
 
     var.offsets[transId] = offset
     pos = var.get_transcript_position(transId)
+
     seq[pos:pos] = var.obs
     return seq, offset + len(var.obs)
 
@@ -123,6 +133,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
         recursive variant combination generator
         """
         transOff = generate_transcripts_from_variants.transOff
+        #print "TransOffset ", transOff, tId,usedVs
         if vs:
             v = vs.pop()
 
@@ -169,19 +180,23 @@ def generate_transcripts_from_variants(vars, dbadapter):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
+        print tId
         query = dbadapter.get_transcript_information(tId)
+        if query is None:
+            warnings.warn("Transcript with ID %s not found in DB"%tId)
+            continue
+
         tSeq = query[EAdapterFields.SEQ]
         geneid = query[EAdapterFields.GENE]
         strand = query[EAdapterFields.STRAND]
+        print "strand ",strand
+
 
         #if its a reverse transcript form the complement of the variants
         if strand == "-":
             for v in transToVar[tId]:
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
-
-        if tSeq is None:
-            raise KeyError("Transcript with ID %s not found in DB"%tId)
 
         vs.sort(key=lambda v: v.genomePos, reverse=True)
 
