@@ -48,6 +48,7 @@ def main():
                                help="Specifies the allele input as allele string.")
     parser.add_argument("-m", "--method",
                        required=True,
+                       nargs="+",
                        help="Specifies the method used for prediction.")
     parser.add_argument("-l", "--length",
                         required=False,
@@ -100,22 +101,26 @@ def main():
         peptides = generate_peptides_from_protein(proteins, args.length)
 
     elif args.pepfile:
-        peptides = FileReader.read_line(args.input.upper(), type="Peptide")
+        peptides = FileReader.read_lines(args.input, type="Peptide")
 
     elif args.peptide:
         peptides = [Peptide(s) for s in args.input]
 
     #read in alleles
     if args.allelefile:
-        alleles = FileReader.read_line(args.alleles, type="Allele")
+        alleles = FileReader.read_lines(args.alleles, type="Allele")
     else:
         alleles = [Allele(a.upper()) for a in args.alleles]
 
-    result = EpitopePredictorFactory(args.method).predict(peptides, alleles)
+    result = [EpitopePredictorFactory(m).predict(peptides, alleles) for m in args.method]
+    r_df = result.pop()
+    for r in result:
+        r_df_a, r_a = r_df.align(r, fill_value=0)
+        r_df = r_df_a + r_a
 
     output = args.output if args.outdir == "" else args.outdir + os.path.basename(args.output)
     with open(output, "w") as out:
-        result.to_csv(out)
+        r_df.to_csv(out)
 
 
 
