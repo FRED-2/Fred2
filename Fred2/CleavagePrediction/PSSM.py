@@ -42,8 +42,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[model]), model)
 
         if isinstance(aa_seq, collections.Iterable):
-            for p in aa_seq:
-                print isinstance(p, Peptide)
             if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in aa_seq):
                 raise ValueError("Input is not of type Protein or Peptide")
             pep_seqs = {str(p):p for p in aa_seq}

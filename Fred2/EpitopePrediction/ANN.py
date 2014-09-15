@@ -96,7 +96,7 @@ class NetMHC(ANetMHC):
                  'B*58:01', 'B*57:01', 'B*15:01', 'A*69:01', 'B*54:01', 'A*11:01', 'A*03:01', 'B*40:01', 'B*40:02',
                  'B*44:02', 'A*30:01', 'A*02:19', 'A*30:02', 'B*39:01', 'A*02:16', 'B*51:01', 'B*45:01', 'A*02:12',
                  'A*02:11', 'B*08:01', 'B*18:01', 'B*44:03', 'B*08:02', 'A*33:01', 'A*01:01']
-    __length = [9]
+    __supported_length = [9]
     __name = "netmhc"
     __externalPath = "/after/moon/thousendmiles/right/netMHC"
 
@@ -113,7 +113,7 @@ class NetMHC(ANetMHC):
         return self.__externalPath
 
     def supportedLength(self):
-        return self.__length
+        return self.__supported_length
 
     def parse_external_result(self, _file):
         pass
@@ -129,7 +129,7 @@ class NetMHCpan(ANetMHC):
 
         Supported  MHC alleles currently only restricted to HLA alleles
     """
-    __length = [9]
+    __supported_length = [9]
     __name = "netmhcpan"
     __externalPath = "/after/moon/thousendmiles/right/netMHCpan"
     __alleles = ['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
@@ -478,7 +478,7 @@ class NetMHCpan(ANetMHC):
         return self.__externalPath
 
     def supportedLength(self):
-        return self.__length
+        return self.__supported_length
 
     def predict(self, peptides, alleles=None, **kwargs):
         return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)

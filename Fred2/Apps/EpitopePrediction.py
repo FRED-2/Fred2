@@ -76,7 +76,7 @@ def main():
 
     if args.available:
         for pred, obj in AEpitopePrediction.registry.iteritems():
-            if pred not in ["AEpitopePrediction", "APSSMEpitopePredictor"]:
+            if pred not in ["AEpitopePrediction", "APSSMEpitopePredictor", "ANetMHC", "ASVMEpitopePrediction"]:
                 print "Method: ",pred
                 print "Supported Alleles: ", " ".join(getattr(obj, "_"+pred+"__alleles" ))
                 print "Supported Length: ", " ".join(map(str, getattr(obj,  "_"+pred+"__supported_length")))
