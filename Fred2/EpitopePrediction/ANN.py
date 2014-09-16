@@ -5,7 +5,9 @@ __author__ = 'walzer', 'schubert'
 
 
 import abc, collections, itertools, warnings, pandas, subprocess
-from Fred2.Core.Result import Result
+
+from Fred2.Core.Allele import Allele
+from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction
 from tempfile import NamedTemporaryFile
 
@@ -45,8 +47,8 @@ class ANetMHC(AEpitopePrediction):
             pep_seqs = {str(peptides):peptides}
 
         if alleles is None:
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(self.supportedAlleles),
-                                                                       self.supportedAlleles)}
+            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
@@ -71,7 +73,10 @@ class ANetMHC(AEpitopePrediction):
             pep_file.write("\n".join(pep_seqs.keys()))
 
         #generate cmd command
-        cmd = self.externalPath + " -p %s -a %s"
+        if isinstance(self, NetMHCpan):
+            cmd = self.externalPath + " -p %s -a %s -ic50"
+        else:
+            cmd = self.externalPath + " -p %s -a %s"
         for allele_group in allele_groups:
             res = self.parse_external_result(
                 subprocess.check_output(cmd%(tmp_file, ",".join(allele_group)), shell=True)
@@ -106,12 +111,15 @@ class NetMHC(ANetMHC):
     def supportedAlleles(self):
         return self.__alleles
 
+    @property
     def name(self):
         return self.__name
 
+    @property
     def externalPath(self):
         return self.__externalPath
 
+    @property
     def supportedLength(self):
         return self.__supported_length
 
@@ -468,12 +476,15 @@ class NetMHCpan(ANetMHC):
     def convert_alleles(self, alleles):
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
+    @property
     def supportedAlleles(self):
         return self.__alleles
 
+    @property
     def name(self):
         return self.__name
 
+    @property
     def externalPath(self):
         return self.__externalPath
 
