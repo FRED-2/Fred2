@@ -4,6 +4,8 @@
 __author__ = 'walzer', 'schubert'
 
 import collections, itertools, warnings,pandas
+
+from Fred2.Core.Allele import Allele
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction
 
@@ -39,8 +41,8 @@ class APSSMEpitopePredictor(AEpitopePrediction):
             pep_seqs = {str(peptides):peptides}
 
         if alleles is None:
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(self.supportedAlleles),
-                                                                       self.supportedAlleles)}
+            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 

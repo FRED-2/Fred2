@@ -14,9 +14,11 @@ import pandas
 import os
 import warnings
 
+from Fred2.Core.Allele import Allele
 from Fred2.Core.Base import AEpitopePrediction, ASVM
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Data.UniTope_encodedAlleles import UniTope_encodedAlleles
+
 
 class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
     """
@@ -31,8 +33,8 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
             pep_seqs = {str(peptides):peptides}
 
         if alleles is None:
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(self.supportedAlleles),
-                                                                       self.supportedAlleles)}
+            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
@@ -412,8 +414,8 @@ class UniTope(ASVMEpitopePrediction):
             pep_seqs = {str(peptides):peptides}
 
         if alleles is None:
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(self.supportedAlleles),
-                                                                       self.supportedAlleles)}
+            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
