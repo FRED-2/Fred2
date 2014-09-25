@@ -38,4 +38,5 @@ class EpitopePredictorFactory(object):
 
         :return: list of epitope predictors represented as string
         """
-        return AEpitopePrediction.registry.keys()
+        return [k for k in AEpitopePrediction.registry.iterkeys() if
+                k not in ["ANetMHC", "APSSMEpitopePredictor", "ASVMEpitopePrediction", "AEpitopePrediction"]]
