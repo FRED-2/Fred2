@@ -238,7 +238,7 @@ class SMM(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return math.pow(10, super(SMM, self).predict(peptides, alleles=alleles, **kwargs))
+        return super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
 
 
 class SMMPMBEC(APSSMEpitopePredictor):
@@ -277,4 +277,49 @@ class SMMPMBEC(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return math.pow(10,super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs))
+        return super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+
+
+class ARB(APSSMEpitopePredictor):
+    """
+    Implements IEDBs ARB method
+    """
+
+    __alleles = ['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:19',
+                 'A*02:50', 'A*03:01', 'A*11:01', 'A*23:01', 'A*24:02', 'A*24:03', 'A*25:01', 'A*26:01', 'A*26:02',
+                 'A*26:03', 'A*29:02', 'A*30:01', 'A*30:02', 'A*31:01', 'A*32:01', 'A*33:01', 'A*68:01', 'A*68:02',
+                 'A*69:01', 'A*80:01', 'B*07:02', 'B*08:01', 'B*08:02', 'B*08:03', 'B*15:01', 'B*15:02', 'B*15:03',
+                 'B*15:09', 'B*15:17', 'B*18:01', 'B*27:03', 'B*27:05', 'B*35:01', 'B*38:01', 'B*39:01', 'B*40:01',
+                 'B*40:02', 'B*44:02', 'B*44:03', 'B*45:01', 'B*46:01', 'B*48:01', 'B*51:01', 'B*53:01', 'B*54:01',
+                 'B*57:01', 'B*58:01', 'B*73:01']
+    __supported_length = [8, 9, 10, 11]
+    __name = "arb"
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    def convert_alleles(self, alleles):
+        return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def predict(self, peptides, alleles=None, **kwargs):
+        #with this implementation customizations of prediction algorithm is still possible
+        #In IEDB scripts score is taken to the base 10**score
+        #TODO: IEDB calculates ARB score as follows.... needs some restructuring to be able to do this
+        #    score/=-self.length
+        #    score-=self.intercept
+        #    score/=self.slope
+        #    score=math.pow(10,score)
+        #    if score < 0.0001:    # Cap predictable values
+        #        score = 0.0001
+        #    elif score > 1e6:
+        #        score = 1e6
+        return super(ARB, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))

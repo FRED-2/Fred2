@@ -22,7 +22,7 @@ class TestCasePSSM(unittest.TestCase):
     def setUp(self):
         self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
         self.alleles = [Allele("HLA-A*24:02"),Allele("HLA-A*02:01")]
-        self.methods = ["BIMAS","Epidemix","Syfpeithi", "SMM", "SMMPMBEC"]
+        self.methods = ["BIMAS","Epidemix","Syfpeithi", "SMM", "SMMPMBEC", "ARB"]
 
     def test_BIMAS_initialization(self):
         p = EpitopePredictorFactory("BIMAS")
