@@ -4,6 +4,7 @@
 __author__ = 'walzer', 'schubert'
 
 import collections, itertools, warnings,pandas
+import math
 
 from Fred2.Core.Allele import Allele
 from Fred2.Core.Result import EpitopePredictionResult
@@ -201,3 +202,79 @@ class Hammer(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         return super(Hammer, self).predict(peptides, alleles=alleles, **kwargs)
+
+
+class SMM(APSSMEpitopePredictor):
+    """
+    Implements IEDBs SMM PSSM method
+    """
+
+    __alleles = ['B*27:20', 'B*83:01', 'A*32:15', 'B*15:17', 'B*40:13', 'A*24:02', 'A*24:03', 'B*53:01', 'B*15:01',
+                 'B*27:05', 'B*42:01', 'B*39:01', 'B*38:01', 'A*23:01', 'A*25:01', 'C*04:01', 'A*29:02', 'A*02:06',
+                 'A*02:01', 'A*02:02', 'A*02:03', 'A*26:02', 'A*26:03', 'A*26:01', 'C*03:03', 'E*01:01', 'E*01:03',
+                 'B*58:01', 'A*31:01', 'C*06:02', 'B*07:02', 'A*66:01', 'B*57:01', 'A*68:01', 'A*68:02', 'C*14:02',
+                 'B*35:01', 'B*15:09', 'B*35:03', 'A*80:01', 'B*15:03', 'B*15:02', 'A*32:01', 'A*02:50', 'A*32:07',
+                 'B*58:02', 'A*69:01', 'A*68:23', 'A*11:01', 'A*03:01', 'B*73:01', 'B*40:01', 'B*44:03', 'B*46:01',
+                 'B*40:02', 'C*12:03', 'B*44:02', 'A*30:01', 'A*02:19', 'A*30:02', 'A*02:17', 'A*02:16', 'B*51:01',
+                 'B*45:01', 'A*02:12', 'A*02:11', 'B*54:01', 'B*08:01', 'B*18:01', 'B*08:03', 'B*08:02', 'C*05:01',
+                 'C*15:02', 'A*33:01', 'B*14:02', 'C*07:01', 'B*48:01', 'B*15:42', 'C*07:02', 'A*01:01', 'C*08:02']
+    __supported_length = [8, 9, 10, 11]
+    __name = "smm"
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    def convert_alleles(self, alleles):
+        return ["%s_%s_%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def predict(self, peptides, alleles=None, **kwargs):
+        #with this implementation customizations of prediction algorithm is still possible
+        #In IEDB scripts score is taken to the base 10**score
+        return math.pow(10, super(SMM, self).predict(peptides, alleles=alleles, **kwargs))
+
+
+class SMMPMBEC(APSSMEpitopePredictor):
+    """
+    Implements IEDBs SMMPMBEC PSSM method
+    """
+
+    __alleles = ['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:17',
+                 'A*02:19', 'A*02:50', 'A*03:01', 'A*11:01', 'A*23:01', 'A*24:02', 'A*24:03', 'A*25:01', 'A*26:01',
+                 'A*26:02', 'A*26:03', 'A*29:02', 'A*30:01', 'A*30:02', 'A*31:01', 'A*32:01', 'A*32:07', 'A*32:15',
+                 'A*33:01', 'A*66:01', 'A*68:01', 'A*68:02', 'A*68:23', 'A*69:01', 'A*80:01', 'B*07:02', 'B*08:01',
+                 'B*08:02', 'B*08:03', 'B*14:02', 'B*15:01', 'B*15:02', 'B*15:03', 'B*15:09', 'B*15:17', 'B*15:42',
+                 'B*18:01', 'B*27:03', 'B*27:05', 'B*27:20', 'B*35:01', 'B*35:03', 'B*38:01', 'B*39:01', 'B*40:01',
+                 'B*40:02', 'B*40:13', 'B*42:01', 'B*44:02', 'B*44:03', 'B*45:01', 'B*45:06', 'B*46:01', 'B*48:01',
+                 'B*51:01', 'B*53:01', 'B*54:01', 'B*57:01', 'B*58:01', 'B*58:02', 'B*73:01', 'B*83:01', 'C*03:03',
+                 'C*04:01', 'C*05:01', 'C*06:02', 'C*07:01', 'C*07:02', 'C*08:02', 'C*12:03', 'C*14:02', 'C*15:02',
+                 'E*01:01', 'E*01:03']
+    __supported_length = [8, 9, 10, 11]
+    __name = "smmpmbec"
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    def convert_alleles(self, alleles):
+        return ["%s_%s_%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def predict(self, peptides, alleles=None, **kwargs):
+        #with this implementation customizations of prediction algorithm is still possible
+        #In IEDB scripts score is taken to the base 10**score
+        return math.pow(10,super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs))

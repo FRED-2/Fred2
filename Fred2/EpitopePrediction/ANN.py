@@ -108,6 +108,7 @@ class NetMHC(ANetMHC):
     def convert_alleles(self, alleles):
         return ["%s%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
+    @property
     def supportedAlleles(self):
         return self.__alleles
 
@@ -488,8 +489,12 @@ class NetMHCpan(ANetMHC):
     def externalPath(self):
         return self.__externalPath
 
+    @property
     def supportedLength(self):
         return self.__supported_length
+
+    def parse_external_result(self, _file):
+        pass
 
     def predict(self, peptides, alleles=None, **kwargs):
         return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)
