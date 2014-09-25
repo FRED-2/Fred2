@@ -6,7 +6,7 @@ __author__ = 'schubert'
 
 import unittest
 import pandas as pd
-
+import numpy as np
 
 # Variants and Generator
 import pandas
@@ -22,7 +22,7 @@ class TestCasePSSM(unittest.TestCase):
     def setUp(self):
         self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
         self.alleles = [Allele("HLA-A*24:02"),Allele("HLA-A*02:01")]
-        self.methods = ["BIMAS","Epidemix","Syfpeithi", "SMM", "SMMPMBEC", "ARB"]
+        self.methods = ["BIMAS","Epidemix","Syfpeithi", "SMM", "SMMPMBEC", "ARB", "ComblibSidney2008"]
 
     def test_BIMAS_initialization(self):
         p = EpitopePredictorFactory("BIMAS")

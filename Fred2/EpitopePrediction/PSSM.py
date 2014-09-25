@@ -59,7 +59,7 @@ class APSSMEpitopePredictor(AEpitopePrediction):
             for a in allales_string.keys():
                 try:
                     pssm = __load_allele_model(a, length)
-                except ImportError:
+                except AttributeError:
                     warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
                     continue
 
@@ -323,3 +323,35 @@ class ARB(APSSMEpitopePredictor):
         #    elif score > 1e6:
         #        score = 1e6
         return super(ARB, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+
+
+class ComblibSidney2008(APSSMEpitopePredictor):
+    """
+    Implements IEDBs Comblib_Sidney2008 PSSM method
+    """
+
+    __alleles = ['B*35:01', 'B*51:01', 'B*54:01', 'B*58:02', 'A*02:01', 'A*68:02', 'B*27:05', 'B*08:01', 'B*07:02',
+                 'A*32:01', 'B*53:01', 'A*30:01', 'B*15:03', 'B*15:01', 'B*58:01']
+    __supported_length = [9]
+    __name = "comblibSidney"
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    def convert_alleles(self, alleles):
+        return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def predict(self, peptides, alleles=None, **kwargs):
+        #with this implementation customizations of prediction algorithm is still possible
+        #In IEDB scripts score is taken to the base 10**score
+        return super(ComblibSidney2008, self).predict(peptides,
+                                                      alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
