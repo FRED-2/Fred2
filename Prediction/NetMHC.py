@@ -6,7 +6,6 @@ __author__ = 'szolek', 'walzer'
 import re
 import logging
 import subprocess
-
 from tempfile import NamedTemporaryFile
 from itertools import groupby
 

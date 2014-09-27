@@ -2,7 +2,6 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 __author__ = 'walzer'
-# Taken from https://github.com/mwalzer/pyBioConveniences/UniProtDB.py
 
 import warnings
 import bisect
@@ -10,20 +9,20 @@ import bisect
 from Bio import SeqIO
 
 
-class UniProtDB:
+class EnsembleDB:
     def __init__(self, name='fdb'):
         """
-        UniProtDB class to give quick access to entries (fast exact match searches) and convenient ways to produce
+        EnsembleDB class to give quick access to entries (fast exact match searches) and convenient ways to produce
         combined fasta files. Search is done with python's fast search  based on a mix between boyer-moore and horspool
         (http://svn.python.org/view/python/trunk/Objects/stringlib/fastsearch.h?revision=68811&view=markup)
-        :param name: a name for the UniProtDB object
+        :param name: a name for the EnsembleDB object
         Usage examples:
-            import UniProtDB
-            db = UniProtDB.UniProtDB('uniprot') #give it a name
+            import EnsembleDB
+            db = EnsembleDB.EnsembleDB('Ensemble') #give it a name
             db.read_seqs('/path/to/file.fasta')
             l = list(SeqIO.parse(f, "fasta"))
             d = SeqIO.to_dict(SeqIO.parse(f, "fasta"))
-            db = UniProtDB.UniProtDB('something')
+            db = EnsembleDB.EnsembleDB('something')
             db.read_seqs(l)
             db.read_seqs(d)
         """
@@ -32,12 +31,18 @@ class UniProtDB:
         self.searchstring = ''  # all sequences concatenated with a '#'
         self.accs = list()  # all accessions in respective order to searchstring
         self.idx = list()  # all indices of starting strings in the searchstring in respective order
+        self.ensg2enst = dict()
+        self.ensg2ensp = dict()
+        self.enst2ensg = dict()
+        self.enst2ensp = dict()
+        self.ensp2ensg = dict()
+        self.ensp2enst = dict()
 
     def read_seqs(self, sequence_file):
         """
-        read sequences from uniprot files (.dat or .fasta) or from lists or dicts of BioPython SeqRecords
+        read sequences from Ensemble protein files (.fasta) or from lists or dicts of BioPython SeqRecords
         and make them available for fast search. Appending also with this function.
-        :param sequence_file: uniprot files (.dat or .fasta)
+        :param sequence_file: Ensemble files (.dat or .fasta)
         :return:
         """
         recs = sequence_file
@@ -61,22 +66,76 @@ class UniProtDB:
             self.idx.append(0)
             for i, v in enumerate(self.collection.values()):
                 self.idx.append(1 + self.idx[-1] + len(self.collection.values()[i].seq))
+
+            for i in recs.items():
+                ensg = None
+                enst = None
+                ensp = i[0]
+                ks = i[1].description.split(' ')
+                for j in ks:
+                    if j.startswith('transcript:'):
+                        enst = j.strip('transcript:')
+                    elif j.startswith('gene:'):
+                        ensg = j.strip('gene:')
+                if ensg and enst and ensp:
+                    if ensg not in self.ensg2enst:
+                        self.ensg2enst[ensg] = list()
+                        self.ensg2ensp[ensg] = list()
+                    self.ensg2enst[ensg].append(enst)
+                    self.ensg2ensp[ensg].append(ensp)
+                    self.enst2ensg[enst] = ensg
+                    self.enst2ensp[enst] = ensp
+                    self.ensp2ensg[ensp] = ensg
+                    self.ensp2enst[ensp] = enst
+                else:
+                    warnings.warn("Unparsable filecontents", UserWarning)
         return
+
+    def map_enst(self, enst):
+        """
+        looks up enst from the mapping and returns a ensg and a ensp
+        :param enst: the transcript to map
+        :return: tuple of gene and protein (might be None)
+        """
+        ensg = None
+        ensp = None
+        if enst in self.enst2ensg:
+            ensg = self.enst2ensg[enst]
+        if enst in self.enst2ensp:
+            ensp = self.enst2ensp[enst]
+        return ensg, ensp
+
+    def map_ensp(self, ensp):
+        """
+        looks up ensp from the mapping and returns a ensg and a enst
+        :param ensp: the protein to map
+        :return: tuple of gene and protein (should not be None)
+        """
+        ensg = None
+        enst = None
+        if ensp in self.ensp2ensg:
+            ensg = self.ensp2ensg[ensp]
+        if enst in self.ensp2enst:
+            enst = self.ensp2enst[ensp]
+        return ensg, ensp
+
+    def map_ensg(self,ensg):
+        warnings.warn('mapping ensg not implemented', NotImplementedError)
 
     def write_seqs(self, name):
         """
-        writes all fasta entries in the current object into one fasta file
-        :param name: the complete path with file name where the fasta is going to be written
-        """
+            writes all fasta entries in the current object into one fasta file
+            :param name: the complete path with file name where the fasta is going to be written
+            """
         with open(name, "w") as output:
             SeqIO.write(self.collection.values(), output, "fasta")
 
     def exists(self, seq):
         """
-        fast check if given sequence exists (as subsequence) in one of the UniProtDB objects collection of sequences.
-        :param seq: the subsequence to be searched for
-        :return: True, if it is found somewhere, False otherwise
-        """
+            fast check if given sequence exists (as subsequence) in one of the EnsembleDB objects collection of sequences.
+            :param seq: the subsequence to be searched for
+            :return: True, if it is found somewhere, False otherwise
+            """
         if isinstance(seq, str):
             index = self.searchstring.find(seq)
             if index >= 0:
@@ -87,11 +146,11 @@ class UniProtDB:
 
     def search(self, seq):
         """
-        search for first occurrence of given sequence(s) in the UniProtDB objects collection returning (each) the fasta
-        header front part of the first occurrence.
-        :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
-        :return: a dictionary of sequences to lists (of ids, 'null' if n/a)
-        """
+            search for first occurrence of given sequence(s) in the EnsembleDB objects collection returning (each) the fasta
+            header front part of the first occurrence.
+            :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
+            :return: a dictionary of sequences to lists (of ids, 'null' if n/a)
+            """
         if isinstance(seq, str):
             ids = 'null'
             index = self.searchstring.find(seq)
@@ -113,11 +172,11 @@ class UniProtDB:
 
     def search_all(self, seq):
         """
-        search for all occurrences of given sequence(s) in the UniProtDB objects collection returning (each) the
-        fasta header front part of all occurrences.
-        :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
-        :return: a dictionary of the given sequences to lists (of ids, 'null' if n/a)
-        """
+            search for all occurrences of given sequence(s) in the EnsembleDB objects collection returning (each) the
+            fasta header front part of all occurrences.
+            :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
+            :return: a dictionary of the given sequences to lists (of ids, 'null' if n/a)
+            """
         if isinstance(seq, str):
             ids = 'null'
             index = 0

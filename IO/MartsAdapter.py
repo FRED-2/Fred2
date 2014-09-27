@@ -3,13 +3,13 @@
 # as part of this package.
 __author__ = 'walzer'
 
-import MySQLdb
 import csv
 import re
 import urllib2
 import warnings
 import logging
 
+import MySQLdb
 
 class MartsAdapter():
     def __init__(self, usr=None, host=None, pwd=None, db=None):
