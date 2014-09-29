@@ -100,7 +100,7 @@ class MartsAdapter():
             if not tsvselect:
                 return None
             self.sequence_proxy[product_refseq] = tsvselect[0]["Protein"]
-            return self.sequence_proxy[product_refseq]
+            return self.sequence_proxy[product_refseq]  # TODO to SeqRecord
 
     def get_transcript_sequence(self, transcript_refseq):
         """
@@ -153,7 +153,7 @@ class MartsAdapter():
 
             tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
             tsvselect = [x for x in tsvreader]
-            self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']
+            self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']  # TODO to SeqRecord
             return self.sequence_proxy[transcript_refseq]
         return None
 

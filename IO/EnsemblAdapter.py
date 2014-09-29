@@ -9,7 +9,7 @@ import bisect
 from Bio import SeqIO
 
 
-class EnsembleDB:
+class EnsemblDB:
     def __init__(self, name='fdb'):
         """
         EnsembleDB class to give quick access to entries (fast exact match searches) and convenient ways to produce
@@ -103,7 +103,7 @@ class EnsembleDB:
             ensg = self.enst2ensg[enst]
         if enst in self.enst2ensp:
             ensp = self.enst2ensp[enst]
-        return ensg, ensp
+        return {'Ensembl Gene ID': ensg, 'Ensembl Transcript ID': enst, 'Ensembl Protein ID': ensp}
 
     def map_ensp(self, ensp):
         """
@@ -117,10 +117,16 @@ class EnsembleDB:
             ensg = self.ensp2ensg[ensp]
         if enst in self.ensp2enst:
             enst = self.ensp2enst[ensp]
-        return ensg, ensp
+        return {'Ensembl Gene ID': ensg, 'Ensembl Transcript ID': enst, 'Ensembl Protein ID': ensp}
 
     def map_ensg(self,ensg):
         warnings.warn('mapping ensg not implemented', NotImplementedError)
+
+    def get_sequence(self,ensp):
+        if ensp in self.collection:
+            return self.collection[ensp]
+        else:
+            return None
 
     def write_seqs(self, name):
         """
