@@ -36,7 +36,7 @@ class Peptide(MetadataLogger, Seq):
                                              have generated the peptide
     """
 
-    def __init__(self, _seq, proteins=None, vars=None, vars_position=None, transcripts=None):
+    def __init__(self, _seq, proteins=None, vars=None,  transcripts=None):
         """
         :param str _seq: sequence of the peptide in one letter amino acid code
         """
