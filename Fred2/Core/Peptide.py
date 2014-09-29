@@ -27,24 +27,24 @@ class Peptide(MetadataLogger, Seq):
     :param dict(str,Protein) proteins: dict of transcript_IDs to protein
                                        instances that could generate that 
                                        peptide
-    :param dict(str,list(Variant)) vars: dict of transcript_IDs to a list of 
-                                         variants that affeced the peptide, 
-                                         (including frameshifts that started not
+    :param dict(str,list(Variant)) vars: dict of transcript_IDs to a list of
+                                         variants that affected the peptide,
+                                         (including frame shifts that started not
                                          directly within the peptide)
     :param dict(str,Transcript) transcripts: dict of transcript_IDs to 
                                              transcript instances that could 
                                              have generated the peptide
     """
 
-    def __init__(self, _seq):
+    def __init__(self, _seq, proteins=None, vars=None, vars_position=None, transcripts=None):
         """
         :param str _seq: sequence of the peptide in one letter amino acid code
         """
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, IUPAC.IUPACProtein)
-        self.proteins = {}
-        self.vars = dict()
-        self.transcripts = {}
+        self.proteins = {} if proteins is None else proteins
+        self.vars = {} if vars is None else vars
+        self.transcripts = {} if transcripts is None else transcripts
 
 
     def __getitem__(self, index):
