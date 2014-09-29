@@ -248,6 +248,29 @@ class ASVM(object):
         raise NotImplementedError
 
 
+class AExternal(object):
+    """
+     Base class for external tools
+    """
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractproperty
+    def externalPath(self):
+        """
+        defines the external execution path ?
+        :return:
+        """
+
+    @abc.abstractmethod
+    def parse_external_result(self, _file):
+        """
+        Parses external NetMHC results and returns a Result object
+
+        :param str _file: The file path or the external prediction results
+        :return: Result - Returns a Result object
+        """
+        raise NotImplementedError
+
 class ATAPPrediction(object):
     __metaclass__ = APluginRegister
 

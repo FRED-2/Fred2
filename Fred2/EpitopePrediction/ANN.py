@@ -1,43 +1,25 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer', 'schubert'
+__author__ = 'schubert','walzer',
 
 
-import abc, collections, itertools, warnings, pandas, subprocess
+import abc, collections, itertools, warnings, pandas, subprocess, csv, os
+from collections import defaultdict
 
 from Fred2.Core.Allele import Allele
 from Fred2.Core.Result import EpitopePredictionResult
-from Fred2.Core.Base import AEpitopePrediction
+from Fred2.Core.Base import AEpitopePrediction, AExternal
 from tempfile import NamedTemporaryFile
 
 
-class ANetMHC(AEpitopePrediction):
+class ANetMHC(AEpitopePrediction, AExternal):
     """
         Abstract class representing NetMHC prediction function. These are wrapper of external binaries
 
 
     """
 
-    @abc.abstractproperty
-    def externalPath(self):
-        """
-        Specifies the external path of the executable
-
-        :return: str - the path to the executable
-        """
-        raise NotImplementedError
-
-
-    @abc.abstractmethod
-    def parse_external_result(self, _file):
-        """
-        Parses external NetMHC results and returns a Result object
-
-        :param str _file: The file path or the external prediction results
-        :return: Result - Returns a Result object
-        """
-        raise NotImplementedError
 
     def predict(self, peptides, alleles=None, **kwargs):
 
@@ -67,25 +49,30 @@ class ANetMHC(AEpitopePrediction):
                 allele_group.append(a)
                 c_a += 1
 
+        if len(allele_group) > 0:
+                allele_groups.append(allele_group)
         #export peptides to peptide list
-        tmp_file = NamedTemporaryFile(delete=True)
-        with open(tmp_file.name, "w") as pep_file:
-            pep_file.write("\n".join(pep_seqs.keys()))
-
+        tmp_file = NamedTemporaryFile(delete=False)
+        tmp_file.write("\n".join(pep_seqs.keys()))
+        tmp_file.close()
+        tmp_out = NamedTemporaryFile(delete=False)
         #generate cmd command
         if isinstance(self, NetMHCpan):
-            cmd = self.externalPath + " -p %s -a %s -ic50"
+            cmd = self.externalPath + " -p %s -a %s -ic50 -xls -xlsfile %s >/dev/null"
         else:
-            cmd = self.externalPath + " -p %s -a %s"
+            cmd = self.externalPath + " -p %s -a %s -x %s "
         for allele_group in allele_groups:
-            res = self.parse_external_result(
-                subprocess.check_output(cmd%(tmp_file, ",".join(allele_group)), shell=True)
-            )
+            r = subprocess.call(cmd%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
+            #print r
             if result is None:
-                result = res
+                result = self.parse_external_result(tmp_out)
             else:
+                res = self.parse_external_result(tmp_out)
                 result_a, res_a = result.align(res, fill_value=0)
                 result = result_a+res_a
+        os.remove(tmp_file.name)
+        tmp_out.close()
+        os.remove(tmp_out.name)
         return result
 
 
@@ -103,10 +90,10 @@ class NetMHC(ANetMHC):
                  'A*02:11', 'B*08:01', 'B*18:01', 'B*44:03', 'B*08:02', 'A*33:01', 'A*01:01']
     __supported_length = [9]
     __name = "netmhc"
-    __externalPath = "/after/moon/thousendmiles/right/netMHC"
+    __externalPath = "python /Users/schubert/Dropbox/PhD/software/netMHC-3.4/netMHC"
 
     def convert_alleles(self, alleles):
-        return ["%s%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+        return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     @property
     def supportedAlleles(self):
@@ -140,7 +127,7 @@ class NetMHCpan(ANetMHC):
     """
     __supported_length = [9]
     __name = "netmhcpan"
-    __externalPath = "/after/moon/thousendmiles/right/netMHCpan"
+    __externalPath = "/Users/benni/Dropbox/PhD/software/netMHCpan-2.8/netMHCpan"
     __alleles = ['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
                  'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24', 'A*01:25',
                  'A*01:26', 'A*01:28', 'A*01:29', 'A*01:30', 'A*01:32', 'A*01:33', 'A*01:35', 'A*01:36', 'A*01:37',
@@ -494,7 +481,35 @@ class NetMHCpan(ANetMHC):
         return self.__supported_length
 
     def parse_external_result(self, _file):
-        pass
+        result = defaultdict(defaultdict)
+        f = csv.reader(_file, delimiter='\t')
+        alleles = set(filter(lambda x: x != "",f.next()))
+        f.next()
+        ic_pos = 3
+        for row in f:
+            pep_seq = row[1]
+            for i, a in enumerate(alleles):
+                result[a][pep_seq] =  float(row[ic_pos+i*3])
+
+        df_res =  EpitopePredictionResult.from_dict(result)
+        df_res.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_res.index],
+                                        names=['Seq','Method'])
+        return df_res
 
     def predict(self, peptides, alleles=None, **kwargs):
         return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)
+
+
+class NetMHCII(ANetMHC,AExternal):
+    """
+        Implements a wrapper for NetMHCII
+    """
+    #TODO: Implement this
+
+
+class NetMHCIIpan(ANetMHC,AExternal):
+    """
+        Implements a wrapper for NetMHCIIpan
+    """
+
+    #TODO: Implement this

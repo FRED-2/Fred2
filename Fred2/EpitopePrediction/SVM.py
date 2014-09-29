@@ -15,7 +15,7 @@ import os
 import warnings
 
 from Fred2.Core.Allele import Allele
-from Fred2.Core.Base import AEpitopePrediction, ASVM
+from Fred2.Core.Base import AEpitopePrediction, ASVM, AExternal
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Data.UniTope_encodedAlleles import UniTope_encodedAlleles
 
@@ -442,3 +442,39 @@ class UniTope(ASVMEpitopePrediction):
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
         return df_result
+
+
+class MHCIIMulti(AEpitopePrediction, AExternal):
+    """
+        Implements MHCIIMulti
+    """
+
+    __name = "unitope"
+    __supported_length = [8, 9, 10]
+    __external_path = ""
+    __alleles = []
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    @property
+    def externalPath(self):
+        pass
+
+    def parse_external_result(self, _file):
+        pass
+
+    def convert_alleles(self, alleles):
+        return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def predict(self, peptides, alleles=None, **kwargs):
+        pass
