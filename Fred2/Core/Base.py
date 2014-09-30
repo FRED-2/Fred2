@@ -255,7 +255,7 @@ class AExternal(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
-    def externalPath(self):
+    def command(self):
         """
         defines the external execution path ?
         :return:

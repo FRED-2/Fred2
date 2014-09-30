@@ -20,7 +20,6 @@ class ANetMHC(AEpitopePrediction, AExternal):
 
     """
 
-
     def predict(self, peptides, alleles=None, **kwargs):
 
         if isinstance(peptides, collections.Iterable):
@@ -57,13 +56,14 @@ class ANetMHC(AEpitopePrediction, AExternal):
         tmp_file.close()
         tmp_out = NamedTemporaryFile(delete=False)
         #generate cmd command
-        if isinstance(self, NetMHCpan):
-            cmd = self.externalPath + " -p %s -a %s -ic50 -xls -xlsfile %s >/dev/null"
-        else:
-            cmd = self.externalPath + " -p %s -a %s -x %s "
+
         for allele_group in allele_groups:
-            r = subprocess.call(cmd%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
-            #print r
+            r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
+
+            if r < 0:
+                warnings.warn("An unknown error occurred for method %s."%self.method)
+                continue
+
             if result is None:
                 result = self.parse_external_result(tmp_out)
             else:
@@ -90,7 +90,7 @@ class NetMHC(ANetMHC):
                  'A*02:11', 'B*08:01', 'B*18:01', 'B*44:03', 'B*08:02', 'A*33:01', 'A*01:01']
     __supported_length = [9]
     __name = "netmhc"
-    __externalPath = "python /Users/schubert/Dropbox/PhD/software/netMHC-3.4/netMHC"
+    __command = "/Users/schubert/Dropbox/PhD/software/netMHC-3.4/netMHC -p %s -a %s -x %s "
 
     def convert_alleles(self, alleles):
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
@@ -104,8 +104,8 @@ class NetMHC(ANetMHC):
         return self.__name
 
     @property
-    def externalPath(self):
-        return self.__externalPath
+    def command(self):
+        return self.__command
 
     @property
     def supportedLength(self):
@@ -127,7 +127,7 @@ class NetMHCpan(ANetMHC):
     """
     __supported_length = [9]
     __name = "netmhcpan"
-    __externalPath = "/Users/benni/Dropbox/PhD/software/netMHCpan-2.8/netMHCpan"
+    __command = "~/Dropbox/PhD/software/netMHCpan-2.8/netMHCpan -p %s -a %s -ic50 -xls -xlsfile %s >/dev/null"
     __alleles = ['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
                  'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24', 'A*01:25',
                  'A*01:26', 'A*01:28', 'A*01:29', 'A*01:30', 'A*01:32', 'A*01:33', 'A*01:35', 'A*01:36', 'A*01:37',
@@ -473,8 +473,8 @@ class NetMHCpan(ANetMHC):
         return self.__name
 
     @property
-    def externalPath(self):
-        return self.__externalPath
+    def command(self):
+        return self.__command
 
     @property
     def supportedLength(self):
