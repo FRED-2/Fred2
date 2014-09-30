@@ -75,13 +75,13 @@ class ANetMHC(AEpitopePrediction, AExternal):
             peps = list(peps)
             tmp_out = NamedTemporaryFile(delete=False)
             tmp_file = NamedTemporaryFile(delete=False)
-            tmp_file.write("\n".join(peps))
+            tmp_file.write( "\n".join(">pepe_%i\n%s"%(i,p) for i,p in enumerate(peps)) if isinstance(self, NetMHCII) else "\n".join(peps))
             tmp_file.close()
 
             #generate cmd command
 
             for allele_group in allele_groups:
-                #print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
+                print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
                 r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
                 if r != 0:
                     warnings.warn("An unknown error occurred for method %s."%self.name)
@@ -538,7 +538,47 @@ class NetMHCII(ANetMHC,AExternal):
     """
         Implements a wrapper for NetMHCII
     """
-    #TODO: Implement this
+    __supported_length = frozenset([9, 10, 11, 12, 13, 14, 15])
+    __name = "netmhcII"
+    __command = '~/Dropbox/PhD/software/netMHCII-2.2/netMHCII %s -a %s | grep -v "#" > %s'
+    __alleles = frozenset(
+        ['DRB1*01:01', 'DRB1*03:01', 'DRB1*04:01', 'DRB1*04:04', 'DRB1*04:05', 'DRB1*07:01', 'DRB1*08:02', 'DRB1*09:01',
+         'DRB1*11:01', 'DRB1*13:02', 'DRB1*15:01', 'DRB3*01:01', 'DRB4*01:01', 'DRB5*01:01'])
+
+    @property
+    def command(self):
+        return self.__command
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def name(self):
+        return self.__name
+
+    def convert_alleles(self, alleles):
+        return ["HLA-%s%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def parse_external_result(self, _file):
+        result = defaultdict(defaultdict)
+        f = csv.reader(_file, delimiter='\t')
+        for r in f:
+            if not r:
+                continue
+
+            row = r[0].split()
+            if not len(row):
+                continue
+
+            if "HLA-" not in row[0]:
+                continue
+            result[row[0]][row[2]] = float(row[4])
+        return result
 
 
 class NetMHCIIpan(ANetMHC,AExternal):
