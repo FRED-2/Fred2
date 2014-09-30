@@ -37,6 +37,11 @@ class TestCaseANN(unittest.TestCase):
         results = p.predict(self.peptides, self.alleles)
         print results
 
+    def test_netMHCIIpan_prediction(self):
+        p = EpitopePredictorFactory("NetMHCIIpan")
+        results = p.predict(self.peptides, [Allele("DRB1*01:01"), Allele("DRB1*14:64")])
+        print results
+
     def test_multiple_prediction_and_concatination(self):
         results = [EpitopePredictorFactory(method).predict(self.peptides, self.alleles) for method in self.methods]
         df1 = results[0]
