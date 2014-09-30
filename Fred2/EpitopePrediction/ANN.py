@@ -81,7 +81,7 @@ class ANetMHC(AEpitopePrediction, AExternal):
             #generate cmd command
 
             for allele_group in allele_groups:
-                print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
+                #print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
                 r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
                 if r != 0:
                     warnings.warn("An unknown error occurred for method %s."%self.name)
