@@ -4,7 +4,15 @@
 __author__ = 'schubert','walzer',
 
 
-import abc, collections, itertools, warnings, pandas, subprocess, csv, os
+import collections
+import itertools
+import warnings
+import pandas
+import subprocess
+import csv
+import os
+import math
+
 from collections import defaultdict
 
 from Fred2.Core.Allele import Allele
@@ -43,38 +51,53 @@ class ANetMHC(AEpitopePrediction, AExternal):
             if c_a >= 80:
                 c_a = 0
                 allele_groups.append(allele_group)
+                if str(allales_string[a]) not in self.supportedAlleles:
+                    warnings.warn("Allele %s is not supported by %s"%(str(allales_string[a]),self.name))
+                    allele_group = []
+                    continue
                 allele_group = [a]
             else:
+                if str(allales_string[a]) not in self.supportedAlleles:
+                    warnings.warn("Allele %s is not supported by %s"%(str(allales_string[a]),self.name))
+                    continue
                 allele_group.append(a)
                 c_a += 1
 
         if len(allele_group) > 0:
                 allele_groups.append(allele_group)
         #export peptides to peptide list
-        tmp_file = NamedTemporaryFile(delete=False)
-        tmp_file.write("\n".join(pep_seqs.keys()))
-        tmp_file.close()
-        tmp_out = NamedTemporaryFile(delete=False)
-        #generate cmd command
 
-        for allele_group in allele_groups:
-            r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
-
-            if r != 0:
-                warnings.warn("An unknown error occurred for method %s."%self.name)
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+            if length < min(self.supportedLength):
+                warnings.warn("Peptide length must be at least %i for %s but is %i"%(min(self.supportedLength),
+                                                                                     self.name, length))
                 continue
+            peps = list(peps)
+            tmp_out = NamedTemporaryFile(delete=False)
+            tmp_file = NamedTemporaryFile(delete=False)
+            tmp_file.write("\n".join(peps))
+            tmp_file.close()
 
-            res_tmp = self.parse_external_result(tmp_out)
-            for al, ep_dict in res_tmp.iteritems():
-                for p, v in ep_dict.iteritems():
-                    result[allales_string[a]][pep_seqs[p]] = v
+            #generate cmd command
 
+            for allele_group in allele_groups:
+                r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
+                if r != 0:
+                    warnings.warn("An unknown error occurred for method %s."%self.name)
+                    continue
+
+
+                res_tmp = self.parse_external_result(tmp_out)
+                for al, ep_dict in res_tmp.iteritems():
+                    for p, v in ep_dict.iteritems():
+                        result[allales_string[al]][pep_seqs[p]] = v
+            os.remove(tmp_file.name)
+            tmp_out.close()
+            os.remove(tmp_out.name)
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])
-        os.remove(tmp_file.name)
-        tmp_out.close()
-        os.remove(tmp_out.name)
+
         return df_result
 
 
@@ -85,14 +108,14 @@ class NetMHC(ANetMHC):
 
     """
 
-    __alleles = ['A*24:02', 'A*24:03', 'B*53:01', 'B*27:05', 'A*23:01', 'A*02:04', 'A*29:02', 'A*02:06', 'A*02:01',
+    __alleles = frozenset(['A*24:02', 'A*24:03', 'B*53:01', 'B*27:05', 'A*23:01', 'A*02:04', 'A*29:02', 'A*02:06', 'A*02:01',
                  'A*02:02', 'A*02:03', 'A*26:02', 'A*26:01', 'A*31:01', 'B*07:02', 'A*68:01', 'A*68:02', 'B*35:01',
                  'B*58:01', 'B*57:01', 'B*15:01', 'A*69:01', 'B*54:01', 'A*11:01', 'A*03:01', 'B*40:01', 'B*40:02',
                  'B*44:02', 'A*30:01', 'A*02:19', 'A*30:02', 'B*39:01', 'A*02:16', 'B*51:01', 'B*45:01', 'A*02:12',
-                 'A*02:11', 'B*08:01', 'B*18:01', 'B*44:03', 'B*08:02', 'A*33:01', 'A*01:01']
-    __supported_length = [9]
+                 'A*02:11', 'B*08:01', 'B*18:01', 'B*44:03', 'B*08:02', 'A*33:01', 'A*01:01'])
+    __supported_length = frozenset([2])
     __name = "netmhc"
-    __command = "/Users/schubert/Dropbox/PhD/software/netMHC-3.4/netMHC -p %s -a %s -x %s "
+    __command = "/Users/schubert/Dropbox/PhD/software/netMHC-3.4/netMHC -p %s -a %s -x %s >/dev/null"
 
     def convert_alleles(self, alleles):
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
@@ -114,7 +137,19 @@ class NetMHC(ANetMHC):
         return self.__supported_length
 
     def parse_external_result(self, _file):
-        pass
+        result = defaultdict(defaultdict)
+        f = csv.reader(_file, delimiter='\t')
+        f.next()
+        f.next()
+        alleles = map(lambda x: x.split()[0], f.next()[3:])
+        for l in f:
+            if not l:
+                continue
+            pep_seq = l[2]
+            for ic_50, a in itertools.izip(l[3:],alleles):
+                sc = 1.0 - math.log(float(ic_50), 50000)
+                result[a][pep_seq] = sc if sc > 0.0 else 0.0
+        return dict(result)
 
     def predict(self, peptides, alleles=None, **kwargs):
         return super(NetMHC, self).predict(peptides, alleles=alleles, **kwargs)
@@ -127,10 +162,10 @@ class NetMHCpan(ANetMHC):
 
         Supported  MHC alleles currently only restricted to HLA alleles
     """
-    __supported_length = [9]
+    __supported_length = frozenset([2])
     __name = "netmhcpan"
     __command = "~/Dropbox/PhD/software/netMHCpan-2.8/netMHCpan -p %s -a %s -ic50 -xls -xlsfile %s >/dev/null"
-    __alleles = ['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
+    __alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
                  'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24', 'A*01:25',
                  'A*01:26', 'A*01:28', 'A*01:29', 'A*01:30', 'A*01:32', 'A*01:33', 'A*01:35', 'A*01:36', 'A*01:37',
                  'A*01:38', 'A*01:39', 'A*01:40', 'A*01:41', 'A*01:42', 'A*01:43', 'A*01:44', 'A*01:45', 'A*01:46',
@@ -461,7 +496,7 @@ class NetMHCpan(ANetMHC):
                  'C*16:14', 'C*16:15', 'C*16:17', 'C*16:18', 'C*16:19', 'C*16:20', 'C*16:21', 'C*16:22', 'C*16:23',
                  'C*16:24', 'C*16:25', 'C*16:26', 'C*17:01', 'C*17:02', 'C*17:03', 'C*17:04', 'C*17:05', 'C*17:06',
                  'C*17:07', 'C*18:01', 'C*18:02', 'C*18:03', 'E*01:01', 'G*01:01', 'G*01:02', 'G*01:03', 'G*01:04',
-                 'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09']
+                 'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09'])
 
     def convert_alleles(self, alleles):
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]

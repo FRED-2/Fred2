@@ -77,10 +77,10 @@ class SVMHC(ASVMEpitopePrediction):
 
     """
     __name = "svmhc"
-    __alleles = ['A*02:01', 'A*02:01', 'A*11:01', 'A*11:01', 'A*24:02', 'B*15:01',
+    __alleles = frozenset(['A*02:01', 'A*02:01', 'A*11:01', 'A*11:01', 'A*24:02', 'B*15:01',
                  'B*15:01', 'B*18:01', 'B*18:01', 'B*27:05', 'B*35:01', 'B*37:01',
-                 'B*51:01', 'B*51:01', 'C*04:01']
-    __supported_length = [8, 9, 10]
+                 'B*51:01', 'B*51:01', 'C*04:01'])
+    __supported_length = frozenset([8, 9, 10])
 
     @property
     def name(self):
@@ -133,8 +133,8 @@ class UniTope(ASVMEpitopePrediction):
     """
 
     __name = "unitope"
-    __supported_length = [8, 9, 10]
-    __alleles = ['B*51:43', 'A*11:02', 'C*07:27', 'B*35:55', 'B*49:02', 'A*11:17',
+    __supported_length = frozenset([8, 9, 10])
+    __alleles = frozenset(['B*51:43', 'A*11:02', 'C*07:27', 'B*35:55', 'B*49:02', 'A*11:17',
                  'B*51:02', 'B*15:61', 'A*33:04', 'C*02:12', 'B*55:07', 'A*24:13',
                  'C*01:02', 'A*24:15', 'A*24:59', 'A*11:19', 'B*15:63', 'A*32:06',
                  'B*55:05', 'B*47:04', 'B*67:01', 'C*16:09', 'B*53:02', 'B*56:04',
@@ -358,7 +358,7 @@ class UniTope(ASVMEpitopePrediction):
                  'B*44:02', 'A*02:06', 'B*15:90', 'C*04:07', 'B*15:24', 'A*02:13',
                  'B*51:40', 'B*07:42', 'A*02:26', 'A*01:02', 'B*44:41', 'B*44:04',
                  'A*02:04', 'A*24:19', 'B*35:71', 'B*56:08', 'A*36:04', 'C*17:01',
-                 'A*24:35', 'B*07:40', 'B*40:19', 'B*44:17']
+                 'A*24:35', 'B*07:40', 'B*40:19', 'B*44:17'])
 
     @property
     def name(self):
@@ -453,9 +453,9 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
     """
 
     __name = "mhcIImulti"
-    __supported_length = [8, 9, 10]
+    __supported_length = frozenset([8, 9, 10])
     __command = "~/Documents/FredPackage/svms/NicoTope/MHCIILeveraging %s %s %s ~/Documents/FredPackage/svms/NicoTope/models  ~/Documents/FredPackage/svms/NicoTope/pockets.txt"
-    __alleles = ['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
+    __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
                  'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
                  'DRB1*08:04:04', 'DRB1*04:59', 'DRB1*14:21', 'DRB1*04:54', 'DRB1*04:55', 'DRB1*04:56', 'DRB1*04:57',
                  'DRB1*04:50', 'DRB1*04:51', 'DRB1*04:52', 'DRB1*04:53', 'DRB1*14:24', 'DRB1*14:25', 'DRB1*07:08',
@@ -549,7 +549,7 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
                  'DRB1*13:66', 'DRB1*12:04', 'DRB1*12:05', 'DRB1*12:06', 'DRB1*12:07', 'DRB1*12:01', 'DRB5*01:08N',
                  'DRB1*14:06', 'DRB1*13:18', 'DRB1*14:04', 'DRB1*14:02', 'DRB1*14:08', 'DRB1*14:09', 'DRB1*14:23:01',
                  'DRB1*14:23:02', 'DRB1*08:09', 'DRB1*08:08', 'DRB1*10:01:01', 'DRB1*10:01:02', 'DRB1*08:02',
-                 'DRB1*08:01', 'DRB1*08:07', 'DRB1*08:06', 'DRB1*08:05', 'DRB1*14:20']
+                 'DRB1*08:01', 'DRB1*08:07', 'DRB1*08:06', 'DRB1*08:05', 'DRB1*14:20'])
 
     @property
     def name(self):
