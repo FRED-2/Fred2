@@ -33,7 +33,7 @@ class ANetMHC(AEpitopePrediction, AExternal):
         else:
             allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
-        result = None
+        result = defaultdict(defaultdict)
 
         #group alleles in blocks of 80 alleles (NetMHC can't deal with more)
         allele_groups = []
@@ -60,20 +60,22 @@ class ANetMHC(AEpitopePrediction, AExternal):
         for allele_group in allele_groups:
             r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
 
-            if r < 0:
-                warnings.warn("An unknown error occurred for method %s."%self.method)
+            if r != 0:
+                warnings.warn("An unknown error occurred for method %s."%self.name)
                 continue
 
-            if result is None:
-                result = self.parse_external_result(tmp_out)
-            else:
-                res = self.parse_external_result(tmp_out)
-                result_a, res_a = result.align(res, fill_value=0)
-                result = result_a+res_a
+            res_tmp = self.parse_external_result(tmp_out)
+            for al, ep_dict in res_tmp.iteritems():
+                for p, v in ep_dict.iteritems():
+                    result[allales_string[a]][pep_seqs[p]] = v
+
+        df_result = EpitopePredictionResult.from_dict(result)
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
+                                                        names=['Seq','Method'])
         os.remove(tmp_file.name)
         tmp_out.close()
         os.remove(tmp_out.name)
-        return result
+        return df_result
 
 
 class NetMHC(ANetMHC):
@@ -489,12 +491,8 @@ class NetMHCpan(ANetMHC):
         for row in f:
             pep_seq = row[1]
             for i, a in enumerate(alleles):
-                result[a][pep_seq] =  float(row[ic_pos+i*3])
-
-        df_res =  EpitopePredictionResult.from_dict(result)
-        df_res.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_res.index],
-                                        names=['Seq','Method'])
-        return df_res
+                result[a][pep_seq] = float(row[ic_pos+i*3])
+        return result
 
     def predict(self, peptides, alleles=None, **kwargs):
         return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)
