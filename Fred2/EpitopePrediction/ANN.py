@@ -540,7 +540,7 @@ class NetMHCII(ANetMHC,AExternal):
     """
     __supported_length = frozenset([9, 10, 11, 12, 13, 14, 15])
     __name = "netmhcII"
-    __command = '~/Dropbox/PhD/software/netMHCII-2.2/netMHCII %s -a %s | grep -v "#" > %s'
+    __command = 'netMHCII %s -a %s | grep -v "#" > %s'
     __alleles = frozenset(
         ['DRB1*01:01', 'DRB1*03:01', 'DRB1*04:01', 'DRB1*04:04', 'DRB1*04:05', 'DRB1*07:01', 'DRB1*08:02', 'DRB1*09:01',
          'DRB1*11:01', 'DRB1*13:02', 'DRB1*15:01', 'DRB3*01:01', 'DRB4*01:01', 'DRB5*01:01'])
