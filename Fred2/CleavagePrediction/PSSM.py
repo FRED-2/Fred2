@@ -38,7 +38,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
 
-            #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[model]), model)
 
         if isinstance(aa_seq, collections.Iterable):
@@ -66,12 +65,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         diff = length - self.cleavagePos
         for j,seq in enumerate(pep_seqs.iterkeys()):
 
-            #convention for peptides its always the first transcript ID after sorting
-            try:
-                seq_id = pep_seqs[seq].transcript_id if isinstance(pep_seqs[seq], Protein) else \
-                                                    pep_seqs[seq].transcripts.keys().sort()[0]
-            except Exception:
-                seq_id = "seq_%i"%j
+            seq_id = "seq_%i"%j
 
             #dynamicaly import prediction PSSMS for alleles and predict
             if len(seq) < length:
@@ -103,7 +97,7 @@ class PCM(APSSMCleavageSitePredictor):
         :input list(Peptide) peptides: list of peptides for which cleave probability prediction should be performed
     """
 
-    __supported_length = [6]
+    __supported_length = frozenset([6])
     __name = "pcm"
     __cleavage_pos = 4
 
