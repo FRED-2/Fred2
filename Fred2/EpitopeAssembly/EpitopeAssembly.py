@@ -44,8 +44,6 @@ class EpitopeAssembly(object):
         edge_matrix = {}
         fragments = {}
         seq_to_pep = {}
-        cleavage_pos = pred.cleavagePos
-        supported_length = pred.supportedLength[0]
         for start, stop in itr.combinations(peptides, 2):
             if start == "Dummy" or stop == "Dummy":
                 seq_to_pep[str(start)] = start
@@ -55,18 +53,18 @@ class EpitopeAssembly(object):
             else:
                 start_str = str(start)
                 stop_str = str(stop)
-                frag = Peptide(start_str[-cleavage_pos:]+stop_str[:supported_length-cleavage_pos])
-                garf = Peptide(stop_str[-cleavage_pos:]+start_str[:supported_length-cleavage_pos])
+                frag = Peptide(start_str+stop_str)
+                garf = Peptide(stop_str+start_str)
 
                 fragments[frag] = (start_str, stop_str)
                 fragments[garf] = (stop_str, start_str)
 
-        cleave_pred = pred.predict(fragments.keys(), length=supported_length)
-        cleave_site_df = cleave_pred.xs((slice(None), (cleavage_pos-1)))
-        for i in cleave_site_df.index:
+        cleave_pred = pred.predict(fragments.keys())
+        #cleave_site_df = cleave_pred.xs((slice(None), (cleavage_pos-1)))
+        for i in set(cleave_pred.index.get_level_values(0)):
             fragment = "".join(cleave_pred.ix[i]["Seq"])
             start, stop = fragments[fragment]
-            edge_matrix[(start, stop)] = -1.0*cleave_site_df.loc[i, pred.name]
+            edge_matrix[(start, stop)] = -1.0*cleave_pred.loc[(i, len(str(start))-1), pred.name]
 
         self.__seq_to_pep = seq_to_pep
 
@@ -100,10 +98,10 @@ class EpitopeAssembly(object):
                                                   rule=lambda model, a, b:
                                                   model.u[a]-model.u[b]+1 <= (model.card -1)*(1-model.x[a, b]))
 
-        self.__instance = model.create()
+        self.instance = model.create()
         if self.__verbosity > 0:
             print "MODEL INSTANCE"
-            self.__instance.pprint()
+            self.instance.pprint()
 
     def solve(self):
         """
@@ -111,11 +109,11 @@ class EpitopeAssembly(object):
 
         :return: list(Peptide) - An order list of the peptides (based on the string-of-beats ordering)
         """
-        self.__instance.preprocess()
+        self.instance.preprocess()
 
-        res = self.__solver.solve(self.__instance)
-        self.__instance.load(res)
+        res = self.__solver.solve(self.instance)
+        self.instance.load(res)
         if self.__verbosity > 0:
             res.write(num=1)
 
-        return [ self.__seq_to_pep[u] for u in sorted(self.__instance.u, key=lambda x: self.__instance.u[x].value)]
+        return [ self.__seq_to_pep[u] for u in sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
