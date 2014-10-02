@@ -47,7 +47,7 @@ def _incorp_snp(seq, var, transId, offset):
         raise TypeError("%s is not a SNP"%str(var))
     var.offsets[transId] = offset
 
-    print transId, len(seq), var.get_transcript_position(transId)-1
+    #print transId, len(seq), var.get_transcript_position(transId)-1
     if seq[var.get_transcript_position(transId)-1] != var.ref:
         warnings.warn("For %s bp dos not mmatch ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
         transId, str(var), var.get_transcript_position(transId) - 1, var.ref,
@@ -107,6 +107,31 @@ _incorp = {
             VariationType.FSINS: _incorp_insertion,
             VariationType.SNP: _incorp_snp
          }
+
+
+def _check_for_problematic_variants(vars):
+    """
+    Filters problematic variants, e.g. variants that coincide.
+
+    :param list(Variant) vars: initial list of variants
+    :return: boole -- ture if now intersecting variants were found
+    :invariant: list(Variant) vars: List is sorted based on genome position
+    """
+    v = vars.pop()
+    current_range = (v.genomePos, v.genomePos
+                                      +len(v.ref)-1 if v.type in [VariationType.FSDEL, VariationType.DEL] else
+                                      v.genomePos)
+    for v in reversed(vars):
+        if v.genomePos <= current_range[1]:
+            print "crash",current_range, v
+            return False
+        else:
+            current_range = (v.genomePos, v.genomePos
+                                      +len(v.ref)-1 if v.type in [VariationType.FSDEL, VariationType.DEL] else
+                                      v.genomePos)
+            print "new block",v, current_range
+    return True
+
 
 #################################################################
 # Public transcript generator functions
@@ -199,13 +224,108 @@ def generate_transcripts_from_variants(vars, dbadapter):
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
 
         vs.sort(key=lambda v: v.genomePos, reverse=True)
+        if not _check_for_problematic_variants(vs):
+            warnings.warn("Intersecting variants found for Transcript %s"%tId)
+            continue
 
         generate_transcripts_from_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
             yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
 
 
+def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
+    """
+    generates all possible transcript variations of the given variants
 
+    :param list(Variant) normal: A list of variants of the normal tissue
+    :param list(Variant) tumor: A list of variant of the cancer tissue for which transcript should be generated
+    :param ADBAdapter dbadapter: a DBAdapter to fetch the transcript sequences
+    :return: (Generator(Transcripts)) -- a generator of transcripts with all
+             possible variations determined by the given
+             variant list
+    """
+    def _generate_combinations(tId, vs, seq, usedVs, offset):
+        """
+        recursive variant combination generator
+        """
+        transOff = generate_transcripts_from_tumor_variants.transOff
+        #print "TransOffset ", transOff, tId,usedVs
+        if vs:
+            flag, v = vs.pop()
+
+            if v.isHomozygous:
+                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
+                usedVs.append(v)
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset):
+                    yield s
+            else:
+                vs_tmp = vs[:]
+                tmp_seq = seq[:]
+                tmp_usedVs = usedVs[:]
+
+                if flag:
+                    for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset):
+                        yield s
+
+                # update the transcript variant id
+                old_trans = generate_transcripts_from_tumor_variants.transOff
+                generate_transcripts_from_tumor_variants.transOff += 1
+                transOff = generate_transcripts_from_tumor_variants.transOff
+                _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(transOff))
+
+                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
+
+                usedVs.append(v)
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset):
+                    yield s
+        else:
+            yield tId+":FRED2_%i"%transOff, seq, usedVs
+
+    #1) get all transcripts and sort the variants to transcripts
+
+    #For a transcript do:
+        #A) get transcript sequences
+        #B) generate all possible combinations of variants
+        #C) apply variants to transcript and generate transcript object
+
+    if not isinstance(dbadapter, ADBAdapter):
+        raise ValueError("The given dbadapter is not of type ADBAdapter")
+
+    transToVar = {}
+    for v in tumor:
+        for trans_id in v.coding.iterkeys():
+            transToVar.setdefault(trans_id, []).append((False, v))
+
+    for v in normal:
+        for trans_id in v.coding.iterkeys():
+            if trans_id in transToVar:
+                transToVar.setdefault(trans_id, []).append((True, v))
+
+    for tId, vs in transToVar.iteritems():
+        query = dbadapter.get_transcript_information(tId)
+        if query is None:
+            warnings.warn("Transcript with ID %s not found in DB"%tId)
+            continue
+
+        tSeq = query[EAdapterFields.SEQ]
+        geneid = query[EAdapterFields.GENE]
+        strand = query[EAdapterFields.STRAND]
+
+
+        #if its a reverse transcript form the complement of the variants
+        if strand == "-":
+            for flag, v in transToVar[tId]:
+                v.ref = v.ref[::-1].translate(COMPLEMENT)
+                v.obs = v.obs[::-1].translate(COMPLEMENT)
+
+        vs.sort(key=lambda v: v[1].genomePos, reverse=True)
+        if not _check_for_problematic_variants(map(lambda x: x[1],vs)):
+            warnings.warn("Intersecting variants found for Transcript %s"%tId)
+            continue
+
+        generate_transcripts_from_tumor_variants.transOff = 0
+        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
+            yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
 
 
 ################################################################################

@@ -112,7 +112,7 @@ def read_lines(*argv, **kwargs):
 #####################################
 #       A N N O V A R  -  R E A D E R
 #####################################
-def read_annovar_exonic(annovar_file, gene_filter=None):
+def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
     """
     Reads an gene-based ANNOVAR output file and generates Variant objects containing
     all annotated transcript ids an outputs a list variants.
@@ -171,5 +171,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None):
 
             ty = tuple(type.split())
 
-            vars.append(Variant(id, type_mapper[ty], chrom, int(genome_start), ref.upper(), alt.upper(), coding, zygos == "hom", ty[0] == "synonymous"))
+            vars.append(
+                Variant(id, type_mapper[ty], chrom, int(genome_start), ref.upper(), alt.upper(), coding, zygos == "hom",
+                        ty[0] == "synonymous", experimentalDesig=experimentalDesig))
     return vars

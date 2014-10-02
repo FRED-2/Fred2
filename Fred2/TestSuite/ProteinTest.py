@@ -12,7 +12,7 @@ from Fred2.TestSuite.VariantsForTesting import *
 
 # Protein
 from Fred2.Core.Protein import Protein
-from Fred2.Core.Generator import generate_peptides_from_protein
+from Fred2.Core.Generator import generate_peptides_from_protein, generate_transcripts_from_tumor_variants
 
 class TestProteinClass(unittest.TestCase):
     def setUp(self):
@@ -33,7 +33,7 @@ class TestProteinClass(unittest.TestCase):
         (single_protein generation in 'setUp' method)
         """
         self.assertEqual(self.single_protein.gene_id, "gene 1", 'incorrect Id')
-        self.assertEqual(self.single_protein.transcript_id, "someID", 
+        self.assertEqual(self.single_protein.transcript_id, "someID",
                          'incorrect transcript id')
         self.assertEqual(str(self.single_protein), "ASDERWQTGHKILPMNVFCY",
                          'incorrect sequence')
@@ -81,7 +81,7 @@ class TestProteinClass(unittest.TestCase):
         Translate to proteins (check if all fields are there/filled)
 
         fragment to unique peptides
-        (check for uniqueness of sequences, check fields of peptides, check 
+        (check for uniqueness of sequences, check fields of peptides, check
         correctness of fragments)
         """
         dummy_db = DummyAdapter()
@@ -135,6 +135,13 @@ class TestProteinClass(unittest.TestCase):
         ## GENERATE Peptides:
         peptides = generate_peptides_from_protein(proteins,2)
 
+    def test1_protein_from_tumor_variants(self):
+        dummy_db = DummyAdapter()
+        normal_vars = [var_n2]
+        tumor_vars = [var_t1]
+        t = list(generate_transcripts_from_tumor_variants(normal_vars, tumor_vars, dummy_db))
+        for trans in generate_transcripts_from_tumor_variants(normal_vars, tumor_vars, dummy_db):
+            print "Tumor trans", repr(trans)
 
     def test4_peptides_from_variants(self):
         """
@@ -163,7 +170,7 @@ class TestProteinClass(unittest.TestCase):
         PEPTIDE: TKPP
             TRANSCRIPT: tsc_1:FRED2_3
                  Variant(1C)
-        
+
         PEPTIDE: KNPR
             TRANSCRIPT: tsc_1:FRED2_0
         PEPTIDE: NPRG
@@ -201,7 +208,7 @@ class TestProteinClass(unittest.TestCase):
 
         vars_ = [str(var) for varlist in vari_peps for var in varlist]
 
-        # Check that for the peptides from the transcript containing the 
+        # Check that for the peptides from the transcript containing the
         # variants, we also get all expected variants. Especally the first
         # variant needs to be present in all peptides
         self.assertTrue(all(var in vars_ for var in expected_vars))

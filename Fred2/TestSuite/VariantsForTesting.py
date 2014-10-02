@@ -55,7 +55,7 @@ var_1 = Variant(
     20,                    # Genomic Position 
     "C", "T",             # reference , observed
     {"tsc_1":mut_syn1_1}, # dict of (transcrip_id : mutSnytaxes)
-    True, False)          # isHomozygous?, isSynonymous?
+    True, False, experimentalDesign="tumor")          # isHomozygous?, isSynonymous?
 
 # SNP, HOMOZYGOUS
 var_2 = Variant(
@@ -63,7 +63,7 @@ var_2 = Variant(
     5,                    # Genomic Position 
     "C", "T",             # reference , observed
     {"tsc_1":mut_syn1_2}, # dict of (transcrip_id : mutSnytaxes)
-    True, False)         # isHomozygous?, isSynonymous?
+    True, False,  experimentalDesign="normal")         # isHomozygous?, isSynonymous?
 
 # +F-SHIFT, HOMOZYGOUS
 var_3 = Variant(
@@ -189,7 +189,7 @@ var_12 = Variant(
     "CCCC", "",            # reference , observed
     {"tsc_1":mut_syn2_12,
      "tsc_2":mut_syn2_12}, # dict of (transcrip_id : mutSnytaxes)
-    False, False)          # isHomozygous?, isSynonymous?
+    False, False, experimentalDesign="normal")          # isHomozygous?, isSynonymous?
 
 
 # -INS(+2), HETEROZYGOUS, pos 15
@@ -219,3 +219,50 @@ var_14 = Variant(
     False, False)          # isHomozygous?, isSynonymous?
 
 
+mut_syn1_15 = MutationSyntax("tsc_1", # transcript_id
+                            2,      # pos in transc
+                            1,       # pos in protein
+                            "",      # cdsMutationSyntax - irrelevant
+                            "")      # aaMutationSyntax - irrelevant
+
+
+##### Tumor tests
+mut_syn1_n = MutationSyntax("tsc_1", # transcript_id
+                            5,      # pos in transc
+                            1,       # pos in protein
+                            "",      # cdsMutationSyntax - irrelevant
+                            "")      # aaMutationSyntax - irrelevant
+
+mut_syn1_t = MutationSyntax("tsc_1", # transcript_id
+                            11,      # pos in transc
+                            5,       # pos in protein
+                            "",      # cdsMutationSyntax - irrelevant
+                            "")      # aaMutationSyntax - irrelevant
+
+var_n1 = Variant(
+    "var_n1", VariationType.SNP, "chr1",
+    5,                   # Genomic Position
+    "A", "T",            # reference , observed
+    {"tsc_1":mut_syn1_n}, # dict of (transcrip_id : mutSnytaxes)
+    False, False, experimentalDesign="normal")          # isHomozygous?, isSynonymous?
+
+var_n2 = Variant(
+    "var_n2", VariationType.SNP, "chr1",
+    5,                   # Genomic Position
+    "A", "T",            # reference , observed
+    {"tsc_1":mut_syn1_n}, # dict of (transcrip_id : mutSnytaxes)
+    True, False, experimentalDesign="normal")
+
+var_t1 = Variant(
+    "var_t1", VariationType.SNP, "chr1",
+    11,                   # Genomic Position
+    "G", "T",            # reference , observed
+    {"tsc_1":mut_syn1_t}, # dict of (transcrip_id : mutSnytaxes)
+    False, False, experimentalDesign="tumor")
+
+var_t2 = Variant(
+    "var_t2", VariationType.SNP, "chr1",
+    11,                   # Genomic Position
+    "G", "T",            # reference , observed
+    {"tsc_1":mut_syn1_t}, # dict of (transcrip_id : mutSnytaxes)
+    True, False, experimentalDesign="tumor")
