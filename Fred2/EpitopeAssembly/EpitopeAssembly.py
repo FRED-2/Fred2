@@ -24,9 +24,14 @@ class EpitopeAssembly(object):
 
         :param List(Peptide) peptides: A list of peptides which shell be arranged
         :param ACleavageSitePredictor pred: A cleavage site predictor
+        :param str solver: specifies the solver to use (mused by callable by coopr)
+        :param float weight: specifies how strong unwanted cleavage sites should be punished [0,1],
+                             where 0 means they will be ignored, and 1 the sum of all unwanted cleave sites is
+                             subtracted from the cleave site between two epitopes
+        :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
-    def __init__(self, peptides, pred, solver="glpk", verbosity=0):
+    def __init__(self, peptides, pred, solver="glpk", weight=0.0, verbosity=0):
 
         if not isinstance(pred, ACleavageSitePrediction):
             raise ValueError("Cleave site predictor must be of type ACleavageSitePrediction")
@@ -64,7 +69,8 @@ class EpitopeAssembly(object):
         for i in set(cleave_pred.index.get_level_values(0)):
             fragment = "".join(cleave_pred.ix[i]["Seq"])
             start, stop = fragments[fragment]
-            edge_matrix[(start, stop)] = -1.0*cleave_pred.loc[(i, len(str(start))-1), pred.name]
+            edge_matrix[(start, stop)] = -1.0 * (cleave_pred.loc[(i, len(str(start)) - 1), pred.name] - weight * sum(
+                cleave_pred.loc[(i, j), pred.name] for j in xrange(len(fragment)) if j != len(str(start)) - 1))
 
         self.__seq_to_pep = seq_to_pep
 
