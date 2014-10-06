@@ -91,7 +91,7 @@ class NetChop(ACleavageSitePrediction, AExternal):
                 result["Seq"][("seq_%i"%count, pos)] = aa
                 result[self.name][("seq_%i"%count, pos)] = float(s)
         print result
-        df_result = CleavageSitePredictionResult.from_dict(result)
+        df_result = CleavageSitePredictionResult.from_dict(dir(result))
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
                                                         names=['ID','Pos'])
         return df_result
