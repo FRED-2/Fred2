@@ -67,7 +67,6 @@ class NetChop(ACleavageSitePrediction, AExternal):
 
         return self.parse_external_result(tmp_out)
 
-
     def parse_external_result(self, _file):
         result = {"Seq":{}, self.name:{}}
         count = 0
@@ -91,9 +90,7 @@ class NetChop(ACleavageSitePrediction, AExternal):
                 seq_id = "seq_%i"%count
                 result["Seq"][(seq_id, pos)] = aa
                 result[self.name][(seq_id, pos)] = float(s)
-        print result
         df_result = CleavageSitePredictionResult.from_dict(result)
-        print df_result.index
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
                                                         names=['ID','Pos'])
         return df_result
