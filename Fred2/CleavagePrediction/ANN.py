@@ -62,7 +62,7 @@ class NetChop(ACleavageSitePrediction, AExternal):
         r = subprocess.call(self.command%(tmp_file.name, tmp_out.name), shell=True)
 
         if r != 0:
-            warnings.warn("An unknown error occurred for method %s."%self.name)
+            warnings.warn("An unknown error occurred for method %s.\n%s"%(self.name, str(r)))
             sys.exit(-1)
 
         return self.parse_external_result(tmp_out)
