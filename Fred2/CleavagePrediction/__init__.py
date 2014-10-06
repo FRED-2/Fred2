@@ -5,7 +5,7 @@ __author__ = 'schubert'
 
 from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *
-
+from Fred2.CleavagePrediction.ANN import *
 
 class CleavageSitePredictorFactory(object):
     class __metaclass__(type):
