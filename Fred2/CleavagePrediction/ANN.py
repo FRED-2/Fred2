@@ -87,7 +87,7 @@ class NetChop(ACleavageSitePrediction, AExternal):
                 is_new_seq += 1
             elif l[0].isdigit():
                 pos,aa,_,s,_ = l.split()
-                pos = int(pos)
+                pos = int(pos) - 1
                 seq_id = "seq_%i"%count
                 result["Seq"][(seq_id, pos)] = aa
                 result[self.name][(seq_id, pos)] = float(s)
