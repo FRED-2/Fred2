@@ -25,7 +25,7 @@ class NetChop(ACleavageSitePrediction, AExternal):
     __supported_length = [sys.maxint]
     __name = "netchop"
     __cleavage_pos = 0
-    __command = "netChop %s > | grep -v '#' > %s"
+    __command = "netChop %s | grep -v '#' > %s"
 
     @property
     def command(self):
@@ -62,7 +62,7 @@ class NetChop(ACleavageSitePrediction, AExternal):
         r = subprocess.call(self.command%(tmp_file.name, tmp_out.name), shell=True)
 
         if r != 0:
-            warnings.warn("An unknown error occurred for method %s.\n%s"%(self.name, str(r)))
+            warnings.warn("An unknown error occurred for method %s"%self.name)
             sys.exit(-1)
 
         return self.parse_external_result(tmp_out)
