@@ -72,24 +72,24 @@ class NetChop(ACleavageSitePrediction, AExternal):
         result = defaultdict(defaultdict)
         count = 0
         is_new_seq = 0
-        with open(_file, "r") as f:
-            for l in f:
-                l = l.strip()
-                if not len(l):
-                    continue
-                #print l
-                if not is_new_seq % 4 and is_new_seq:
-                    print "New seq starts", l
-                    count +=1
-                    is_new_seq = 0
-                elif l[0] == "-":
-                    print "in counter", l
-                    is_new_seq += 1
-                elif l[0].isdigit():
-                     pos,aa,_,s,_ = l.split()
-                     pos = int(pos)
-                     result["Seq"][("seq_%i"%count, pos)] = aa
-                     result[self.name][("seq_%i"%count, pos)] = float(s)
+
+        for l in _file:
+            l = l.strip()
+            if not len(l):
+                continue
+            #print l
+            if not is_new_seq % 4 and is_new_seq:
+                print "New seq starts", l
+                count +=1
+                is_new_seq = 0
+            elif l[0] == "-":
+                print "in counter", l
+                is_new_seq += 1
+            elif l[0].isdigit():
+                pos,aa,_,s,_ = l.split()
+                pos = int(pos)
+                result["Seq"][("seq_%i"%count, pos)] = aa
+                result[self.name][("seq_%i"%count, pos)] = float(s)
 
         df_result = CleavageSitePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
