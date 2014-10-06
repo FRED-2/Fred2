@@ -88,10 +88,11 @@ class NetChop(ACleavageSitePrediction, AExternal):
             elif l[0].isdigit():
                 pos,aa,_,s,_ = l.split()
                 pos = int(pos)
-                result["Seq"][("seq_%i"%count, pos)] = aa
-                result[self.name][("seq_%i"%count, pos)] = float(s)
+                seq_id = "seq_%i"%count
+                result["Seq"][(seq_id, pos)] = aa
+                result[self.name][(seq_id, pos)] = float(s)
         print result
-        df_result = CleavageSitePredictionResult.from_dict(dir(result))
+        df_result = CleavageSitePredictionResult.from_dict(result)
         print df_result.index
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
                                                         names=['ID','Pos'])
