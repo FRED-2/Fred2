@@ -31,7 +31,7 @@ class CleavageSitePredictorFactory(object):
                                  "supported by FRED2 and inherits ACleavageSitePrediction.")
 
     @staticmethod
-    def available_methods(self):
+    def available_methods():
         """
         Returns a list of available epitope predictors
 
@@ -64,7 +64,7 @@ class CleavageFragmentPredictorFactory(object):
                                  "supported by FRED2 and inherits ACleavageFragmentPrediction.")
 
     @staticmethod
-    def available_methods(self):
+    def available_methods():
         """
         Returns a list of available epitope predictors
 
