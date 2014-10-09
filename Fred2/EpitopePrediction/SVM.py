@@ -49,7 +49,7 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
             for a in allales_string.keys():
                 try:
-                    model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, a, length))
+                    model_path = os.path.abspath("/abi-projects/etk/Fred2/Fred2/Data/svms/%s/%s_%i"%(self.name, a, length))
                     model = svmlight.read_model(model_path)
                 except OSError:
                     warnings.warn("No model exists for peptides of length %i or allele %s."%(length, a.name))
@@ -424,7 +424,7 @@ class UniTope(ASVMEpitopePrediction):
 
         #group peptides by length and
         result = {}
-        model_path = os.path.abspath("../Data/svms/%s/%s"%(self.name, self.name))
+        model_path = os.path.abspath("/abi-projects/etk/Fred2/Fred2/Data/svms/%s/%s"%(self.name, self.name))
         model = svmlight.read_model(model_path)
 
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
