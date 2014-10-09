@@ -453,7 +453,7 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
     """
 
     __name = "mhcIImulti"
-    __supported_length = frozenset([8, 9, 10])
+    __supported_length = frozenset([15])
     __command = "~/Documents/FredPackage/svms/NicoTope/MHCIILeveraging %s %s %s ~/Documents/FredPackage/svms/NicoTope/models  ~/Documents/FredPackage/svms/NicoTope/pockets.txt"
     __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
                  'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
@@ -593,6 +593,10 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
             allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         tmp_file = NamedTemporaryFile(delete=False)
+        pep = [ p for p in pep_seqs.keys() if len(p) >= max(self.__supported_length)]
+        if not pep:
+            raise ValueError("No epitopes with length >= %i"%max(self.__supported_length))
+        
         tmp_file.write("\n".join(pep_seqs.keys()))
         tmp_file.close()
         tmp_out = NamedTemporaryFile(delete=False)
