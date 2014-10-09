@@ -454,7 +454,7 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
 
     __name = "mhcIImulti"
     __supported_length = frozenset([8, 9, 10])
-    __command = "~/Documents/FredPackage/svms/NicoTope/MHCIILeveraging %s %s %s ~/Documents/FredPackage/svms/NicoTope/models  ~/Documents/FredPackage/svms/NicoTope/pockets.txt"
+    __command = "MHCIILeveraging %s %s %s /abi-projects/etk/software/NicoTope/models  /abi-projects/etk/software/NicoTope/pockets.txt"
     __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
                  'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
                  'DRB1*08:04:04', 'DRB1*04:59', 'DRB1*14:21', 'DRB1*04:54', 'DRB1*04:55', 'DRB1*04:56', 'DRB1*04:57',
