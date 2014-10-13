@@ -34,3 +34,6 @@ class Allele(MetadataLogger):
 
     def __repr__(self):
         return 'HLA-%s*%s:%s' % (str(self.locus), str(self.supertype), str(self.subtype))
+
+    def __eq__(self, other):
+        return self.name == other.name
