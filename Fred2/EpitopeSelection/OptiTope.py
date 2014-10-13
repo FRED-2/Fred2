@@ -43,7 +43,7 @@ class OptiTope(object):
             :param solver (String): the solver to be used (default glpsol)
     """
 
-    def __init__(self, _results, _alleles, _threshold, k=10, solver="glpsol", verbosity=0):
+    def __init__(self, _results,  threshold=None, k=10, solver="glpsol", verbosity=0):
         """
             Constructor
 
@@ -54,7 +54,8 @@ class OptiTope(object):
         if not isinstance(_results, EpitopePredictionResult):
             raise ValueError("first input parameter is not of type EpitopePredictionResult")
 
-        _alleles = copy.deepcopy(_alleles)
+        _alleles = copy.deepcopy(_results.columns.values.tolist())
+
         print map(lambda x: x.locus, _alleles)
         #test if allele prob is set, if not set allele prob uniform
         #if only partly set infer missing values (assuming uniformity of missing value)
@@ -98,7 +99,7 @@ class OptiTope(object):
         self.__alleleProb = _alleles
         self.__k = k
         self.__result = None
-        self.__thresh = _threshold
+        self.__thresh = {} if threshold is None else threshold
 
         # Variable, Set and Parameter preparation
         alleles_I = {}
@@ -112,19 +113,20 @@ class OptiTope(object):
         #and filter for binding epitopes
 
         res_df = _results.xs(_results.index.values[0][1], level="Method")
-        res_df = res_df[[a.name for a in _alleles]]
-        res_df = res_df[res_df.apply(lambda x: any(x[a.name] > self.__thresh[a.name] for a in self.__alleleProb), axis=1)]
+        res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, 0.0)
+                                                   for a in res_df.columns), axis=1)]
 
         for tup in res_df.itertuples():
             p = tup[0]
             seq = str(p)
             peps[seq] = p
             for a, s in itr.izip(res_df.columns, tup[1:]):
-                if s > self.__thresh[a]:
-                    alleles_I.setdefault(a, set()).add(seq)
-                imm[seq, a] = s
+                print a
+                if s > self.__thresh[a.name]:
+                    alleles_I.setdefault(a.name, set()).add(seq)
+                imm[seq, a.name] = s
 
-            prots = set(p.transcript_id for p in p.get_all_proteins())
+            prots = set(p for p in p.get_all_proteins())
             cons[seq] = len(prots)
             for prot in prots:
                 variations.append(prot.gene_id)
@@ -297,11 +299,13 @@ class OptiTope(object):
         self.instance.t_var.deactivate()
         self.instance.AntigenCovConst.deactivate()
 
-    def activate_epitope_conservation_const(self, t_c):
+    def activate_epitope_conservation_const(self, t_c, conservatio=None):
         """
             activates the epitope conservation constraint
             @param t_c: the percentage of conservation an epitope has to have.
             @type t_c: float [0.0,1.0]
+            :param:dict(Peptide,float) conservation: A dict with key=Peptide specifieying a different conservation score
+                                                    for each peptide
             @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
         """
         if t_c < 0 or t_c > 1:
@@ -344,7 +348,7 @@ class OptiTope(object):
 
                 if str(res.Solution.status) != 'optimal':
                     print "Could not solve problem - " + str(res.Solution.status) + ". Please check your settings"
-                    sys.exit()
+                    sys.exit(-1)
 
                 self.__result = [self.__peptideSet[x] for x in self.instance.x if self.instance.x[x].value == 1.0]
                 #self.__result.log_metadata("obj", res.Solution.Objective.Value)
