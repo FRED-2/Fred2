@@ -18,6 +18,8 @@ class APSSMEpitopePredictor(AEpitopePrediction):
         Implements predict functionality
 
     """
+    def threshold(self, allele):
+        return 0.0
 
     def predict(self, peptides, alleles=None, **kwargs):
         """

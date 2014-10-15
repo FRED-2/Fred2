@@ -25,6 +25,9 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
     """
 
+    def threshold(self):
+        return 0.5
+
     def predict(self, aa_seq, length=None, **kwargs):
         """
         Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
@@ -143,6 +146,9 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         :return:
         """
         raise NotImplementedError
+
+    def threshold(self):
+        return 0.5
 
     def predict(self, peptides,  **kwargs):
         """

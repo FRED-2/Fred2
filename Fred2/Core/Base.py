@@ -122,7 +122,7 @@ class ACleavageSitePrediction(object):
         """
         raise NotImplementedError
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def threshold(self):
         """
         parameter specifying the prediction threshold of a cleavage site
@@ -173,7 +173,7 @@ class ACleavageFragmentPrediction(object):
         """
         raise NotImplementedError
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def threshold(self):
         """
         parameter specifying the prediction threshold of a cleavage fragment
@@ -223,7 +223,7 @@ class AEpitopePrediction(object):
         """
         raise NotImplementedError
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def threshold(self, allele):
         """
         parameter specifying the prediction threshold of a epitope
@@ -320,7 +320,7 @@ class ATAPPrediction(object):
         """
         raise NotImplementedError
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def threshold(self):
         """
         parameter specifying the prediction threshold of TAP binding

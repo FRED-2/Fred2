@@ -28,6 +28,9 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
         implements default prediction routine for SVM based epitope prediction tools
     """
 
+    def threshold(self, allele):
+        return 0.0
+
     def predict(self, peptides, alleles=None, **kwargs):
 
         if isinstance(peptides, collections.Iterable):
@@ -575,6 +578,8 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
             res.append(float(l.strip()))
         return res
 
+    def threshold(self, allele):
+        return 0
 
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]

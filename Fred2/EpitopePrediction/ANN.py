@@ -28,6 +28,13 @@ class ANetMHC(AEpitopePrediction, AExternal):
 
     """
 
+    def threshold(self, allele):
+        allele_id = "%s*%s:%s"%(allele.locus, allele.subtype, allele.subtype)
+        if allele_id in self.__alleles:
+            return 0.425
+        else:
+            raise KeyError("Allele %s is not supported by method %s"%(allele.name, self.name))
+
     def predict(self, peptides, alleles=None, **kwargs):
 
         if isinstance(peptides, collections.Iterable):
