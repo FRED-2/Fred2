@@ -249,6 +249,91 @@ class MartsAdapter(ADBAdapter):
             logging.warning(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
             return ''
 
+    def get_transcript_information_from_protein_id(self, **kwargs):
+        """
+        It also already uses the Field-Enum for DBAdapters
+
+        Fetches transcript sequence for the given id
+        :param transcript_refseq:
+        :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
+        """
+
+        filter = None
+        db_id = ""
+        if "refseq" in kwargs:
+            filter = "refseq_peptide"
+            db_id = kwargs["refseq"]
+        elif "ensemble" in kwargs:
+            filter = "ensembl_peptide_id"
+            db_id = kwargs["ensemble"]
+        elif "swiss_accid" in kwargs:
+            filter = "uniprot_swissprot_accession"
+            db_id = kwargs["swiss_accid"]
+        elif "swiss_gene" in kwargs:
+            filter= "uniprot_swissprot"
+            db_id = kwargs["swiss_gene"]
+        else:
+            warnings.warn("No correct transcript id")
+            return None
+        rq_n = self.biomart_head \
+               + self.biomart_filter%(filter, str(db_id)) \
+               + self.biomart_attribute%(filter) \
+               + self.biomart_attribute%("coding") \
+               + self.biomart_attribute%("external_gene_id") \
+               + self.biomart_attribute%("strand") \
+               + self.biomart_tail
+
+        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvselect = [x for x in tsvreader]
+        print tsvselect[0]
+        if not tsvselect:
+            warnings.warn("No entry found for ID %s"%db_id)
+            return None
+
+        self.ids_proxy[db_id] = {EAdapterFields.SEQ: tsvselect[0]['Coding sequence'],
+                                             EAdapterFields.GENE: tsvselect[0]['Associated Gene Name'],
+                                             EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0
+                                             else "+"}
+        return self.ids_proxy[db_id]
+
+    def get_variant_id_from_protein_id(self, **kwargs):
+        """
+        returns all information needed to instantiate a variation
+
+        :param trans_id: A transcript ID (either ENSAMBLE (ENS) or RefSeq (NM, XN)
+        :return: list of dicts -- containing all information needed for a variant initialization
+        """
+        filter = None
+        db_id = ""
+        if "refseq" in kwargs:
+            filter = "refseq_peptide"
+            db_id = kwargs["refseq"]
+        elif "ensemble" in kwargs:
+            filter = "ensembl_peptide_id"
+            db_id = kwargs["ensemble"]
+        elif "swiss_accid" in kwargs:
+            filter = "uniprot_swissprot_accession"
+            db_id = kwargs["swiss_accid"]
+        elif "swiss_gene" in kwargs:
+            filter= "uniprot_swissprot"
+            db_id = kwargs["swiss_gene"]
+        else:
+            warnings.war
+        rq_n = self.biomart_head \
+               + self.biomart_filter%(filter, str(db_id)) \
+               + self.biomart_filter%("germ_line_variation_source", "dbSNP") \
+               + self.biomart_attribute%("external_id") \
+               + self.biomart_attribute%("peptide_location") \
+               + self.biomart_tail
+
+        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvselect = [x for x in tsvreader]
+        if not tsvselect:
+            warnings.warn("No entry found for ID %s"%db_id)
+            return None
+
+        return tsvselect
+
     #TODO: refactor ... function based on old code
     def get_all_variant_gene(self, locations):
         """
