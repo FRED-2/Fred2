@@ -52,7 +52,7 @@ YFVIFFVAA""".split()]
 
         :return:
         """
-        opt = OptiTope(self.result, self.alleles,self.thresh,k=3,solver="cplex",verbosity=0)
+        opt = OptiTope(self.result, self.thresh, k=3, solver="cplex", verbosity=0)
         r =opt.solve()
         self.assertTrue(len(set(str(p) for p in r) - set(["GPTPLLYRL", "QYLAGLSTL", "ALYDVVSTL"])) == 0 )
 
@@ -87,7 +87,8 @@ YFVIFFVAA""".split()]
         conservation = {}
         print self.result.index.levels[0]
         for e in self.result.index.levels[0]:
-            conservation[e] = random.random()
-        pt = OptiTope(self.result,self.thresh,k=3,solver="cplex",verbosity=1)
-        pt.activate_epitope_conservation_const(0.5,conservation=conservation)
-        print pt.solve()
+            conservation[str(e)] = random.random()
+        pt = OptiTope(self.result, self.thresh, k=3, solver="cplex" ,verbosity=1)
+        pt.activate_epitope_conservation_const(0.5, conservation=conservation)
+        for e in pt.solve():
+            print e, conservation[e]
