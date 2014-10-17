@@ -322,12 +322,17 @@ class MartsAdapter(ADBAdapter):
         rq_n = self.biomart_head \
                + self.biomart_filter%(filter, str(db_id)) \
                + self.biomart_filter%("germ_line_variation_source", "dbSNP") \
+               + self.biomart_attribute%("snp_chromosome_name") \
+               + self.biomart_attribute%("chromosome_location") \
+               + self.biomart_attribute%("allele") \
                + self.biomart_attribute%("external_id") \
+               + self.biomart_attribute%("snp_strand") \
                + self.biomart_attribute%("peptide_location") \
                + self.biomart_tail
-
+        print rq_n
         tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
+        print tsvselect
         if not tsvselect:
             warnings.warn("No entry found for ID %s"%db_id)
             return None
