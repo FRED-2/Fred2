@@ -334,6 +334,50 @@ class MartsAdapter(ADBAdapter):
 
         return tsvselect
 
+    def get_protein_sequence_from_protein_id(self, **kwargs):
+        """
+        Returns the protein sequence for a given protein ID that can either be refeseq, uniprot or ensamble id
+
+        :param kwargs:
+        :return:
+        """
+        filter = None
+        db_id = ""
+        if "refseq" in kwargs:
+            filter = "refseq_peptide"
+            db_id = kwargs["refseq"]
+        elif "ensemble" in kwargs:
+            filter = "ensembl_peptide_id"
+            db_id = kwargs["ensemble"]
+        elif "swiss_accid" in kwargs:
+            filter = "uniprot_swissprot_accession"
+            db_id = kwargs["swiss_accid"]
+        elif "swiss_gene" in kwargs:
+            filter= "uniprot_swissprot"
+            db_id = kwargs["swiss_gene"]
+        else:
+            warnings.warn("No correct transcript id")
+            return None
+        rq_n = self.biomart_head \
+               + self.biomart_filter%(filter, str(db_id)) \
+               + self.biomart_attribute%(filter) \
+               + self.biomart_attribute%("peptide") \
+               + self.biomart_attribute%("ensembl_gene_id") \
+               + self.biomart_attribute%("ensembl_transcript_id") \
+               + self.biomart_tail
+
+        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvselect = [x for x in tsvreader]
+        print tsvselect
+        if not tsvselect:
+            warnings.warn("No entry found for ID %s"%db_id)
+            return None
+
+        return {EAdapterFields.SEQ: tsvselect[0]['Coding sequence'],
+                                             EAdapterFields.GENE: tsvselect[0]['Associated Gene Name'],
+                                             EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0
+                                             else "+"}
+
     #TODO: refactor ... function based on old code
     def get_all_variant_gene(self, locations):
         """
