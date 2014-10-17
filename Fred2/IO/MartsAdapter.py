@@ -370,7 +370,7 @@ class MartsAdapter(ADBAdapter):
                + self.biomart_attribute%("ensembl_gene_id") \
                + self.biomart_attribute%("ensembl_transcript_id") \
                + self.biomart_tail
-
+        print rq_n
         tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         print tsvselect
