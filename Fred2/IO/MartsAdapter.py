@@ -249,7 +249,7 @@ class MartsAdapter(ADBAdapter):
             logging.warning(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
             return ''
 
-    def get_transcript_information_from_protein_id(self,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
+    def get_transcript_information_from_protein_id(self, **kwargs):
         """
         It also already uses the Field-Enum for DBAdapters
 
@@ -257,7 +257,8 @@ class MartsAdapter(ADBAdapter):
         :param transcript_refseq:
         :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
         """
-
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
         filter = None
         db_id = ""
         if "refseq" in kwargs:
@@ -296,13 +297,15 @@ class MartsAdapter(ADBAdapter):
                                              else "+"}
         return self.ids_proxy[db_id]
 
-    def get_variant_id_from_protein_id(self, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
+    def get_variant_id_from_protein_id(self,  **kwargs):
         """
         returns all information needed to instantiate a variation
 
         :param trans_id: A transcript ID (either ENSAMBLE (ENS) or RefSeq (NM, XN)
         :return: list of dicts -- containing all information needed for a variant initialization
         """
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
         filter = None
         db_id = ""
         if "refseq" in kwargs:
@@ -339,7 +342,7 @@ class MartsAdapter(ADBAdapter):
 
         return tsvselect
 
-    def get_protein_sequence_from_protein_id(self,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
+    def get_protein_sequence_from_protein_id(self, **kwargs):
         """
         Returns the protein sequence for a given protein ID that can either be refeseq, uniprot or ensamble id
 
@@ -348,6 +351,9 @@ class MartsAdapter(ADBAdapter):
         """
         filter = None
         db_id = ""
+
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
         if "refseq" in kwargs:
             filter = "refseq_peptide"
             db_id = kwargs["refseq"]
@@ -415,7 +421,7 @@ class MartsAdapter(ADBAdapter):
         #     return ''
 
     #TODO: refactor ... function based on old code
-    def get_variant_ids(self, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
+    def get_variant_ids(self, **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
         Result is a list of dicts with either of the tree combinations:
@@ -430,6 +436,8 @@ class MartsAdapter(ADBAdapter):
         :return: The list of dicts of entries with transcript and protein ids (either NM+NP or XM+XP)
         """
         # TODO type assessment
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
         ensemble_only = False
         query = None
         if len(kwargs) == 4 and 'chrom' in kwargs and 'start' in kwargs and 'stop' in kwargs and 'ensemble_only' in kwargs:
@@ -497,7 +505,7 @@ class MartsAdapter(ADBAdapter):
         return result.values()
 
     #TODO: refactor ... function based on old code
-    def get_all_variant_ids(self,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
+    def get_all_variant_ids(self,  **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
         Result is a list of dicts with either of the tree combinations:
@@ -508,6 +516,8 @@ class MartsAdapter(ADBAdapter):
         :keyword 'genes': list of genes as string value of the genes of variation
         :return: The list of dicts of entries with transcript and protein ids (either NM+NP or XM+XP)
         """
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
         end_result = dict()
         # TODO type assessment
         ensemble_only = False
