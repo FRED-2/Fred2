@@ -34,7 +34,7 @@ class MartsAdapter(ADBAdapter):
         <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE Query>
             <Query client="true" processor="TSV" limit="-1" header="1" uniqueRows = "1" >
-                <Dataset name="hsapiens_gene_ensembl" config="gene_ensembl_config">
+                <Dataset name="%s" config="%s">
         """.strip()
         self.biomart_tail = """
                 </Dataset>
@@ -44,7 +44,7 @@ class MartsAdapter(ADBAdapter):
         self.biomart_attribute = """<Attribute name="%s"/>"""
 
     #TODO: refactor ... function based on old code
-    def get_product_sequence(self, product_refseq):
+    def get_product_sequence(self, product_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
         fetches product sequence for the given id
         :param product_refseq: given refseq id
@@ -86,7 +86,7 @@ class MartsAdapter(ADBAdapter):
             else:
                 warnings.warn("No correct product id: " + product_refseq)
                 return None
-            rq_n = self.biomart_head \
+            rq_n = self.biomart_head%(_db,_dataset) \
                 + self.biomart_filter%(filter, str(product_refseq))  \
                 + self.biomart_attribute%("peptide")  \
                 + self.biomart_attribute%(filter)  \
@@ -104,7 +104,7 @@ class MartsAdapter(ADBAdapter):
             return self.sequence_proxy[product_refseq]
 
     #TODO: refactor ... function based on old code
-    def get_transcript_sequence(self, transcript_refseq):
+    def get_transcript_sequence(self, transcript_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
         Fetches transcript sequence for the given id
         :param transcript_refseq:
@@ -145,7 +145,7 @@ class MartsAdapter(ADBAdapter):
             else:
                 warnings.warn("No correct transcript id: " + transcript_refseq)
                 return None
-            rq_n = self.biomart_head \
+            rq_n = self.biomart_head%(_db, _dataset) \
                 + self.biomart_filter%(filter, str(transcript_refseq))  \
                 + self.biomart_attribute%(filter)  \
                 + self.biomart_attribute%("coding")  \
@@ -158,7 +158,7 @@ class MartsAdapter(ADBAdapter):
             self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']
             return self.sequence_proxy[transcript_refseq]
 
-    def get_transcript_information(self, transcript_refseq):
+    def get_transcript_information(self, transcript_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
         It also already uses the Field-Enum for DBAdapters
 
@@ -201,7 +201,7 @@ class MartsAdapter(ADBAdapter):
             else:
                 warnings.warn("No correct transcript id: " + transcript_refseq)
                 return None
-            rq_n = self.biomart_head \
+            rq_n = self.biomart_head%(_db, _dataset) \
                 + self.biomart_filter%(filter, str(transcript_refseq))  \
                 + self.biomart_attribute%(filter)  \
                 + self.biomart_attribute%("coding")  \
@@ -222,7 +222,7 @@ class MartsAdapter(ADBAdapter):
             return self.ids_proxy[transcript_refseq]
 
     #TODO: refactor ... function based on old code
-    def get_variant_gene(self, chrom, start, stop):
+    def get_variant_gene(self, chrom, start, stop, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
         Fetches the important db ids and names for given chromosomal location
         :param chrom: integer value of the chromosome in question
@@ -233,7 +233,7 @@ class MartsAdapter(ADBAdapter):
         if chrom + start + stop in self.gene_proxy:
             return self.gene_proxy[chrom + start + stop]
 
-        rq_n = self.biomart_head \
+        rq_n = self.biomart_head%(_db, _dataset) \
             + self.biomart_filter%("chromosome_name", str(chrom))  \
             + self.biomart_filter%("start", str(start))  \
             + self.biomart_filter%("end", str(stop))  \
@@ -249,7 +249,7 @@ class MartsAdapter(ADBAdapter):
             logging.warning(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
             return ''
 
-    def get_transcript_information_from_protein_id(self, **kwargs):
+    def get_transcript_information_from_protein_id(self,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
         """
         It also already uses the Field-Enum for DBAdapters
 
@@ -275,7 +275,7 @@ class MartsAdapter(ADBAdapter):
         else:
             warnings.warn("No correct transcript id")
             return None
-        rq_n = self.biomart_head \
+        rq_n = self.biomart_head%(_db, _dataset) \
                + self.biomart_filter%(filter, str(db_id)) \
                + self.biomart_attribute%(filter) \
                + self.biomart_attribute%("coding") \
@@ -296,7 +296,7 @@ class MartsAdapter(ADBAdapter):
                                              else "+"}
         return self.ids_proxy[db_id]
 
-    def get_variant_id_from_protein_id(self, **kwargs):
+    def get_variant_id_from_protein_id(self, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
         """
         returns all information needed to instantiate a variation
 
@@ -319,7 +319,7 @@ class MartsAdapter(ADBAdapter):
             db_id = kwargs["swiss_gene"]
         else:
             warnings.war
-        rq_n = self.biomart_head \
+        rq_n = self.biomart_head%(_db, _dataset) \
                + self.biomart_filter%(filter, str(db_id)) \
                + self.biomart_filter%("germ_line_variation_source", "dbSNP") \
                + self.biomart_attribute%("snp_chromosome_name") \
@@ -339,7 +339,7 @@ class MartsAdapter(ADBAdapter):
 
         return tsvselect
 
-    def get_protein_sequence_from_protein_id(self, **kwargs):
+    def get_protein_sequence_from_protein_id(self,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
         """
         Returns the protein sequence for a given protein ID that can either be refeseq, uniprot or ensamble id
 
@@ -363,7 +363,7 @@ class MartsAdapter(ADBAdapter):
         else:
             warnings.warn("No correct transcript id")
             return None
-        rq_n = self.biomart_head \
+        rq_n = self.biomart_head%(_db, _dataset) \
                + self.biomart_filter%(filter, str(db_id)) \
                + self.biomart_attribute%(filter) \
                + self.biomart_attribute%("peptide") \
@@ -384,7 +384,7 @@ class MartsAdapter(ADBAdapter):
                                              else "+"}
 
     #TODO: refactor ... function based on old code
-    def get_all_variant_gene(self, locations):
+    def get_all_variant_gene(self, locations,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
         Fetches the important db ids and names for given chromosomal location
         :param chrom: integer value of the chromosome in question
@@ -415,7 +415,7 @@ class MartsAdapter(ADBAdapter):
         #     return ''
 
     #TODO: refactor ... function based on old code
-    def get_variant_ids(self, **kwargs):
+    def get_variant_ids(self, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
         Result is a list of dicts with either of the tree combinations:
@@ -452,7 +452,7 @@ class MartsAdapter(ADBAdapter):
         else:
             warnings.warn("wrong arguments to get_variant_ids")
 
-        rq_n = self.biomart_head \
+        rq_n = self.biomart_head%(_db, _dataset) \
             + query \
             + self.biomart_attribute%("ensembl_gene_id")  \
             + self.biomart_attribute%("ensembl_peptide_id")  \
@@ -497,7 +497,7 @@ class MartsAdapter(ADBAdapter):
         return result.values()
 
     #TODO: refactor ... function based on old code
-    def get_all_variant_ids(self, **kwargs):
+    def get_all_variant_ids(self,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config', **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
         Result is a list of dicts with either of the tree combinations:
@@ -525,7 +525,7 @@ class MartsAdapter(ADBAdapter):
         else:
             logging.warning("wrong arguments to get_variant_ids")
         for query in queries:
-            rq_n = self.biomart_head \
+            rq_n = self.biomart_head%(_db,_dataset) \
                 + query \
                 + self.biomart_attribute%("uniprot_genename")  \
                 + self.biomart_attribute%("ensembl_gene_id")  \
@@ -549,7 +549,7 @@ class MartsAdapter(ADBAdapter):
             end_result.update(result)
 
             if not ensemble_only:
-                rq_x = self.biomart_head \
+                rq_x = self.biomart_head%(_db, _dataset) \
                     + query  \
                     + self.biomart_attribute%("uniprot_genename")  \
                     + self.biomart_attribute%("ensembl_gene_id")  \
