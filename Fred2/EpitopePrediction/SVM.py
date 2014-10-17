@@ -28,6 +28,9 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
         implements default prediction routine for SVM based epitope prediction tools
     """
 
+    def threshold(self, allele):
+        return 0.0
+
     def predict(self, peptides, alleles=None, **kwargs):
 
         if isinstance(peptides, collections.Iterable):
@@ -39,7 +42,7 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
-            allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
@@ -420,7 +423,7 @@ class UniTope(ASVMEpitopePrediction):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
-            allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
@@ -576,6 +579,8 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
             res.append(float(l.strip()))
         return res
 
+    def threshold(self, allele):
+        return 0
 
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
@@ -591,7 +596,7 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
-            allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         tmp_file = NamedTemporaryFile(delete=False)
         pep = [ p for p in pep_seqs.keys() if len(p) >= max(self.__supported_length)]

@@ -17,6 +17,9 @@ from Fred2.Core.Result import TAPPredictionResult
 
 class APSSMTAPPrediction(ATAPPrediction):
 
+    def threshold(self):
+        return 0.5
+
     def predict(self, peptides, **kwargs):
 
         def __load_model(length):

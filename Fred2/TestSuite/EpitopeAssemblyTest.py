@@ -21,5 +21,4 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
         pred = CleavageSitePredictorFactory("PCM")
         assembler = EpitopeAssembly(self.peptides, pred, solver="cplex", verbosity=1)
         r = assembler.solve()
-        print r
         self.assertEqual(r, [Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL"), Peptide("KLLPRLPGV")])

@@ -18,6 +18,9 @@ from Fred2.Core.Result import TAPPredictionResult
 
 class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
+    def threshold(self):
+        return 0.5
+
     def predict(self, peptides,  **kwargs):
         if isinstance(peptides, collections.Iterable):
             pep_seqs = {str(p):p for p in peptides}
