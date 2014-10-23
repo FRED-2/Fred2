@@ -68,8 +68,11 @@ def read_fasta(*argv, **kwargs):
             # iterate over all FASTA entries:
             for _id, seq in SimpleFastaParser(handle):
                 # generate element:
-                collect[seq.upper()] = _id
-    
+                try:
+                    collect[seq.upper()] = _id.split("|")[kwargs["id_position"]]
+                except KeyError:
+                    collect[seq.upper()] = _id
+
     return [__create_single_sequ(seq, _id, _type) \
             for seq, _id in collect.items()]
 
