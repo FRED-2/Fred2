@@ -60,7 +60,7 @@ def read_fasta(*argv, **kwargs):
     _type = kwargs.get("type", "Peptide")
 
     __check_type(_type)
-
+    print kwargs
     collect = {}
     # open all specified files:
     for name in argv:
@@ -70,6 +70,7 @@ def read_fasta(*argv, **kwargs):
                 # generate element:
                 try:
                     collect[seq.upper()] = _id.split("|")[kwargs["id_position"]]
+		    print collect[seq.upper()]
                 except KeyError:
                     collect[seq.upper()] = _id
 

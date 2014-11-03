@@ -68,7 +68,6 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                 result[allales_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
-		    print [(self.name, type(pssm[i][p[i]]),a,i,p[i]) for i in xrange(length)]
                     score = sum(pssm[i][p[i]] for i in xrange(length))
                     result[allales_string[a]][pep_seqs[p]] = score
                     #print a, score, result
