@@ -55,7 +55,7 @@ class ANetMHC(AEpitopePrediction, AExternal):
         c_a = 0
         allele_group = []
         for a in allales_string.iterkeys():
-            if c_a >= 80:
+            if c_a >= 50:
                 c_a = 0
                 allele_groups.append(allele_group)
                 if str(allales_string[a]) not in self.supportedAlleles:
