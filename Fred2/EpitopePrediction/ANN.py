@@ -94,8 +94,7 @@ class ANetMHC(AEpitopePrediction, AExternal):
                     warnings.warn("An unknown error occurred for method %s."%self.name)
                     continue
 
-
-                res_tmp = self.parse_external_result(tmp_out)
+                res_tmp = self.parse_external_result(tmp_out.name)
                 for al, ep_dict in res_tmp.iteritems():
                     for p, v in ep_dict.iteritems():
                         result[allales_string[al]][pep_seqs[p]] = v
@@ -151,7 +150,8 @@ class NetMHC(ANetMHC):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        f = csv.reader(_file, delimiter='\t')
+        print "reading ", _file
+        f = csv.reader(open(_file, "r"), delimiter='\t')
         f.next()
         f.next()
         alleles = map(lambda x: x.split()[0], f.next()[3:])
@@ -532,7 +532,7 @@ class NetMHCpan(ANetMHC):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        f = csv.reader(_file, delimiter='\t')
+        f = csv.reader(open(_file, "r"), delimiter='\t')
         alleles = set(filter(lambda x: x != "",f.next()))
         f.next()
         ic_pos = 3
@@ -578,7 +578,7 @@ class NetMHCII(ANetMHC,AExternal):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        f = csv.reader(_file, delimiter='\t')
+        f = csv.reader(open(_file, "r"), delimiter='\t')
         for r in f:
             if not r:
                 continue
@@ -718,7 +718,7 @@ class NetMHCIIpan(ANetMHC,AExternal):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        f = csv.reader(_file, delimiter='\t')
+        f = csv.reader(open(_file, "r"), delimiter='\t')
         alleles = map(lambda x: x.replace("*","_").replace(":",""), set(filter(lambda x: x != "",f.next())))
         f.next()
         ic_pos = 3
