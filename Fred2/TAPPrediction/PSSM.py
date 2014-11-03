@@ -47,7 +47,7 @@ class APSSMTAPPrediction(ATAPPrediction):
 
             result = {self.name:{}}
             for p in peps:
-                score = sum(pssm[i][aa] for i, aa in enumerate(p))
+                score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))
                 result[self.name][pep_seqs[p]] = score
 
         df_result = TAPPredictionResult.from_dict(result)
