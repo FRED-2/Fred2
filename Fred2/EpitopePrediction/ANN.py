@@ -175,7 +175,7 @@ class NetMHCpan(ANetMHC):
 
         Supported  MHC alleles currently only restricted to HLA alleles
     """
-    __supported_length = frozenset([2])
+    __supported_length = frozenset([8,9,10,11])
     __name = "netmhcpan"
     __command = "netMHCpan -p %s -a %s -ic50 -xls -xlsfile %s >/dev/null"
     __alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
@@ -598,7 +598,7 @@ class NetMHCIIpan(ANetMHC,AExternal):
         Implements a wrapper for NetMHCIIpan
     """
 
-    __supported_length = frozenset([9, 10, 11, 12, 13, 14, 15])
+    __supported_length = frozenset([8,9,10,11,12,13,14,15,16,17,18,19,20])
     __name = "netmchIIpan"
     __command = "netMHCIIpan -f %s -inptype 1 -a %s -xls -xlsfile %s >/dev/null"
     __alleles = frozenset(['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',
