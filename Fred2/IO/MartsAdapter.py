@@ -29,7 +29,7 @@ class MartsAdapter(ADBAdapter):
         else:
             self.connection = None
 
-        self.biomart_url = """http://central.biomart.org//biomart/martservice?query="""
+        self.biomart_url = """http://central.biomart.org/biomart/martservice?query="""
         self.biomart_head = """
         <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE Query>
