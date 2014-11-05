@@ -205,7 +205,6 @@ class MartsAdapter(ADBAdapter):
                 + self.biomart_filter%(filter, str(transcript_refseq))  \
                 + self.biomart_attribute%(filter)  \
                 + self.biomart_attribute%("coding")  \
-                + self.biomart_attribute%("external_gene_id")  \
                 + self.biomart_attribute%("strand")  \
                 + self.biomart_tail
 
