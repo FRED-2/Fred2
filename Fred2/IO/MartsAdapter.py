@@ -29,7 +29,8 @@ class MartsAdapter(ADBAdapter):
         else:
             self.connection = None
 
-        self.biomart_url = """http://central.biomart.org/biomart/martservice?query="""
+        self.biomart_url = "http://biomart.org/biomart/martservice?query="
+        self.new_biomart_url = """http://central.biomart.org/biomart/martservice?query="""
         self.biomart_head = """
         <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE Query>
@@ -333,7 +334,7 @@ class MartsAdapter(ADBAdapter):
                + self.biomart_attribute%("peptide_location") \
                + self.biomart_tail
         print rq_n
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib2.urlopen(self.new_biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         print tsvselect
         if not tsvselect:
