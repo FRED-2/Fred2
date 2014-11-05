@@ -331,6 +331,7 @@ class MartsAdapter(ADBAdapter):
                + self.biomart_attribute%("allele") \
                + self.biomart_attribute%("snp_strand") \
                + self.biomart_attribute%("peptide_location") \
+               + self.biomart_attribute%("external_gene_id") \
                + self.biomart_tail
         print rq_n
         tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
