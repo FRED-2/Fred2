@@ -204,10 +204,10 @@ class OptiTope(object):
         self.instance.t_var.deactivate()
 
         #constraints
-        self.instance.IsAlleleCovConst.deactivate()
+        #self.instance.IsAlleleCovConst.deactivate()
         self.instance.MinAlleleCovConst.deactivate()
         #self.instance.AntigenCovConst.deactivate()
-        self.instance.IsAntigenCovConst.deactivate()
+        #self.instance.IsAntigenCovConst.deactivate()
         self.instance.MinAntigenCovConst.deactivate()
         self.instance.EpitopeConsConst.deactivate()
 

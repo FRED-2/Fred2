@@ -206,7 +206,6 @@ class MartsAdapter(ADBAdapter):
                 + self.biomart_filter%(filter, str(transcript_refseq))  \
                 + self.biomart_attribute%(filter)  \
                 + self.biomart_attribute%("coding")  \
-                + self.biomart_attribute%("external_gene_id")  \
                 + self.biomart_attribute%("strand")  \
                 + self.biomart_tail
 
@@ -218,7 +217,7 @@ class MartsAdapter(ADBAdapter):
                 return None
 
             self.ids_proxy[transcript_refseq] = {EAdapterFields.SEQ: tsvselect[0]['Coding sequence'],
-                                                      EAdapterFields.GENE: tsvselect[0]['Associated Gene Name'],
+                                                      EAdapterFields.GENE: tsvselect[0].get('Associated Gene Name', ""),
                                                       EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0
                                                       else "+"}
             return self.ids_proxy[transcript_refseq]

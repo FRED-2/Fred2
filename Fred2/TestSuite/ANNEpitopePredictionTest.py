@@ -22,25 +22,25 @@ from Fred2.EpitopePrediction import EpitopePredictorFactory
 class TestCaseANN(unittest.TestCase):
 
     def setUp(self):
-        self.peptides = [Peptide("SYFPEITHIAAAAAA"),Peptide("IHTIEPFYSAAAAAA")]
+        self.peptides = [Peptide("SYFPEITHIAAAAAAAA"),Peptide("IHTIEPFYS")]
         self.alleles = [Allele("HLA-A*02:01"),Allele("HLA-A*01:01"), Allele("HLA-A*24:02")]
         self.methods = ["NetMHCpan","NetMHC"]
 
-    #
+
     # def test_netMHC_prediction(self):
     #     p = EpitopePredictorFactory("NetMHC")
-    #     results = p.predict(self.peptides, self.alleles)
-    #     print results
-    #
-    # def test_netMHCpan_prediction(self):
-    #     p = EpitopePredictorFactory("NetMHCpan")
-    #     results = p.predict(self.peptides, self.alleles)
+    #     results = p.predict(self.peptides)
     #     print results
 
-    def test_netMHCII_prediction(self):
-        p = EpitopePredictorFactory("NetMHCII")
-        results = p.predict(self.peptides, [Allele("DRB1*01:01"), Allele("DRB1*04:01")])
-        print results
+    def test_netMHCpan_prediction(self):
+         p = EpitopePredictorFactory("NetMHCII")
+         results = p.predict(self.peptides)
+         print results
+    #
+    # def test_netMHCII_prediction(self):
+    #     p = EpitopePredictorFactory("NetMHCII")
+    #     results = p.predict(self.peptides, [Allele("DRB1*01:01"), Allele("DRB1*04:01")])
+    #     print results
 
 
     # def test_netMHCIIpan_prediction(self):
