@@ -175,6 +175,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
             ty = tuple(type.split())
 
             vars.append(
-                Variant(id, type_mapper[ty], chrom, int(genome_start), ref.upper(), alt.upper(), coding, zygos == "hom",
-                        ty[0] == "synonymous", experimentalDesign=experimentalDesig))
+                Variant(id, type_mapper.get(ty, VariationType.UNKNOWN), chrom, int(genome_start), ref.upper(),
+                        alt.upper(), coding, zygos == "hom", ty[0] == "synonymous",
+                        experimentalDesign=experimentalDesig))
     return vars
