@@ -214,7 +214,7 @@ def generate_peptides_from_variants(vars, length, dbadapter):
         if not _check_for_problematic_variants(vs):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
-        generate_transcripts_from_variants.transOff = 0
+        generate_peptides_from_variants.transOff = 0
         prots = []
         for i in xrange(len(tSeq)+1-3*length):
             end = i+3*length
