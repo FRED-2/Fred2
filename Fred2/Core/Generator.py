@@ -160,15 +160,12 @@ def generate_transcripts_from_variants(vars, dbadapter, proximity=None):
         """
         transOff = generate_transcripts_from_variants.transOff
         #print "TransOffset ", transOff, tId,usedVs
-        print "Generator ", vs,usedVs
         if vs:
             v = vs.pop()
-            print "In generator ", v
             if v.isHomozygous or not usedVs or ((usedVs[-1].get_transcript_position(tId) - v.get_transcript_position(
                     tId) + offset) >= proximity and v.type not in [VariationType.FSDEL, VariationType.FSINS] and proximity is not None):
                 seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
                 usedVs.append(v)
-                print "homo ", v
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset, proximity):
                     yield s
             else:
@@ -208,7 +205,6 @@ def generate_transcripts_from_variants(vars, dbadapter, proximity=None):
         for trans_id in v.coding.iterkeys():
             transToVar.setdefault(trans_id, []).append(v)
 
-    print transToVar
     for tId, vs in transToVar.iteritems():
         print tId
         query = dbadapter.get_transcript_information(tId)
@@ -219,7 +215,6 @@ def generate_transcripts_from_variants(vars, dbadapter, proximity=None):
         tSeq = query[EAdapterFields.SEQ]
         geneid = query[EAdapterFields.GENE]
         strand = query[EAdapterFields.STRAND]
-        print "strand ",strand
 
 
         #if its a reverse transcript form the complement of the variants
@@ -228,12 +223,10 @@ def generate_transcripts_from_variants(vars, dbadapter, proximity=None):
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
 
-        print "Before sorting vs", vs
         vs.sort(key=lambda v: v.genomePos, reverse=True)
         if not _check_for_problematic_variants(vs):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
-        print "Sorted vs", vs
         generate_transcripts_from_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0, proximity):
             yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
