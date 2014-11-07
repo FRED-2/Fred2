@@ -252,7 +252,7 @@ def generate_peptides_from_variants(vars, length, dbadapter):
             continue
         generate_peptides_from_variants.transOff = 0
         prots = []
-        vs_homo_and_fs = filter(lambda x: x.type in [VariationType.FSINS, VariationType.FSDEL] or x.isHomozygious, vs)
+        vs_homo_and_fs = filter(lambda x: x.type in [VariationType.FSINS, VariationType.FSDEL] or x.isHomozygous, vs)
         vs_hetero = filter(lambda x: not x.isHomozygious, vs)
 
         prots = []
