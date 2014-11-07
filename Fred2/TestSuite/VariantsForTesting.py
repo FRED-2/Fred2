@@ -148,22 +148,33 @@ var_9 = Variant(
 ################################################################################
 
 # 3-DEL(-2), HETEROZYGOUS, pos 3
-mut_syn2_10 = MutationSyntax("tsc_1", # transcript_id
-                             3,       # pos in transc
+mut_syn1_10 = MutationSyntax("tsc_1", # transcript_id
+                             1,       # pos in transc
                              1,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
+mut_syn2_10 = MutationSyntax("tsc_2", # transcript_id
+                             1,       # pos in transc
+                             1,       # pos in protein
+                             "",      # cdsMutationSyntax - irrelevant
+                             "")      # aaMutationSyntax - irrelevant
+
 var_10 = Variant(
     "var_10", VariationType.DEL, "chr1",
-    3,                     # Genomic Position 
-    "CC", "",              # reference , observed
-    {"tsc_1":mut_syn2_10,
+    1,                     # Genomic Position
+    "GG", "",              # reference , observed
+    {"tsc_1":mut_syn1_10,
      "tsc_2":mut_syn2_10}, # dict of (transcrip_id : mutSnytaxes)
     False, False)          # isHomozygous?, isSynonymous?
 
 
 # 5-INS(+3), HOMOZYGOUS, pos 5
-mut_syn2_11 = MutationSyntax("tsc_1", # transcript_id
+mut_syn1_11 = MutationSyntax("tsc_1", # transcript_id
+                             5,       # pos in transc
+                             2,       # pos in protein
+                             "",      # cdsMutationSyntax - irrelevant
+                             "")      # aaMutationSyntax - irrelevant
+mut_syn2_11 = MutationSyntax("tsc_2", # transcript_id
                              5,       # pos in transc
                              2,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
@@ -172,13 +183,18 @@ var_11 = Variant(
     "var_11", VariationType.INS, "chr1",
     5,                     # Genomic Position 
     "", "TTT",             # reference , observed
-    {"tsc_1":mut_syn2_11,
+    {"tsc_1":mut_syn1_11,
      "tsc_2":mut_syn2_11}, # dict of (transcrip_id : mutSnytaxes)
     True, False)           # isHomozygous?, isSynonymous?
 
 
 # 7-DEL(-4), HETEROZYGOUS, pos 7
-mut_syn2_12 = MutationSyntax("tsc_1", # transcript_id
+mut_syn1_12 = MutationSyntax("tsc_1", # transcript_id
+                             7,       # pos in transc
+                             3,       # pos in protein
+                             "",      # cdsMutationSyntax - irrelevant
+                             "")      # aaMutationSyntax - irrelevant
+mut_syn2_12 = MutationSyntax("tsc_2", # transcript_id
                              7,       # pos in transc
                              3,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
@@ -187,7 +203,7 @@ var_12 = Variant(
     "var_12", VariationType.DEL, "chr1",
     7,                     # Genomic Position 
     "CCCC", "",            # reference , observed
-    {"tsc_1":mut_syn2_12,
+    {"tsc_1":mut_syn1_12,
      "tsc_2":mut_syn2_12}, # dict of (transcrip_id : mutSnytaxes)
     False, False, experimentalDesign="normal")          # isHomozygous?, isSynonymous?
 

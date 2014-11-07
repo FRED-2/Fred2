@@ -88,8 +88,12 @@ class TestProteinClass(unittest.TestCase):
         dummy_vars = [var_10, var_11, var_12]
 
         proteins = []
-        for trans in generate_transcripts_from_variants(dummy_vars, dummy_db):
+        print "Test 3"
+        t = list(generate_transcripts_from_variants(dummy_vars, dummy_db))
+        print t
+        for trans in t:
             # check gene id field:
+            print trans
             self.assertEqual(trans.gene_id, "gene_1")
 
             # check trans id name:
