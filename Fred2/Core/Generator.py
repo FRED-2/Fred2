@@ -219,7 +219,7 @@ def generate_peptides_from_variants(vars, length, dbadapter):
         for i in xrange(len(tSeq)+1-3*length):
             end = i+3*length
             trans_frac = tSeq[i:end]
-            var_frac = filter(lambda x: x.get_transcript_position(tId) < end, vs)
+            var_frac = filter(lambda x: x.get_transcript_position(tId)-1 < end, vs)
             for tId, varSeq, varComb in _generate_combinations(tId, var_frac, list(trans_frac), [], 0):
                 prots.append(Transcript(geneid, tId, "".join(varSeq), _vars=varComb).translate())
         return generate_peptides_from_protein(prots, length)

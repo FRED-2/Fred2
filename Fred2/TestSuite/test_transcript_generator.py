@@ -117,59 +117,61 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
     #     self.assertEqual(str(trans), "AATTAAACCCCGTTT")
     #
     #
-    # def test_heterozygous_variants(self):
-    #     """
-    #     Create multiple transcript variants for a transcript, given a set
-    #     containing heterozygous variants .
-    #
-    #     Variants:
-    #     3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
-    #     HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
-    #
-    #     Reference sequence:
-    #     AAAAACCCCCGGGGG
-    #     AAATTTCGGGGG (DEL,INS,DEL)
-    #     AAATTTCCCCCGGGGG (DEL,INS)
-    #     AAAAATTTCCGGGG (INS,DEL)
-    #     AAAAATTTCCCCCGGGGG (INS)
-    #
-    #     GGGGGCCCCCAAAAA
-    #     GGGTTTCAAAAA (DEL,INS,DEL)
-    #     GGGTTTCCCCCAAAAA (DEL,INS)
-    #     GGGGGTTTCAAAAA (INS,DEL)
-    #     GGGGGTTTCCCCCAAAAA (INS)
-    #     """
-    #
-    #     dummy_db = DummyAdapter()
-    #
-    #     # 1) INS, SNP, DEL
-    #     dummy_vars = [var_10, var_11, var_12]
-    #     trans_gener = generate_transcripts_from_variants(dummy_vars, dummy_db)
-    #     trans = [t for t in trans_gener]
-    #
-    #
-    #     trans = map(str, trans)
-    #
-    #     self.assertEqual(len(trans), 8)
-    #     self.assertTrue("AAATTTCCGGGG" in trans)
-    #     self.assertTrue("AAATTTCCCCCGGGGG" in trans)
-    #     self.assertTrue("AAAAATTTCCGGGG" in trans)
-    #     self.assertTrue("AAAAATTTCCCCCGGGGG" in trans)
-    #
-    #     self.assertTrue("GGGTTTCCAAAA" in trans)
-    #     self.assertTrue("GGGTTTCCAAAA" in trans)
-    #     self.assertTrue("GGGTTTCCCCCAAAAA" in trans)
-    #     self.assertTrue("GGGGGTTTCCCCCAAAAA" in trans)
+    def test_heterozygous_variants(self):
+        """
+        Create multiple transcript variants for a transcript, given a set
+        containing heterozygous variants .
 
-    def test_varinat_reader(self):
-        vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
-        print vars, len(vars)
-        trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
+        Variants:
+        3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
+        HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
+
+        Reference sequence:
+        AAAAACCCCCGGGGG
+        AAATTTCGGGGG (DEL,INS,DEL)
+        AAATTTCCCCCGGGGG (DEL,INS)
+        AAAAATTTCCGGGG (INS,DEL)
+        AAAAATTTCCCCCGGGGG (INS)
+
+        GGGGGCCCCCAAAAA
+        GGGTTTCAAAAA (DEL,INS,DEL)
+        GGGTTTCCCCCAAAAA (DEL,INS)
+        GGGGGTTTCAAAAA (INS,DEL)
+        GGGGGTTTCCCCCAAAAA (INS)
+        """
+
+        dummy_db = DummyAdapter()
+
+        # 1) INS, SNP, DEL
+        dummy_vars = [var_10, var_11, var_12]
+        trans_gener = generate_transcripts_from_variants(dummy_vars, dummy_db)
+        trans = [t for t in trans_gener]
+
         print trans
-        transToVar = {}
-        for v in vars:
-            for trans_id in v.coding.iterkeys():
-                transToVar.setdefault(trans_id, []).append(v)
+
+        trans = map(str, trans)
+
+        self.assertEqual(len(trans), 8)
+
+        self.assertTrue("AAATTTCCGGGG" in trans)
+        self.assertTrue("AAATTTCCCCCGGGGG" in trans)
+        self.assertTrue("AAAAATTTCCGGGG" in trans)
+        self.assertTrue("AAAAATTTCCCCCGGGGG" in trans)
+
+        self.assertTrue("GGGTTTCCAAAA" in trans)
+        self.assertTrue("GGGTTTCCAAAA" in trans)
+        self.assertTrue("GGGTTTCCCCCAAAAA" in trans)
+        self.assertTrue("GGGGGTTTCCCCCAAAAA" in trans)
+
+    # def test_varinat_reader(self):
+    #     vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
+    #     print vars, len(vars)
+    #     trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
+    #     print trans
+    #     transToVar = {}
+    #     for v in vars:
+    #         for trans_id in v.coding.iterkeys():
+    #             transToVar.setdefault(trans_id, []).append(v)
 
 
 if __name__ == '__main__':
