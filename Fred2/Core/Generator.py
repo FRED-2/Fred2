@@ -184,6 +184,42 @@ def generate_peptides_from_variants(vars, length, dbadapter):
         else:
             yield tId+":FRED2_%i"%transOff, seq, usedVs
 
+    def _generate_heterozygous(tId, vs, seq, usedVs, offset=None):
+        """
+            incorporates heterozygous variants into polymorphic sequences
+        """
+        if vs:
+            v = vs.pop()
+            #find offset
+            offset = 0
+            if offset is None:
+                for uv in usedVs:
+                    if uv.genomePos < v.genomePos:
+                        offset = uv.offsets[tId]
+                    else:
+                        break
+
+            #generate combinatorial branches:
+            vs_tmp = vs[:]
+            tmp_seq = seq[:]
+            tmp_usedVs = usedVs[:]
+
+            for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset=offset):
+                    yield s
+
+            old_trans = generate_peptides_from_variants.transOff
+            generate_peptides_from_variants.transOff += 1
+            transOff = generate_peptides_from_variants.transOff
+            _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(transOff))
+
+            seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
+
+            usedVs.append(v)
+            for s in _generate_combinations(tId, vs, seq, usedVs, offset=offset):
+                yield s
+        else:
+            yield tId+":FRED2_%i"%generate_peptides_from_variants.transOff, seq, usedVs
+
     if not isinstance(dbadapter, ADBAdapter):
         raise ValueError("The given dbadapter is not of type ADBAdapter")
 
@@ -216,12 +252,21 @@ def generate_peptides_from_variants(vars, length, dbadapter):
             continue
         generate_peptides_from_variants.transOff = 0
         prots = []
-        for i in xrange(len(tSeq)+1-3*length):
-            end = i+3*length
-            trans_frac = tSeq[i:end]
-            var_frac = filter(lambda x: x.get_transcript_position(tId)-1 < end, vs)
-            for tId, varSeq, varComb in _generate_combinations(tId, var_frac, list(trans_frac), [], 0):
+        vs_homo_and_fs = filter(lambda x: x.type in [VariationType.FSINS, VariationType.FSDEL] or x.isHomozygious, vs)
+        vs_hetero = filter(lambda x: not x.isHomozygious, vs)
+
+        prots = []
+        for tId, varSeq, varComb in _generate_combinations(tId, vs_homo_and_fs, list(tSeq), [], 0):
+            if vs_hetero:
+                for i in xrange(len(varSeq)+1-3*length):
+                    end = i+3*length
+                    frac_seq = varSeq[i:end]
+                    frac_var = filter(lambda x: i <= x.get_transcript_position < end, vs_hetero)
+                    for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
+                        prots.append(Transcript(geneid, ttId, "".join(vvarSeq), _vars=vvarComb).translate())
+            else:
                 prots.append(Transcript(geneid, tId, "".join(varSeq), _vars=varComb).translate())
+
         return generate_peptides_from_protein(prots, length)
 
 ################################################################################
