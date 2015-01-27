@@ -45,11 +45,12 @@ class EpitopeAssembly(object):
         #2. generate graph with dummy element
         self.__verbosity = verbosity
 
-        peptides.append("Dummy")
+        pep_tmp = peptides[:]
+        pep_tmp.append("Dummy")
         edge_matrix = {}
         fragments = {}
         seq_to_pep = {}
-        for start, stop in itr.combinations(peptides, 2):
+        for start, stop in itr.combinations(pep_tmp, 2):
             if start == "Dummy" or stop == "Dummy":
                 seq_to_pep[str(start)] = start
                 seq_to_pep[str(stop)] = stop
