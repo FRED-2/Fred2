@@ -43,9 +43,6 @@ class NetChop(ACleavageSitePrediction, AExternal):
     def cleavagePos(self):
         return self.__cleavage_pos
 
-    def threshold(self):
-        return 0.5
-
     def predict(self, _aa_seq, **kwargs):
 
         if isinstance(_aa_seq, collections.Iterable):

@@ -9,9 +9,9 @@
 .. moduleauthor:: schubert
 
 """
-__author__ = 'schubert'
 
 import warnings
+import collections
 
 from Fred2.Core.Base import COMPLEMENT
 from Fred2.Core.Peptide import Peptide
@@ -21,6 +21,7 @@ from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 
 ################################################################################
 #Private module functions. It should not be possible to import these!
+
 
 def _update_var_offset(vars, transId_old, transId_new):
     """
@@ -524,6 +525,9 @@ def generate_peptides_from_protein(proteins, window_size):
 
 
     final_peptides = {} # sequence : peptide-instance
+
+    if not isinstance(proteins, collections.Iterable):
+        proteins = [proteins]
 
     for prot in proteins:
         # generate all peptide sequences per protein:

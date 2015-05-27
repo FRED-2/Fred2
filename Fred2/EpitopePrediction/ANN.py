@@ -1,7 +1,12 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert','walzer',
+"""
+.. module:: Base
+   :synopsis: This module contains all classes for ANN-based epitope prediction methods.
+.. moduleauthor:: schubert,  walzer
+
+"""
 
 
 import collections
@@ -27,13 +32,6 @@ class ANetMHC(AEpitopePrediction, AExternal):
 
 
     """
-
-    def threshold(self, allele):
-        allele_id = "%s*%s:%s"%(allele.locus, allele.subtype, allele.subtype)
-        if allele_id in self.__alleles:
-            return 0.425
-        else:
-            raise KeyError("Allele %s is not supported by method %s"%(allele.name, self.name))
 
     def predict(self, peptides, alleles=None, **kwargs):
 
@@ -88,7 +86,7 @@ class ANetMHC(AEpitopePrediction, AExternal):
             #generate cmd command
 
             for allele_group in allele_groups:
-                print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
+                #print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
                 r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
                 if r != 0:
                     warnings.warn("An unknown error occurred for method %s."%self.name)
@@ -98,9 +96,9 @@ class ANetMHC(AEpitopePrediction, AExternal):
                 for al, ep_dict in res_tmp.iteritems():
                     for p, v in ep_dict.iteritems():
                         result[allales_string[al]][pep_seqs[p]] = v
-            #os.remove(tmp_file.name)
+            os.remove(tmp_file.name)
             tmp_out.close()
-            #os.remove(tmp_out.name)
+            os.remove(tmp_out.name)
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])
@@ -150,7 +148,7 @@ class NetMHC(ANetMHC):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        print "reading ", _file
+        #print "reading ", _file
         f = csv.reader(open(_file, "r"), delimiter='\t')
         f.next()
         f.next()

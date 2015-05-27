@@ -25,8 +25,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
     """
 
-    def threshold(self):
-        return 0.5
 
     def predict(self, aa_seq, length=None, **kwargs):
         """
@@ -83,7 +81,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
                 else:
                     result[self.name][(seq_id, i)] = 0.0
                     result["Seq"][(seq_id, i)] = seq[i]
-                    score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-(length-1):(i+1)]))
+                    score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-(length-1):(i+1)]))+pssm.get(-1,{}).get("con",0)
                     result[self.name][(seq_id, i-diff)] = score
 
         df_result = CleavageSitePredictionResult.from_dict(result)
@@ -142,11 +140,7 @@ class ProteoSMMConsecutive(APSSMCleavageSitePredictor):
     __supported_length = frozenset([10])
     __name = "proteosmm_c"
     __cleavage_pos = 6
-    __threshold = 1.03283
 
-    @property
-    def threshold(self):
-        return self.__threshold
 
     @property
     def supportedLength(self):
@@ -186,11 +180,7 @@ class ProteoSMMImmuno(APSSMCleavageSitePredictor):
     __supported_length = frozenset([10])
     __name = "proteosmm_i"
     __cleavage_pos = 6
-    __threshold = 1.23437
 
-    @property
-    def threshold(self):
-        return self.__threshold
 
     @property
     def supportedLength(self):
@@ -205,7 +195,7 @@ class ProteoSMMImmuno(APSSMCleavageSitePredictor):
         return self.__name
 
     def predict(self, peptides, **kwargs):
-        return super(ProteoSMMConsecutive, self).predict(peptides, **kwargs)
+        return super(ProteoSMMImmuno, self).predict(peptides, **kwargs)
 
 
 class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
@@ -234,9 +224,6 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         :return:
         """
         raise NotImplementedError
-
-    def threshold(self):
-        return 0.5
 
     def predict(self, peptides,  **kwargs):
         """

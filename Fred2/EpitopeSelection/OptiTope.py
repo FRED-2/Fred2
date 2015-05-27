@@ -1,7 +1,11 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
 """
     Created on Apr 11, 2013
-    
-    This class implements the epitope selection functionality
+
+   .. module:: OptiTope
+   :synopsis:  This class implements the epitope selection functionality
     of OptiTope published by Toussaint et al. [1].
     
     This module builds upon Coopr's Pyomo, an embedded algebraic modeling
@@ -17,8 +21,10 @@
     [2] Pyomo - Optimization Modeling in Python. William E. Hart, Carl Laird,
     Jean-Paul Watson and David L. Woodruff. Springer, 2012.
     
-    @author: Benjamin Schubert
+.. moduleauthor:: schubert, szolek, walzer
+
 """
+
 
 from __future__ import division
 
@@ -55,7 +61,6 @@ class OptiTope(object):
 
         _alleles = copy.deepcopy(_results.columns.values.tolist())
 
-        print map(lambda x: x.locus, _alleles)
         #test if allele prob is set, if not set allele prob uniform
         #if only partly set infer missing values (assuming uniformity of missing value)
         prob = []
@@ -66,7 +71,6 @@ class OptiTope(object):
             else:
                 prob.append(a)
 
-        print no_prob
         if len(no_prob) > 0:
             #group by locus
             no_prob_grouped = {}
@@ -76,7 +80,6 @@ class OptiTope(object):
             for a in prob:
                 prob_grouped.setdefault(a.locus, []).append(a)
 
-            print no_prob_grouped, prob_grouped
             for g, v in no_prob_grouped.iteritems():
                 total_loc_a = len(v)
                 if g in prob_grouped:
@@ -213,7 +216,7 @@ class OptiTope(object):
         #variables
         self.instance.y.deactivate()
         self.instance.z.deactivate()
-        
+
     def set_k(self, k):
         """
             sets the number of epitopes to select
@@ -354,7 +357,7 @@ class OptiTope(object):
             @exception EpitopeSelectionException: if the solver raised a problem or the solver is not accessible via the PATH environmental variable.
         """
         if self.__changed:
-            try:
+            #try:
                 self.instance.x.reset()
                 self.instance.y.reset()
                 self.instance.preprocess()
@@ -378,9 +381,9 @@ class OptiTope(object):
 
                 self.__changed = False
                 return self.__result
-            except Exception as e:
-                print e
-                raise Exception("solve",
-                                "An Error has occurred during solving. Please check your settings and if the solver is registered in PATH environment variable.")
+            #except Exception as e:
+            #    print str(e)
+            #    raise Exception("solve",
+            #                    "An Error has occurred during solving. Please check your settings and if the solver is registered in PATH environment variable.")
         else:
             return self.__result

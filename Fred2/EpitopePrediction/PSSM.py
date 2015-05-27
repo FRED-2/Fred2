@@ -1,7 +1,12 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer', 'schubert'
+"""
+.. module:: Base
+   :synopsis: This module contains all classes for PSSM-based epitope prediction.
+.. moduleauthor:: schubert,  walzer
+
+"""
 
 import collections, itertools, warnings,pandas
 import math
@@ -18,8 +23,6 @@ class APSSMEpitopePredictor(AEpitopePrediction):
         Implements predict functionality
 
     """
-    def threshold(self, allele):
-        return 0.0
 
     def predict(self, peptides, alleles=None, **kwargs):
         """

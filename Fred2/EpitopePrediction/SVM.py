@@ -28,9 +28,6 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
         implements default prediction routine for SVM based epitope prediction tools
     """
 
-    def threshold(self, allele):
-        return 0.0
-
     def predict(self, peptides, alleles=None, **kwargs):
 
         if isinstance(peptides, collections.Iterable):
@@ -457,7 +454,7 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
 
     __name = "mhcIImulti"
     __supported_length = frozenset([15])
-    __command = "MHCIILeveraging %s %s %s /abi-projects/etk/software/NicoTope/models  /abi-projects/etk/software/NicoTope/pockets.txt"
+    __command = "MHCIILeveraging %s %s %s ./data/MHCIIMulti/models  /abi-projects/etk/software/NicoTope/pockets.txt"
     __supported_length = frozenset([15])
     __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
                  'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
@@ -579,9 +576,6 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
             res.append(float(l.strip()))
         return res
 
-    def threshold(self, allele):
-        return 0
-
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -611,9 +605,7 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
         for a in allales_string.iterkeys():
 
             #cmd = self.command%(data_file, a, prediction_file, self._modelpath) #modelpath?
-            print self.command%(tmp_file.name, a, tmp_out.name)
             r = subprocess.call(self.command%(tmp_file.name, a, tmp_out.name), shell=True)
-            print "returnvalue ", type(r)
 
             if r == -6:
                 warnings.warn("No model exists for allele %s."%str(allales_string[a]))

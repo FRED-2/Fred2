@@ -15,8 +15,6 @@ from Bio.Alphabet import IUPAC
 from Fred2.Core.Base import MetadataLogger
 
 
-
-
 class Protein(MetadataLogger, Seq):
     """
     Protein corresponding to exactly one transcript.

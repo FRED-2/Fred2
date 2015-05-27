@@ -7,6 +7,7 @@ from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *
 from Fred2.CleavagePrediction.ANN import *
 
+
 class CleavageSitePredictorFactory(object):
     class __metaclass__(type):
         def __init__(cls, name, bases, nmspc):
@@ -27,7 +28,7 @@ class CleavageSitePredictorFactory(object):
             try:
                 return ACleavageSitePrediction.registry[_predictor](*args)
             except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                raise ValueError("Predictor %s is not known. Please verify that such an predictor is "%_predictor +
                                  "supported by FRED2 and inherits ACleavageSitePrediction.")
 
     @staticmethod
@@ -60,7 +61,7 @@ class CleavageFragmentPredictorFactory(object):
             try:
                 return ACleavageFragmentPrediction.registry[_predictor](*args)
             except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                raise ValueError("Predictor %s is not known. Please verify that such an predictor is "%_predictor +
                                  "supported by FRED2 and inherits ACleavageFragmentPrediction.")
 
     @staticmethod

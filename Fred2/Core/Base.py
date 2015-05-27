@@ -122,14 +122,6 @@ class ACleavageSitePrediction(object):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def threshold(self):
-        """
-        parameter specifying the prediction threshold of a cleavage site
-
-        :return: float -- the threshold of a true cleavage site
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def predict(self, _aa_seq,  **kwargs):
@@ -170,15 +162,6 @@ class ACleavageFragmentPrediction(object):
         parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
 
         :return:
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def threshold(self):
-        """
-        parameter specifying the prediction threshold of a cleavage fragment
-
-        :return: float -- the threshold of a true cleavage fragment
         """
         raise NotImplementedError
 
@@ -320,14 +303,6 @@ class ATAPPrediction(object):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def threshold(self):
-        """
-        parameter specifying the prediction threshold of TAP binding
-
-        :return: float -- the threshold of a true TAP binding
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def predict(self, peptides,  **kwargs):

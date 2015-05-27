@@ -4,7 +4,6 @@
 .. moduleauthor:: schubert
 
 """
-__author__ = 'schubert'
 
 import svmlight
 import collections
@@ -17,9 +16,6 @@ from Fred2.Core.Result import TAPPredictionResult
 
 
 class ASVMTAPPrediction(ATAPPrediction, ASVM):
-
-    def threshold(self):
-        return 0.5
 
     def predict(self, peptides,  **kwargs):
         if isinstance(peptides, collections.Iterable):
@@ -99,7 +95,6 @@ class SVMTAP(ASVMTAPPrediction):
             return {p:__encode(p) for p in peptides}
         else:
             return {peptides:__encode(peptides)}
-
 
     def predict(self, peptides,  **kwargs):
        return super(SVMTAP, self).predict(peptides, **kwargs)
