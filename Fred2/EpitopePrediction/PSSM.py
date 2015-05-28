@@ -2,7 +2,7 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Base
+.. module:: EpitopePrediction.PSSM
    :synopsis: This module contains all classes for PSSM-based epitope prediction.
 .. moduleauthor:: schubert,  walzer
 

@@ -2,7 +2,7 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Base
+.. module:: EpitopePrediction.ANN
    :synopsis: This module contains all classes for ANN-based epitope prediction methods.
 .. moduleauthor:: schubert,  walzer
 
