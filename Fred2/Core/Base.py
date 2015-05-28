@@ -206,14 +206,6 @@ class AEpitopePrediction(object):
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def threshold(self, allele):
-        """
-        parameter specifying the prediction threshold of a epitope
-        :param: Allele allele: the Allele object for which the binding threshold should be returned
-        :return: float -- the threshold of a true epitope
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def convert_alleles(self, alleles):
