@@ -1,5 +1,6 @@
 *.pyc
 *.DS_Store
-
 Fred2/doc/build/*
 Fred2/.idea/*
+.idea
+*.pyc

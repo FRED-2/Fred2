@@ -68,7 +68,7 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                 result[allales_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
-                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))
+                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1,{}).get("con", 0)
                     result[allales_string[a]][pep_seqs[p]] = score
                     #print a, score, result
 
@@ -141,7 +141,7 @@ class BIMAS(APSSMEpitopePredictor):
 
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
-        return super(BIMAS, self).predict(peptides, alleles=alleles, **kwargs)
+        return super(BIMAS, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(math.e,x))
 
 
 class Epidemix(APSSMEpitopePredictor):
@@ -240,7 +240,7 @@ class SMM(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+        return super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
 
 
 class SMMPMBEC(APSSMEpitopePredictor):
@@ -279,7 +279,7 @@ class SMMPMBEC(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+        return super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
 
 
 class ARB(APSSMEpitopePredictor):

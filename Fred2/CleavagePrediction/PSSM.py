@@ -120,6 +120,94 @@ class PCM(APSSMCleavageSitePredictor):
         return super(PCM, self).predict(peptides, **kwargs)
 
 
+class ProteoSMMConsecutive(APSSMCleavageSitePredictor):
+    """
+        Implements the ProteaSMM cleavage prediction method
+
+        Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
+        TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
+
+        This model represents the consecutive proteasom
+
+        The matrices are generated not using the preon-dataset since a reacent study has show that including those
+        worsened the results. See
+
+        Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
+        contribution of different prediction programs." Immunogenetics (2014): 1-9.
+
+
+        :input list(Peptide) peptides: list of peptides for which cleave probability prediction should be performed
+    """
+
+    __supported_length = frozenset([10])
+    __name = "proteosmm_c"
+    __cleavage_pos = 6
+    __threshold = 1.03283
+
+    @property
+    def threshold(self):
+        return self.__threshold
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    @property
+    def cleavagePos(self):
+        return self.__cleavage_pos
+
+    @property
+    def name(self):
+        return self.__name
+
+    def predict(self, peptides, **kwargs):
+        return super(ProteoSMMConsecutive, self).predict(peptides, **kwargs)
+
+
+class ProteoSMMImmuno(APSSMCleavageSitePredictor):
+    """
+        Implements the ProteaSMM cleavage prediction method
+
+        Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
+        TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
+
+        This model represents the immuno proteasom
+
+        The matrices are generated not using the preon-dataset since a reacent study has show that including those
+        worsened the results. See
+
+        Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
+        contribution of different prediction programs." Immunogenetics (2014): 1-9.
+
+
+        :input list(Peptide) peptides: list of peptides for which cleave probability prediction should be performed
+    """
+
+    __supported_length = frozenset([10])
+    __name = "proteosmm_i"
+    __cleavage_pos = 6
+    __threshold = 1.23437
+
+    @property
+    def threshold(self):
+        return self.__threshold
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    @property
+    def cleavagePos(self):
+        return self.__cleavage_pos
+
+    @property
+    def name(self):
+        return self.__name
+
+    def predict(self, peptides, **kwargs):
+        return super(ProteoSMMConsecutive, self).predict(peptides, **kwargs)
+
+
 class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
     """
         Abstract base class for PSSM predictions.
