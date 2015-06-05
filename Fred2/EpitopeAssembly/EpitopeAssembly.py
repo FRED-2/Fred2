@@ -1,11 +1,23 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+"""
+.. module:: EpitopeAssembly.EpitopeAssembly
+   :synopsis: This module contains all classes for all other EpitopeAssembly.
+.. moduleauthor:: schubert
+
+"""
 from __future__ import division
 
-import itertools as itr
+import os
+import copy
+import subprocess
 import warnings
+import itertools as itr
 import multiprocessing as mp
+
+
+from tempfile import NamedTemporaryFile
 
 import coopr.environ
 from coopr.pyomo import *
@@ -134,8 +146,9 @@ class EpitopeAssembly(object):
         """
         Solves the Epitope Assembly problem and returns an ordered list of the peptides
 
-        :return: list(Peptide) - An order list of the peptides (based on the string-of-beats ordering)
+        :return: list(Peptide) - An order list of the peptides (based on the string-of-beads ordering)
         """
+
         self.instance.preprocess()
 
         res = self.__solver.solve(self.instance)
@@ -145,20 +158,85 @@ class EpitopeAssembly(object):
 
         return [ self.__seq_to_pep[u] for u in sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
 
+    def approximate(self):
+        """
+        Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
+
+        LKH implementation must be downloaded, compiled, and globally executable.
+
+
+        Source code can be found here:
+        http://www.akira.ruc.dk/~keld/research/LKH/
+        :return: list(Peptide) - An order list of the peptides (based on the sting-of-beads ordering)
+        """
+        #TODO:Add external code to dependencies
+        tmp_conf = NamedTemporaryFile(delete=False)
+        tmp_prob = NamedTemporaryFile(delete=False)
+        tmp_out = NamedTemporaryFile(delete=False)
+
+
+        #write config file:
+        tmp_conf.write("PROBLEM_FILE = %s\nOUTPUT_TOUR_FILE = %s\n"%(tmp_prob.name,tmp_out.name))
+        tmp_conf.close()
+        epis = []
+        #write problem file:
+        tmp_prob.write("NAME: %s\nTYPE: ATSP\nDIMENSION: %i\nEDGE_WEIGHT_TYPE: EXPLICIT\nEDGE_WEIGHT_FORMAT: FULL_MATRIX\nEDGE_WEIGHT_SECTION\n"%(tmp_prob.name,len(self.instance.E_prime)))
+        for i in self.instance.E_prime:
+            epis.append(i)
+            tmp_prob.write("\t".join("99999999" if i == j else str(int(float(self.instance.w_ab[i,j])*1000000)) for j in self.instance.E_prime)+"\n")
+
+        tmp_prob.write("EOF")
+        tmp_prob.close()
+
+        #try:
+        r = subprocess.call("LKH %s"%tmp_conf.name, shell=True)
+        #os.system("LKH %s"%tmp_conf.name,shell=True)
+        #except Exception as e:
+        #    print e
+        #    return []
+
+        #read in result
+        result = []
+        with open(tmp_out.name, "r") as resul_f:
+            is_tour = False
+            for l in resul_f:
+                if is_tour:
+                    if int(l.strip()) == -1:
+                        break
+                    seq = self.__seq_to_pep[epis[int(l.strip())-1]]
+                    if seq != "Dummy":
+                        result.append(seq)
+                elif "TOUR_SECTION" in l:
+                    is_tour = True
+                else:
+                    pass
+
+
+
+
+        tmp_out.close()
+        #print tmp_prob.name
+        #print tmp_out.name
+        os.remove(tmp_conf.name)
+        os.remove(tmp_prob.name)
+        os.remove(tmp_out.name)
+        return result
+
+
 
 ########################################################################################################################
-def _runs_lexmin(a):
+def runs_lexmin(a):
     """
     private used to unpack arguments send to processes
     :param a:
     :return:
     """
-    spacer,cleav,epi,good_cleav,bad_cleav = _spacer_design(*a)
-    return a[1],a[2],cleav,epi,spacer,good_cleav,bad_cleav
+    spacer,cleav,epi,good_cleav,bad_cleav,non_c = spacer_design(*a)
+    return a[0],a[1],cleav,epi,spacer,good_cleav,bad_cleav,non_c
 
 
-def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, weight,
-                    thresh, solver, options=""):
+def spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, weight,
+                    thresh, solver, beta=0, options=""):
     """
         PRIVATE:
         internal spacer design for a pre-defined spacer length between two epitopes
@@ -169,13 +247,41 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         :param str options: solver options
         :return: Tuple of ei, ej, spacer (str), cleavage score, immunogenicity score
     """
+
     if k <= 0:
         seq = ei+ej
-        i = cleav_pos-1
-        return ei,ej,"",sum(cl_pssm(j,seq[i+j]) for j in xrange(cn)), sum(prob*sum(epi_pssms[seq[i+j],j,a.name]
-                                                                    for i in xrange(len(seq)-en)  for j in xrange(en))
+        i = len(ei)-cleav_pos
+        g=len(ei)+k-cleav_pos
+        c1=sum(cl_pssm[j][seq[i+j]] for j in xrange(cn))
+        c2=sum(cl_pssm[j][seq[g+j]] for j in xrange(cn))
+        non_c = sum(cl_pssm[j][seq[k+j]] for k in xrange(len(seq)-(cn-1))
+                                                        for j in xrange(cn)
+                                                            if k != i and k != g)
+
+        imm = sum(prob*sum(max(sum(epi_pssms[j,seq[i+j],a] for j in xrange(en))+epi_pssms.get((-1,"con",a),0)-thresh[a],0)
+                                                                    for i in xrange(len(seq)-en))
                                                                         for a,prob in allele_prob.iteritems())
 
+        return "",(c1+c2)/2, imm,c1,c2,non_c
+
+    def normalize_pssm(p):
+        max_p = -float("inf")
+        min_p = float("inf")
+        norm = {}
+        for i,v in p.iteritems():
+            max_tmp = max(v.values())
+            min_tmp = min(v.values())
+            if max_tmp > max_p:
+                max_p = max_tmp
+            if min_tmp < min_p:
+                min_p = min_tmp
+        for i,v in p.iteritems():
+            for a,score in v.iteritems():
+                norm.setdefault(i,{}).update({a:(score-min_p)/(max_p - min_p)})
+        return norm
+
+
+    cl_pssm_norm = normalize_pssm(cl_pssm)
     alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
     model = ConcreteModel()
     le = len(ei)+len(ej)+k
@@ -199,18 +305,17 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
     model.R = Set(initialize=range(le-(en-1)))
 
     #param
-    model.f = Param(model.C, model.Sigma, initialize=lambda model,i,a: cl_pssm[i,a])
+    model.f = Param(model.C, model.Sigma, initialize=lambda model,i,a: cl_pssm_norm[i][a])
     model.ci = Param(initialize=len(ei)-cleav_pos)
     model.cj = Param(initialize=len(ei)+k-cleav_pos)
-    model.a = Param(initialize=1/(k+3) if weight is None else weight)
     model.p = Param(model.A, initialize=lambda model, m: allele_prob[m])
-
+    model.bi = Param(model.A, initialize=lambda model, m: epi_pssms.get((-1,"con",m),0))
+    model.bc = Param(initialize=cl_pssm_norm.get(-1,{}).get("con",0))
     #epitope part
     model.i = Param(model.EN, model.Sigma,model.A, initialize=lambda model,i,a,m: epi_pssms[i,a,m])
-    model.tau_epi = Param(initialize=10^6,mutable=True)
-    model.tau_cleav = Param(initialize=-float("inf"), mutable=True)
-    model.t_a = Param(model.A, initialize=lambda model, a: thresh.get(a, neg_inf))
-
+    model.tau_epi = Param(initialize=10**6,mutable=True)
+    model.tau_cleav = Param(initialize=-10**6, mutable=True)
+    model.t_a = Param(model.A, initialize=lambda model, a: thresh.get(a, 0))
 
     #Variables
     model.x = Var(model.AUX,domain=Binary)
@@ -218,22 +323,25 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
 
     #objective linear
     model.obj_cleav = Objective(rule=lambda model: 0.5*(sum( model.f[i,a]*model.x[model.ci+i,a] for i in model.C for a in model.S[model.ci+i] )
-                              + sum(model.f[j,a]*model.x[model.cj+j,a] for j in model.C for a in model.S[model.cj+j]))
-                              -model.a*(sum( model.f[i,a]*model.x[model.ci+i+j,a] for j in xrange(1,k+cleav_pos)
-                                            for i in model.C
-                                                for a in model.S[model.ci+i+j]
-                                                    if j != model.cj )),sense=maximize)
+                              + sum(model.f[j,a]*model.x[model.cj+j,a] for j in model.C for a in model.S[model.cj+j])+2*model.bc),sense=maximize)
 
     model.obj_epi = Objective(rule=lambda model: sum(model.y[i,a]*model.p[a] for a in model.A
                                                      for i in model.R), sense=minimize)
 
-    model.max_imm_c = Constraint(model.R,model.A,rule=lambda model, i, m:
-                                            model.y[i,m] >= sum( model.x[i+j,a]*model.i[j,a]
-                                                                for j in model.EN for a in model.S[i+j])-model.t_a[m])
+    #TODO: does not work for linear models with slope != 0
+    model.obj_non_cleav = Objective(rule=lambda model: sum( model.f[j,a]*model.x[j+i,a] for i in xrange(le-(cn-1))
+                                                            for j in model.C
+                                                                for a in model.S[i+j]
+                                                                    if i != model.ci and i != model.cj), sense=minimize)
+
+
 
     #constraints
     model.cons = Constraint(model.L,rule=lambda model, i: sum(model.x[i,a] for a in model.S[i]) == 1)
 
+    model.max_imm_c = Constraint(model.R,model.A,rule=lambda model, i, m:
+                                            model.y[i,m] >= sum( model.x[i+j,a]*model.i[j,a,m]
+                                                                for j in model.EN for a in model.S[i+j])+model.bi[m]-model.t_a[m])
 
     ##neo-epitope constraint
     model.c_epi = Constraint(rule=lambda model:sum(model.y[i,a]*model.p[a] for a in model.A
@@ -241,25 +349,22 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
 
     #cleavage constraint
     model.c_cleavage = Constraint(rule=lambda model: 0.5*(sum( model.f[i,a]*model.x[model.ci+i,a] for i in model.C for a in model.S[model.ci+i] )
-                              + sum(model.f[j,a]*model.x[model.cj+j,a] for j in model.C for a in model.S[model.cj+j]))
-                              -model.a*(sum( model.f[i,a]*model.x[model.ci+i+j,a] for j in xrange(1,k+cleav_pos)
-                                            for i in model.C
-                                                for a in model.S[model.ci+i+j]
-                                                    if j != model.cj )) >= model.tau_cleav)
+                              + sum(model.f[j,a]*model.x[model.cj+j,a] for j in model.C for a in model.S[model.cj+j])+2*model.bc) >= model.tau_cleav)
 
     instance = model.create()
-    solver = SolverFactory(solver, option=options)
+    solver = SolverFactory(solver)
 
     instance.obj_epi.deactivate()
+    instance.obj_non_cleav.deactivate()
     instance.c_epi.deactivate()
     instance.c_cleavage.deactivate()
 
     instance.preprocess()
-    res = solver.solve(instance, warmstart=True)  #, tee=True)
+    res = solver.solve(instance,options=options)#, tee=True)
 
     if (res.solver.status == SolverStatus.ok) and (res.solver.termination_condition == TerminationCondition.optimal):
         instance.load(res)
-
+        #print "In Second objective ",options
         obj_cleav = instance.obj_cleav()
 
         instance.obj_cleav.deactivate()
@@ -267,15 +372,54 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         instance.c_cleavage.activate()
 
         #set bound of now inactive objective
-        getattr(instance, "tau_cleav").set_value(obj_cleav)
+        getattr(instance, "tau_cleav").set_value(weight*obj_cleav)
+        #instance.pprint()
 
+        instance.x.reset()
+        instance.y.reset()
         instance.preprocess()
-        res2 = solver.solve(instance)  #, tee=True)
+        res2 = solver.solve(instance,options=options)#, tee=True)
         if (res2.solver.status == SolverStatus.ok) and (
             res2.solver.termination_condition == TerminationCondition.optimal):
             instance.load(res2)
-            return "".join([a for i in xrange(len(ei), len(ei) + k) for a in instance.S[i] if
-                            instance.x[i, a].value]), obj_cleav, instance.obj_epi()
+
+            if beta:
+                #print "In thrid objective"
+                obj_imm = instance.obj_epi()
+
+                instance.obj_epi.deactivate()
+                instance.obj_non_cleav.activate()
+                instance.c_epi.activate()
+
+                getattr(instance, "tau_epi").set_value((2-beta)*obj_imm)
+                #print "imm",obj_imm,"tau_epi", (2-beta)*obj_imm
+                instance.x.reset()
+                instance.y.reset()
+                instance.preprocess()
+                res3 = solver.solve(instance,options=options)#, tee=True)
+                if (res3.solver.status == SolverStatus.ok) and (res3.solver.termination_condition == TerminationCondition.optimal):
+                    instance.load(res3)
+                    ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a] for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
+                    cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a] for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
+                    imm = float(sum(instance.y[i,a]*instance.p[a] for a in instance.A for i in instance.R))
+                    non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a] for i in xrange(le-(cn-1))
+                                                            for j in instance.C
+                                                                for a in instance.S[i+j]
+                                                                    if i != instance.ci and i != instance.cj))
+
+                    return "".join([a for i in xrange(len(ei), len(ei) + k) for a in instance.S[i] if
+                            instance.x[i, a].value]), float(ci+cj)/2, imm, float(ci),float(cj),non_c
+                else:
+                    raise RuntimeError("Problem could not be solved. Please check your input.")
+            else:
+                ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a] for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
+                cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a] for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
+                non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a] for i in xrange(le-(cn-1))
+                                                            for j in instance.C
+                                                                for a in instance.S[i+j]
+                                                                    if i != instance.ci and i != instance.cj))
+                return "".join([a for i in xrange(len(ei), len(ei) + k) for a in instance.S[i] if
+                            instance.x[i, a].value]), float(ci+cj)/2, instance.obj_epi(),float(ci),float(cj),non_c
         else:
             raise RuntimeError("Problem could not be solved. Please check your input.")
     else:
@@ -307,21 +451,21 @@ class EpitopeAssemblyWithSpacer(object):
         :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
-    def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", weight=0.0, verbosity=0):
+    def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", alpha=0.99,beta=0.99, verbosity=0):
 
         #test input
         if not isinstance(cleav_pred, APSSMCleavageSitePredictor):
             raise ValueError("Second input must be a PSSM-based cleavage site predictor.")
 
-        if not isinstance(epi_pred, APSSMEpitopePredictor):
-            raise ValueError("Third input must be a PSSM-based epitope predictor.")
+        #if not isinstance(epi_pred, APSSMEpitopePredictor):
+        #    raise ValueError("Third input must be a PSSM-based epitope predictor.")
 
         if en not in epi_pred.supportedLength:
             raise ValueError("Specified epitope length of en=%i is not supported by %s"%(en,epi_pred.name))
 
         _alleles = [copy.deepcopy(a) for a in alleles if a.name in epi_pred.supportedAlleles]
 
-        if _alleles:
+        if not _alleles:
             raise ValueError("Specified alleles are not supported by %s"%epi_pred.name)
 
         #infere probability if not already set
@@ -336,7 +480,7 @@ class EpitopeAssemblyWithSpacer(object):
             else:
                 prob.append(a)
 
-        print no_prob
+        #print no_prob
         if len(no_prob) > 0:
             #group by locus
             no_prob_grouped = {}
@@ -346,7 +490,7 @@ class EpitopeAssemblyWithSpacer(object):
             for a in prob:
                 prob_grouped.setdefault(a.locus, []).append(a)
 
-            print no_prob_grouped, prob_grouped
+            #print no_prob_grouped, prob_grouped
             for g, v in no_prob_grouped.iteritems():
                 total_loc_a = len(v)
                 if g in prob_grouped:
@@ -375,11 +519,12 @@ class EpitopeAssemblyWithSpacer(object):
         self.__epi_pred = epi_pred
         self.__clev_pred = cleav_pred
         self.__en = en
-        self.__weight = weight
+        self.__alpha = alpha
+        self.__beta = beta
         self.__peptides = peptides
         #model construction for spacer design
 
-    def solve(self, threads=None, options=""):
+    def solve(self, threads=None, options="",start=0):
         """
         :param int threads: Number of threads used for spacer design.
                 Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
@@ -404,15 +549,16 @@ class EpitopeAssemblyWithSpacer(object):
         allele_prob = {}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
-            pssm = __load_model("Fred2.Data.EpitopePSSMMatrices", self.__epi_pred.name, "%s_%i"%(a.name, en))
+            pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
+                                self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
             for j,v in pssm.iteritems():
                 for aa,score in  v.iteritems():
                     epi_pssms[j,aa,a.name] = score
 
-        #run spacer designs in parallel using multiprocessing
-        res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
-                                       self.__weight, self.__thresh, self.__solver, options)
-                                      for i in xrange(0, self.__k+1)
+        print "run spacer designs in parallel using multiprocessing"
+        res = pool.map(runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
+                                       self.__alpha, self.__thresh, self.__solver, self.__beta, options)
+                                      for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
         pool.close()
         pool.join()
@@ -421,14 +567,16 @@ class EpitopeAssemblyWithSpacer(object):
         opt_spacer = {}
         adj_matrix = {}
         inf = float("inf")
-        #find best scoring spacer for each epitope pair
-        for ei, ej, score, epi, spacer in res:
-            if adj_matrix.get((ei, ej), inf) >= -score:
-                adj_matrix[(ei, ej)] = -score
-                opt_spacer[(ei, ej)] = spacer
+        #print res
+        print "find best scoring spacer for each epitope pair"
+        for ei, ej, score, epi, spacer, c1, c2, non_c in res:
+                #print ei,spacer,ej,min(c1,c2),c1,c2
+                if adj_matrix.get((ei, ej), inf) > -min(c1,c2):
+                    adj_matrix[(ei, ej)] = -min(c1,c2)
+                    opt_spacer[(ei, ej)] = spacer
 
         self.spacer = opt_spacer
-        #solve assembly with generated adjacency matrix
+        print "solve assembly with generated adjacency matrix"
         assembler = EpitopeAssembly(self.__peptides, self.__clev_pred, solver=self.__solver, matrix=adj_matrix)
         res = assembler.solve()
 
@@ -439,5 +587,72 @@ class EpitopeAssemblyWithSpacer(object):
             ej = str(res[i+1])
             if not i:
                 sob.append(ei)
-        sob.append(opt_spacer[ei,ej])
-        sob.append(ej)
+            sob.append(opt_spacer[ei,ej])
+            sob.append(ej)
+        return sob
+
+    def approximate(self, start=0, threads=1,options=""):
+        """
+        :param int threads: Number of threads used for spacer design.
+                Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
+        :param str options: Solver specific options (threads for example)
+        :return: Sting-of-beats with spacer
+        """
+        def __load_model(data, name, length):
+            model = "%s_%s"%(name, str(length))
+            return getattr( __import__(data, fromlist=[model]), model)
+
+
+        threads = mp.cpu_count() if threads is None else threads
+        pool = mp.Pool(threads)
+
+
+        #prepare parameters
+        cn = min(self.__clev_pred.supportedLength)
+        cl_pssm = __load_model("Fred2.Data.CleaveagePSSMMatrices", self.__clev_pred.name,cn)
+        cleav_pos = self.__clev_pred.cleavagePos
+        en = self.__en
+        epi_pssms = {}
+        allele_prob = {}
+        for a in self.__alleles:
+            allele_prob[a.name] = a.prob
+            pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
+                                self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+            for j,v in pssm.iteritems():
+                for aa,score in  v.iteritems():
+                    epi_pssms[j,aa,a.name] = score
+
+        print "run spacer designs in parallel using multiprocessing"
+        res = pool.map(runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
+                                       self.__alpha, self.__thresh, self.__solver, options)
+                                      for i in xrange(start, self.__k+1)
+                                      for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
+        pool.close()
+        pool.join()
+
+
+        opt_spacer = {}
+        adj_matrix = {}
+        inf = float("inf")
+        #print res
+        print "find best scoring spacer for each epitope pair"
+        for ei, ej, score, epi, spacer, c1, c2 in res:
+                if adj_matrix.get((ei, ej), inf) > -min(c1,c2):
+                    adj_matrix[(ei, ej)] = -min(c1,c2)
+                    opt_spacer[(ei, ej)] = spacer
+
+        self.spacer = opt_spacer
+        print "solve assembly with generated adjacency matrix"
+        assembler = EpitopeAssembly(self.__peptides, self.__clev_pred, solver=self.__solver, matrix=adj_matrix)
+        res = assembler.approximate()
+
+        #generate output
+        sob = []
+        for i in xrange(len(res)-1):
+            ei = str(res[i])
+            ej = str(res[i+1])
+            if not i:
+                sob.append(ei)
+            sob.append(opt_spacer[ei,ej])
+            sob.append(ej)
+        return sob
