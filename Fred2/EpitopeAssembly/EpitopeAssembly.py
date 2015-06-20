@@ -328,11 +328,10 @@ def spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
     model.obj_epi = Objective(rule=lambda model: sum(model.y[i,a]*model.p[a] for a in model.A
                                                      for i in model.R), sense=minimize)
 
-    #TODO: does not work for linear models with slope != 0
     model.obj_non_cleav = Objective(rule=lambda model: sum( model.f[j,a]*model.x[j+i,a] for i in xrange(le-(cn-1))
                                                             for j in model.C
                                                                 for a in model.S[i+j]
-                                                                    if i != model.ci and i != model.cj), sense=minimize)
+                                                                    if i != model.ci and i != model.cj)+(le-(cn-1)-2)*model.bc, sense=minimize)
 
 
 
@@ -384,6 +383,7 @@ def spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
             instance.load(res2)
 
             if beta:
+
                 #print "In thrid objective"
                 obj_imm = instance.obj_epi()
 
@@ -568,7 +568,7 @@ class EpitopeAssemblyWithSpacer(object):
         adj_matrix = {}
         inf = float("inf")
         #print res
-        print "find best scoring spacer for each epitope pair"
+        #print "find best scoring spacer for each epitope pair"
         for ei, ej, score, epi, spacer, c1, c2, non_c in res:
                 #print ei,spacer,ej,min(c1,c2),c1,c2
                 if adj_matrix.get((ei, ej), inf) > -min(c1,c2):
@@ -576,7 +576,7 @@ class EpitopeAssemblyWithSpacer(object):
                     opt_spacer[(ei, ej)] = spacer
 
         self.spacer = opt_spacer
-        print "solve assembly with generated adjacency matrix"
+        #print "solve assembly with generated adjacency matrix"
         assembler = EpitopeAssembly(self.__peptides, self.__clev_pred, solver=self.__solver, matrix=adj_matrix)
         res = assembler.solve()
 
@@ -616,15 +616,21 @@ class EpitopeAssemblyWithSpacer(object):
         allele_prob = {}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
-            pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
-                                self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            for j,v in pssm.iteritems():
-                for aa,score in  v.iteritems():
-                    epi_pssms[j,aa,a.name] = score
+            try:
+                pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
+                                    self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+                for j,v in pssm.iteritems():
+                    for aa,score in  v.iteritems():
+                        epi_pssms[j,aa,a.name] = score
+            except AttributeError:
+                continue
 
-        print "run spacer designs in parallel using multiprocessing"
+        if not epi_pssms:
+            raise ValueError("Selected alleles with epitope length are not supported by the prediction method.")
+
+        #print "run spacer designs in parallel using multiprocessing"
         res = pool.map(runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
-                                       self.__alpha, self.__thresh, self.__solver, options)
+                                       self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
         pool.close()
@@ -635,14 +641,14 @@ class EpitopeAssemblyWithSpacer(object):
         adj_matrix = {}
         inf = float("inf")
         #print res
-        print "find best scoring spacer for each epitope pair"
-        for ei, ej, score, epi, spacer, c1, c2 in res:
+        #print "find best scoring spacer for each epitope pair"
+        for ei, ej, score, epi, spacer, c1, c2, non_c in res:
                 if adj_matrix.get((ei, ej), inf) > -min(c1,c2):
                     adj_matrix[(ei, ej)] = -min(c1,c2)
                     opt_spacer[(ei, ej)] = spacer
 
         self.spacer = opt_spacer
-        print "solve assembly with generated adjacency matrix"
+        #print "solve assembly with generated adjacency matrix"
         assembler = EpitopeAssembly(self.__peptides, self.__clev_pred, solver=self.__solver, matrix=adj_matrix)
         res = assembler.approximate()
 
