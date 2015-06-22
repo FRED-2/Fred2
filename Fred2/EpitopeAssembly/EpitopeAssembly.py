@@ -24,6 +24,7 @@ from coopr.pyomo import *
 from coopr.opt import SolverFactory,SolverStatus, TerminationCondition
 
 from Fred2.Core.Base import ACleavageSitePrediction
+from Fred2.Core.Protein import Protein
 from Fred2.Core.Peptide import Peptide
 from Fred2.CleavagePrediction.PSSM import APSSMCleavageSitePredictor
 from Fred2.EpitopePrediction.PSSM import APSSMEpitopePredictor
@@ -615,14 +616,16 @@ class EpitopeAssemblyWithSpacer(object):
         epi_pssms = {}
         allele_prob = {}
         for a in self.__alleles:
-            allele_prob[a.name] = a.prob
+
             try:
                 pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
                                     self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+                allele_prob[a.name] = a.prob
                 for j,v in pssm.iteritems():
                     for aa,score in  v.iteritems():
                         epi_pssms[j,aa,a.name] = score
             except AttributeError:
+                #del self.__thresh[a.name]
                 continue
 
         if not epi_pssms:
@@ -658,7 +661,7 @@ class EpitopeAssemblyWithSpacer(object):
             ei = str(res[i])
             ej = str(res[i+1])
             if not i:
-                sob.append(ei)
-            sob.append(opt_spacer[ei,ej])
-            sob.append(ej)
+                sob.append(Peptide(ei))
+            sob.append(Peptide(opt_spacer[ei,ej]))
+            sob.append(Peptide(ej))
         return sob
