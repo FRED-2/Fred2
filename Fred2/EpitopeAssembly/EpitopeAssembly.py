@@ -226,17 +226,17 @@ class EpitopeAssembly(object):
 
 
 ########################################################################################################################
-def runs_lexmin(a):
+def _runs_lexmin(a):
     """
     private used to unpack arguments send to processes
     :param a:
     :return:
     """
-    spacer,cleav,epi,good_cleav,bad_cleav,non_c = spacer_design(*a)
+    spacer,cleav,epi,good_cleav,bad_cleav,non_c = _spacer_design(*a)
     return a[0],a[1],cleav,epi,spacer,good_cleav,bad_cleav,non_c
 
 
-def spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, weight,
+def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, weight,
                     thresh, solver, beta=0, options=""):
     """
         PRIVATE:
@@ -431,7 +431,7 @@ class EpitopeAssemblyWithSpacer(object):
     """
 
         Implements the epitope assembly approach proposed by Toussaint et al.
-        using proteasomal cleaveage site prediction and formulating the problem as
+        using proteasomal cleavage site prediction and formulating the problem as
         TSP.
 
         It also extends it by optimal spacer design.
@@ -515,7 +515,7 @@ class EpitopeAssemblyWithSpacer(object):
         self.__changed = True
         self.__k = k
         self.__result = None
-        self.__thresh = {} if threshold is None else threshold
+        self.__thresh = {a.name:0 for a in alleles} if threshold is None else threshold
         self.__alleles = _alleles
         self.__epi_pred = epi_pred
         self.__clev_pred = cleav_pred
@@ -527,6 +527,10 @@ class EpitopeAssemblyWithSpacer(object):
 
     def solve(self, threads=None, options="",start=0):
         """
+        solve the epitope assembly problem with spacers optimally using integer linear programming.
+
+        Cations: this can take quite long and should not be done for more and 30 epitopes max!
+
         :param int threads: Number of threads used for spacer design.
                 Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
         :param str options: Solver specific options (threads for example)
@@ -557,7 +561,7 @@ class EpitopeAssemblyWithSpacer(object):
                     epi_pssms[j,aa,a.name] = score
 
         print "run spacer designs in parallel using multiprocessing"
-        res = pool.map(runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
+        res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                        self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
@@ -587,13 +591,21 @@ class EpitopeAssemblyWithSpacer(object):
             ei = str(res[i])
             ej = str(res[i+1])
             if not i:
-                sob.append(ei)
-            sob.append(opt_spacer[ei,ej])
-            sob.append(ej)
+                sob.append(Peptide(ei))
+            sob.append(Peptide(opt_spacer[ei,ej]))
+            sob.append(Peptide(ej))
         return sob
 
     def approximate(self, start=0, threads=1,options=""):
         """
+        Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
+
+        LKH implementation must be downloaded, compiled, and globally executable.
+
+        Source code can be found here:
+        http://www.akira.ruc.dk/~keld/research/LKH/
+
+        :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
                 Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
         :param str options: Solver specific options (threads for example)
@@ -632,7 +644,7 @@ class EpitopeAssemblyWithSpacer(object):
             raise ValueError("Selected alleles with epitope length are not supported by the prediction method.")
 
         #print "run spacer designs in parallel using multiprocessing"
-        res = pool.map(runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
+        res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                        self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
