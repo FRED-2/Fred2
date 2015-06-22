@@ -166,10 +166,10 @@ arising neo-epitopes is reduced. """)
     svbws = solver.approximate(threads=threads,options="preprocessing_presolve=n,threads=1")
 
     print
-    print "Resulting String-of-Beads: ","-".join(svbws)
+    print "Resulting String-of-Beads: ","-".join(map(str,svbws))
     print
     with open(args.output, "w") as f:
-        f.write("-".join(svbws))
+        f.write("-".join(map(str,svbws)))
 
 if __name__ == "__main__":
     main()
