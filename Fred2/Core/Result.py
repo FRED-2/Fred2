@@ -21,6 +21,7 @@ class Result(DataFrame):
         calls in pandas
     """
 
+
 class EpitopePredictionResult(Result):
     """
         A Result object is a DataFrame with with multi-indexing, where column Id are the prediction model (i.e HLA allele
@@ -29,6 +30,29 @@ class EpitopePredictionResult(Result):
 
         Epitope prediction result
     """
+
+    @staticmethod
+    def merge_result(self, _epi_pred_result):
+        """
+        Takes a epitope result object and merges the two and returns the merge
+        result object
+
+        :param: (EpitopePredictionResult) _epi_pred_result: the result object to be merged
+        :return: EpitopePredictionResult - the merged EpitopePredictionResult object
+        :raise: ValueError - if _epi_pred_result is not of type EpitopePredictionResult
+        """
+        if not isinstance(_epi_pred_result, EpitopePredictionResult):
+            raise ValueError("Input is not of type EpitopePredictionResult.")
+
+        df1a, df2a = self.align(_epi_pred_result)
+        return EpitopePredictionResult(df1a+df2a)
+
+    @staticmethod
+    def filter_result(self, _filter_criteria):
+        """
+        Takes a list triples (Prediction_Method,Threshold,Sign) where Prediction_Method is the prediction methods
+        name to filter for, Threshold the value an epitope as to exceed/
+        """
 
 class CleavageSitePredictionResult(Result):
     """
