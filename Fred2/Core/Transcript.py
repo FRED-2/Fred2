@@ -2,12 +2,11 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Transcript
+.. module:: Core.Transcript
    :synopsis: Contains the Transcript Class.
-.. moduleauthor:: brachvogel, szolek, walzer
+.. moduleauthor:: brachvogel, schubert, walzer
 
 """
-__author__ = 'brachvogel', 'szolek', 'walzer'
 
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_rna

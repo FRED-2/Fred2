@@ -3,7 +3,7 @@
 # as part of this package.
 """
 .. module:: EpitopeAssembly.EpitopeAssembly
-   :synopsis: This module contains all classes for all other EpitopeAssembly.
+   :synopsis: This module contains all classes for EpitopeAssembly.
 .. moduleauthor:: schubert
 
 """
@@ -146,6 +146,10 @@ class EpitopeAssembly(object):
         """
         Solves the Epitope Assembly problem and returns an ordered list of the peptides
 
+        .. note::
+
+            This can take quite long and should not be done for more and 30 epitopes max!
+
         :return: list(Peptide) - An order list of the peptides (based on the string-of-beads ordering)
         """
 
@@ -162,11 +166,12 @@ class EpitopeAssembly(object):
         """
         Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
 
-        LKH implementation must be downloaded, compiled, and globally executable.
+        .. note::
 
+            LKH implementation must be downloaded, compiled, and globally executable.
+            Source code can be found here:
+            http://www.akira.ruc.dk/~keld/research/LKH/
 
-        Source code can be found here:
-        http://www.akira.ruc.dk/~keld/research/LKH/
         :return: list(Peptide) - An order list of the peptides (based on the sting-of-beads ordering)
         """
         #TODO:Add external code to dependencies
@@ -229,21 +234,30 @@ def _runs_lexmin(a):
     """
     private used to unpack arguments send to processes
     :param a:
-    :return:
+    :return: ei,ej,cleavage_score,imm_score,c1_score,c2_score,non-junction_score
     """
     spacer,cleav,epi,good_cleav,bad_cleav,non_c = _spacer_design(*a)
     return a[0],a[1],cleav,epi,spacer,good_cleav,bad_cleav,non_c
 
 
-def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, weight,
+def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, alpha,
                     thresh, solver, beta=0, options=""):
     """
         PRIVATE:
         internal spacer design for a pre-defined spacer length between two epitopes
 
-        :param str ei: Start epitope
-        :param str ej: End epitope
-        :param int k: Length of spacer
+        :param str ei: start epitope
+        :param str ej: end epitope
+        :param int k: length of spacer
+        :param int en: epitope length
+        :param int cn: cleavage-site string length
+        :param dict(int:dict(string:float)) cl_pssm: a cleavage site prediction PSSM as dict-of-dicts
+        :param dict(int:dict(string:float)) epi_pssm: a epitope prediction PSSM as dict-of-dicts
+        :param int cleav_pos: integer specifying at which AA within the epitope of length cn the cleave is predicted
+        :param dict(string:float) allele_prob: a dict of HLA alleles as string (i.e. A*02:01) and probabilities [0,1]
+        :param float alpha: specifies the first-order influence on the objectives [0,1]
+        :param float thresh: specifies at which score a peptide is considered as epitope
+        :param string solver: string specifying which ILP solver should be used
         :param str options: solver options
         :return: Tuple of ei, ej, spacer (str), cleavage score, immunogenicity score
     """
@@ -371,7 +385,7 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         instance.c_cleavage.activate()
 
         #set bound of now inactive objective
-        getattr(instance, "tau_cleav").set_value(weight*obj_cleav)
+        getattr(instance, "tau_cleav").set_value(alpha*obj_cleav)
         #instance.pprint()
 
         instance.x.reset()
@@ -444,10 +458,12 @@ class EpitopeAssemblyWithSpacer(object):
         :param List(Allele) alleles: A list of alleles for which predictions should be made
         :param int k: The maximal length of a spacer
         :param int en: Length of epitopes
-        :param str solver: specifies the solver to use (mused by callable by coopr)
-        :param float weight: specifies how strong unwanted cleavage sites should be punished [0,1],
-                             where 0 means they will be ignored, and 1 the sum of all unwanted cleave sites is
-                             subtracted from the cleave site between two epitopes
+        :param dict(str:float) threhsold: a dictionary specifying the epitope prediction threshold for each allele
+        :param str solver: specifies the solver to use (must be callable by coopr)
+        :param float alpha: specifies how how much junction-cleavage score can be sacrificed /
+                            to gain lower neo-immunogenicity
+        :param float beta: specifies how how much noe-immunogenicity score can be sacrificed /
+                            to gain lower non-junction cleavage score
         :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
@@ -528,12 +544,16 @@ class EpitopeAssemblyWithSpacer(object):
         """
         solve the epitope assembly problem with spacers optimally using integer linear programming.
 
-        Cations: this can take quite long and should not be done for more and 30 epitopes max!
+        .. note::
 
+            This can take quite long and should not be done for more and 30 epitopes max!
+            Also, one has to disable pre-solving steps in order to use this model.
+
+        :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
-                Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
+                Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
         :param str options: Solver specific options (threads for example)
-        :return: Sting-of-beats with spacer
+        :return: list(Peptide) -- a list of ordered peptides
         """
         def __load_model(data, name, length):
             model = "%s_%s"%(name, str(length))
@@ -606,9 +626,9 @@ class EpitopeAssemblyWithSpacer(object):
 
         :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
-                Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
+                Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
         :param str options: Solver specific options (threads for example)
-        :return: Sting-of-beats with spacer
+        :return: list(Peptide) -- a list of ordered peptides
         """
         def __load_model(data, name, length):
             model = "%s_%s"%(name, str(length))

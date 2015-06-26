@@ -1,8 +1,11 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer'
-# Taken from https://github.com/mwalzer/pyBioConveniences/UniProtDB.py
+"""
+.. module:: IO.niProtAdapter
+   :synopsis: DB-Adapter class for UniProt
+.. moduleauthor:: walzer
+"""
 
 import warnings
 import bisect

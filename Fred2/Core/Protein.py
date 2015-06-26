@@ -2,9 +2,9 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Protein
+.. module:: Core.Protein
    :synopsis: Contains the Protein Class.
-.. moduleauthor:: brachvogel
+.. moduleauthor:: schubert, brachvogel
 
 """
 __author__ = 'brachvogel'

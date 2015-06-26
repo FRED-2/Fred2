@@ -9,7 +9,6 @@
 """
 
 
-import collections
 import itertools
 import warnings
 import pandas
@@ -21,6 +20,7 @@ import math
 from collections import defaultdict
 
 from Fred2.Core.Allele import Allele
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction, AExternal
 from tempfile import NamedTemporaryFile
@@ -35,10 +35,12 @@ class ANetMHC(AEpitopePrediction, AExternal):
 
     def predict(self, peptides, alleles=None, **kwargs):
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide)  for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
@@ -99,6 +101,9 @@ class ANetMHC(AEpitopePrediction, AExternal):
             os.remove(tmp_file.name)
             tmp_out.close()
             os.remove(tmp_out.name)
+
+        if not result:
+            raise ValueError("No predictions could be made for given input. Check your epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])

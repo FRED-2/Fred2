@@ -2,12 +2,11 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Base
+.. module:: Core.Base
    :synopsis: This module contains base classes for all other modules.
 .. moduleauthor:: schubert, szolek, walzer
 
 """
-__author__ = 'szolek', 'walzer'
 
 
 import abc

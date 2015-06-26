@@ -3,7 +3,8 @@
 # as part of this package.
 """
 .. module:: Base
-   :synopsis: This module contains  classes for mosaic vaccine design.
+   :synopsis: This module contains classes for mosaic vaccine design. This is highly experimental
+              and not ready for production
 .. moduleauthor:: schubert
 
 """
@@ -25,7 +26,7 @@ class MosaicVaccine(object):
     Implements a mosaic vaccine. The model is based
     on the Orienteering Problem based on this formulation
     http://arxiv.org/pdf/1402.1896.pdf
-    couldnt find a better one
+    couldn't find a better one
     maybe this one here:
     http://users.iems.northwestern.edu/~iravani/Orienteering_IIE.pdf
     or

@@ -1,7 +1,13 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert'
+"""
+.. module:: CleavagePrediction
+   :synopsis: Factory classes for cleavage site and fragment prediction.
+              This is the entry point to all cleavage prediction methods.
+.. moduleauthor:: schubert
+
+"""
 
 from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *

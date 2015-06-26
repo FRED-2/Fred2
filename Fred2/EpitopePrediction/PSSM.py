@@ -4,14 +4,17 @@
 """
 .. module:: EpitopePrediction.PSSM
    :synopsis: This module contains all classes for PSSM-based epitope prediction.
-.. moduleauthor:: schubert,  walzer
+.. moduleauthor:: schubert
 
 """
 
-import collections, itertools, warnings,pandas
+import itertools
+import warnings
+import pandas
 import math
 
 from Fred2.Core.Allele import Allele
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction
 
@@ -36,15 +39,14 @@ class APSSMEpitopePredictor(AEpitopePrediction):
         """
         def __load_allele_model(allele,length):
             allele_model = "%s_%s_%i"%(self.name, allele, length)
-
-            #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.EpitopePSSMMatrices", fromlist=[allele_model]), allele_model)
 
-
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
@@ -74,6 +76,10 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                     score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1,{}).get("con", 0)
                     result[allales_string[a]][pep_seqs[p]] = score
                     #print a, score, result
+
+        if not result:
+            raise ValueError("No predictions could be made for given input. Check your \
+            epitope length and HLA allele combination.")
 
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],

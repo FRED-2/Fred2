@@ -1,16 +1,17 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
 """
-.. module:: TAPPrediction.SVM
-   :synopsis: This module contains all SVM-based TAP prediction tools
+.. module:: TAPPrediction.PSSM
+   :synopsis: This module contains all PSSM-based TAP prediction tools
 .. moduleauthor:: schubert
 
 """
-__author__ = 'schubert'
 
-import collections
 import itertools
-import os
 import warnings
 
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Base import ATAPPrediction
 from Fred2.Core.Result import TAPPredictionResult
 
@@ -21,18 +22,15 @@ class APSSMTAPPrediction(ATAPPrediction):
 
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
-
-            #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.TAPPSSMMatrices.py", fromlist=[model]), model)
 
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
-
-
-        #group peptides by length and
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         result = {self.name:{}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -44,9 +42,11 @@ class APSSMTAPPrediction(ATAPPrediction):
 
             result = {self.name:{}}
             for p in peps:
-                score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))
+                score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))+pssm.get(-1,{}).get("con", 0)
                 result[self.name][pep_seqs[p]] = score
 
+        if not result:
+            raise ValueError("No predictions could be made for given input.")
         df_result = TAPPredictionResult.from_dict(result)
 
         return df_result

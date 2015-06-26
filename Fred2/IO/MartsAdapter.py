@@ -1,7 +1,11 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer', 'schubert'
+"""
+.. module:: IO.MartsAdapter
+   :synopsis: BDB-Adapter for BioMart
+.. moduleauthor:: walzer, schubert
+"""
 
 import csv
 import urllib2

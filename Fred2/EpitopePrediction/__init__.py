@@ -1,12 +1,19 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert'
+"""
+.. module:: EpitopePrediction
+   :synopsis: Factory classes for cleavage site and fragment prediction.
+              This is the entry point to all cleavage prediction methods.
+.. moduleauthor:: schubert
+
+"""
 
 from Fred2.Core.Base import AEpitopePrediction
 from Fred2.EpitopePrediction.ANN import *
 from Fred2.EpitopePrediction.PSSM import *
 from Fred2.EpitopePrediction.SVM import *
+
 
 class EpitopePredictorFactory(object):
     class __metaclass__(type):

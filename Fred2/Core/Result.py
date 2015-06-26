@@ -2,7 +2,7 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Result
+.. module:: Core.Result
    :synopsis: Contains relevant classes describing results of predictions.
 .. moduleauthor:: schubert,
 

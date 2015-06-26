@@ -1,4 +1,11 @@
-
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
+"""
+.. module:: TAPPRediction
+   :synopsis: Base class for TAP prediction methods
+.. moduleauthor:: schubert
+"""
 from Fred2.Core.Base import ATAPPrediction
 from Fred2.TAPPrediction.SVM import *
 from Fred2.TAPPrediction.PSSM import *

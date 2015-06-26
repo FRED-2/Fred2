@@ -1,7 +1,12 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert'
+"""
+.. module:: CleavagePrediction.PSSM
+   :synopsis: PSSM-based cleavage prediction methods.
+.. moduleauthor:: schubert
+
+"""
 
 import collections
 import itertools
@@ -41,14 +46,12 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[model]), model)
 
-        if isinstance(aa_seq, collections.Iterable):
+        if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
+            pep_seqs = {str(aa_seq):aa_seq}
+        else:
             if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in aa_seq):
                 raise ValueError("Input is not of type Protein or Peptide")
             pep_seqs = {str(p):p for p in aa_seq}
-        else:
-            if (not isinstance(aa_seq, Peptide)) or (not isinstance(aa_seq, Protein)):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(aa_seq):aa_seq}
 
 
         length = min(self.supportedLength) if length is None else length
@@ -84,6 +87,8 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
                     score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-(length-1):(i+1)]))+pssm.get(-1,{}).get("con",0)
                     result[self.name][(seq_id, i-diff)] = score
 
+        if not result:
+            raise ValueError("No predictions could be made for the given input.")
         df_result = CleavageSitePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
                                                         names=['ID','Pos'])
@@ -237,14 +242,14 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         """
         def __load_model(length):
             allele_model = "%%s_%i"%(self.name, length)
-
-            #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[allele_model]), allele_model)
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         result = {self.name:{}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -261,10 +266,12 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
                 raise KeyError("No model found for %s with length %i"%(self.name, length))
 
             for p in peps:
-                score = sum(pssm[i][aa] for i,aa in enumerate(p))
+                score = sum(pssm[i][aa] for i,aa in enumerate(p))+pssm.get(-1,{}).get("con",0)
                 pep = pep_seqs[p][self.trailingN:-self.tralingC]
                 result[self.name][pep] = score
 
+        if not result:
+            raise ValueError("No predictions could be made for the given input.")
         df_result = CleavageFragmentPredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])
@@ -309,15 +316,16 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
     def predict(self, peptides,  **kwargs):
         def __load_model(allele):
             allele_model = "%s_%i"%(self.name, length)
-
-            #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[allele_model]), allele_model)
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
+        result = {self.name:{}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
@@ -331,12 +339,14 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
             except ImportError:
                 raise KeyError("No model found for %s with length %i"%(self.name, length))
 
-            result = {self.name:{}}
+
             for p in peps:
                 score = pssm[0][p[0]]+pssm[1][p[1]] + sum(pssm[2][aa] for aa in p[2:-2])\
                         + pssm[3][p[-2]] + pssm[4][p[-1]]
                 pep = pep_seqs[p][self.trailingN: -self.tralingC]
                 result[self.name][pep] = score
 
+        if not result:
+            raise ValueError("No predictions could be made for the given input.")
         df_result = CleavageFragmentPredictionResult.from_dict(result)
         return df_result

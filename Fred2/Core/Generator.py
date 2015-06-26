@@ -2,7 +2,7 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Generator
+.. module:: Core.Generator
    :synopsis: Contains functions to transform variants to transcripts and 
               proteins to peptides. Transition of transcripts to proteins
               is done via :meth:`~Fred2.Core.Transcript.translate`
@@ -14,6 +14,7 @@ import warnings
 import collections
 
 from Fred2.Core.Base import COMPLEMENT
+from Fred2.Core.Protein import Protein
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import VariationType
@@ -125,13 +126,13 @@ def _check_for_problematic_variants(vars):
                                       v.genomePos)
     for v in reversed(v_tmp):
         if v.genomePos <= current_range[1]:
-            print "crash",current_range, v
+            #print "crash",current_range, v
             return False
         else:
             current_range = (v.genomePos, v.genomePos
                                       +len(v.ref)-1 if v.type in [VariationType.FSDEL, VariationType.DEL] else
                                       v.genomePos)
-            print "new block",v, current_range
+            #print "new block",v, current_range
     return True
 
 
@@ -467,7 +468,7 @@ def generate_peptides_from_protein(proteins, window_size):
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
 
-    :param Protein protein: list of proteins from which a list of unique
+    :param Protein protein: (list of) protein(s) from which a list of unique
                             peptides should be generated
     :param int window_size: size of peptide fragments
     """
@@ -526,8 +527,11 @@ def generate_peptides_from_protein(proteins, window_size):
 
     final_peptides = {} # sequence : peptide-instance
 
-    if not isinstance(proteins, collections.Iterable):
+    if  isinstance(proteins, Protein):
         proteins = [proteins]
+
+    if any(not isinstance(p, Protein) for p in proteins):
+        raise ValueError("Input does contain non protein objects.")
 
     for prot in proteins:
         # generate all peptide sequences per protein:

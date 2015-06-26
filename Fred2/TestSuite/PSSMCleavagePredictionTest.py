@@ -14,7 +14,7 @@ class PSSMCleavagePredictonTestCase(unittest.TestCase):
 
     def test_peptide_cleavage_prediction(self):
         pred = CleavageSitePredictorFactory("PCM")
-        result = pred.predict(self.seqs, length=6)
+        result = pred.predict(self.seqs[0], length=6)
         print result
         rs= result.xs((slice(None),pred.cleavagePos-1))
         print "score ", rs.loc["seq_0","pcm"]
@@ -28,3 +28,6 @@ class PSSMCleavagePredictonTestCase(unittest.TestCase):
         pred = CleavageFragmentPredictorFactory("PSSMGinodi")
         result = pred.predict(self.fragments)
         print result
+
+if __name__ == '__main__':
+    unittest.main()

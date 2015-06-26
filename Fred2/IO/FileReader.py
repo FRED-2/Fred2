@@ -4,10 +4,10 @@
 """
 .. module:: Reader
    :synopsis: Module handles reading of files. line reading, FASTA reading, annovar reading
-.. moduleauthor:: 
-    brachvogel, schubert
+.. moduleauthor:: brachvogel, schubert
 
 """
+
 import warnings
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
@@ -70,7 +70,6 @@ def read_fasta(*argv, **kwargs):
                 # generate element:
                 try:
                     collect[seq.upper()] = _id.split("|")[kwargs["id_position"]]
-		    print collect[seq.upper()]
                 except KeyError:
                     collect[seq.upper()] = _id
 

@@ -1,3 +1,6 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
 """
 .. module:: TAPPrediction.SVM
    :synopsis: This module contains all SVM-based TAP prediction tools
@@ -11,6 +14,7 @@ import itertools
 import os
 import warnings
 
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Base import ATAPPrediction, ASVM
 from Fred2.Core.Result import TAPPredictionResult
 
@@ -18,11 +22,13 @@ from Fred2.Core.Result import TAPPredictionResult
 class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
     def predict(self, peptides,  **kwargs):
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
-            pep_seqs = {str(peptides):peptides}
 
+        if isinstance(peptides, Peptide):
+            pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         #group peptides by length and
 
@@ -45,6 +51,8 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
             for pep, score in itertools.izip(encoding.keys(), pred):
                     result[self.name][pep_seqs[pep]] = score
 
+        if not result:
+            raise ValueError("No predictions could be made for given input.")
         df_result = TAPPredictionResult.from_dict(result)
 
         return df_result
