@@ -14,7 +14,7 @@ import pandas
 import os
 import warnings
 import subprocess
-
+import pkg_resources
 from tempfile import NamedTemporaryFile
 
 from Fred2.Core.Allele import Allele
@@ -52,7 +52,8 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
             for a in allales_string.keys():
                 try:
-                    model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, a, length))
+                    model_path = pkg_resources.resource_string("Fred2.Data.svms.%s"%self.name, "%s_%i"%(a,length))
+                    #model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, a, length))
                     model = svmlight.read_model(model_path)
                 except OSError:
                     warnings.warn("No model exists for peptides of length %i or allele %s."%(length, a.name))
@@ -432,7 +433,8 @@ class UniTope(ASVMEpitopePrediction):
 
         #group peptides by length and
         result = {}
-        model_path = os.path.abspath("../Data/svms/%s/%s"%(self.name, self.name))
+        model_path = pkg_resources.resource_string("Fred2.Data.svms.%s"%self.name, "%s"%self.name)
+        #model_path = os.path.abspath("../Data/svms/%s/%s"%(self.name, self.name))
         model = svmlight.read_model(model_path)
 
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -458,6 +460,7 @@ class UniTope(ASVMEpitopePrediction):
         return df_result
 
 
+#TODO: should we integrate this method or not? This means we have to drag around ~500MB of model data just for this
 class MHCIIMulti(AEpitopePrediction, AExternal):
     """
         Implements MHCIIMulti
@@ -465,8 +468,10 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
 
     __name = "mhcIImulti"
     __supported_length = frozenset([15])
-    __command = "MHCIILeveraging %s %s %s ../Data/MHCIIMulti/models  ../Data/MHCIIMulti/pockets.txt"
-    __supported_length = frozenset([15])
+
+    models_dir = pkg_resources.resource_string("Fred2.Data.svms.MHCIIMulti", "models")
+    pockets = pkg_resources.resource_string("Fred2.Data.svms.MHCIIMulti", "pockets.txt")
+    __command = "MHCIILeveraging %s %s %s "+str(models_dir)+" "+str(pockets)
     __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
                  'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
                  'DRB1*08:04:04', 'DRB1*04:59', 'DRB1*14:21', 'DRB1*04:54', 'DRB1*04:55', 'DRB1*04:56', 'DRB1*04:57',

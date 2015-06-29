@@ -11,8 +11,8 @@
 import svmlight
 import collections
 import itertools
-import os
 import warnings
+import pkg_resources
 
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Base import ATAPPrediction, ASVM
@@ -41,8 +41,7 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
                 warnings.warn("No model exists for peptides of length %i. Allowed lengths are (%s)"%(length,
                                                                                     ", ".join(self.supportedLength)))
                 continue
-
-            model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, self.name, length))
+            model_path = pkg_resources.resource_string("Fred2.Data.svms.%s"%self.name, "%s_%i"%(self.name, length))
             model = svmlight.read_model(model_path)
 
 

@@ -18,7 +18,7 @@ setup(
     long_description=readme,
 
     # The project's main homepage.
-    url='https://github.com/b-schubert/Fred2',
+    url='https://github.com/Fred-2/Fred2',
 
     # Author details
     author='Benjamin Schubert',
@@ -62,7 +62,7 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'sample': ['package_data.dat'],
+        '': ['Data/*'],
     },
 
     # 'package_data' is used to als install non package data files
