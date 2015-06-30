@@ -25,9 +25,8 @@ from __future__ import division
 import itertools as itr
 import copy
 
-import coopr.environ
-from coopr.pyomo import *
-from coopr.opt import SolverFactory
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
 
 from Fred2.Core.Result import EpitopePredictionResult
 
@@ -213,7 +212,8 @@ class OptiTope(object):
 
         #variables
         self.instance.y.deactivate()
-
+        self.instance.z.deactivate()
+        
     def set_k(self, k):
         """
             sets the number of epitopes to select
@@ -285,12 +285,14 @@ class OptiTope(object):
         tmp = self.instance.t_var.value
         try:
             self.instance.t_var.activate()
-            getattr(self.instance, str(self.instance.t_var)).set_value(int(t_var))
+            self.instance.z.activate()
+            getattr(self.instance, str(self.instance.t_var)).set_value(int(len(self.instance.Q)*t_var))
             self.instance.IsAntigenCovConst.activate()
             self.instance.MinAntigenCovConst.activate()
             self.__changed = True
         except:
             self.instance.t_var.deactivate()
+            self.instance.z.deactivate()
             getattr(self.instance, str(self.instance.t_var)).set_value(int(tmp))
             self.instance.IsAntigenCovConst.deactivate()
             self.instance.MinAntigenCovConst.deactivate()
@@ -303,6 +305,8 @@ class OptiTope(object):
             deactivates the variation coverage constraint
         """
         self.__changed = True
+        self.instance.z.activate()
+        self.instance.t_var.deactivate()
         self.instance.IsAntigenCovConst.deactivate()
         self.instance.MinAntigenCovConst.deactivate()
 

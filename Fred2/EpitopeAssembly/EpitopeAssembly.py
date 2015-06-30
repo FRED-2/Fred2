@@ -19,9 +19,8 @@ import multiprocessing as mp
 
 from tempfile import NamedTemporaryFile
 
-import coopr.environ
-from coopr.pyomo import *
-from coopr.opt import SolverFactory,SolverStatus, TerminationCondition
+from pyomo.environ import *
+from pyomo.opt import SolverFactory,SolverStatus, TerminationCondition
 
 from Fred2.Core.Base import ACleavageSitePrediction
 from Fred2.Core.Protein import Protein
@@ -560,7 +559,7 @@ class EpitopeAssemblyWithSpacer(object):
                 for aa,score in  v.iteritems():
                     epi_pssms[j,aa,a.name] = score
 
-        print "run spacer designs in parallel using multiprocessing"
+        #print "run spacer designs in parallel using multiprocessing"
         res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                        self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
