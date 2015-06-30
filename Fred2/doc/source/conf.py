@@ -14,12 +14,13 @@
 
 import sys
 import os
-
+sys.path.append(os.path.abspath('../../..'))
+sys.path.extend(['', '/Library/Python/2.7/site-packages/biopython-1.63-py2.7-macosx-10.9-intel.egg', '/Library/Python/2.7/site-packages/ply-3.4-py2.7.egg', '/Library/Python/2.7/site-packages/coopr.plugins-3.1-py2.7.egg', '/Library/Python/2.7/site-packages/epydoc-3.0.1-py2.7.egg', '/Library/Python/2.7/site-packages/requests-2.2.1-py2.7.egg', '/Library/Python/2.7/site-packages/pyzmq-14.1.1-py2.7-macosx-10.6-intel.egg', '/Library/Python/2.7/site-packages/Jinja2-2.7.2-py2.7.egg', '/Library/Python/2.7/site-packages/MarkupSafe-0.19-py2.7.egg', '/Library/Python/2.7/site-packages/backports.ssl_match_hostname-3.4.0.2-py2.7.egg', '/Library/Python/2.7/site-packages/BeautifulSoup-3.2.1-py2.7.egg', '/Library/Python/2.7/site-packages/beautifulsoup4-4.3.2-py2.7.egg', '/Library/Python/2.7/site-packages/scikit_learn-0.14.1-py2.7-macosx-10.9-intel.egg', '/Library/Python/2.7/site-packages/Pygments-1.6-py2.7.egg', '/Library/Python/2.7/site-packages/readline-6.2.4.1-py2.7-macosx-10.7-intel.egg', '/Library/Python/2.7/site-packages/pip-1.5.6-py2.7.egg', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python27.zip', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/plat-darwin', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/plat-mac', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/plat-mac/lib-scriptpackages', '/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-tk', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-old', '/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/lib-dynload', '/System/Library/Frameworks/Python.framework/Versions/2.7/Extras/lib/python/PyObjC', '/Library/Python/2.7/site-packages'])
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
-
+#sys.path.insert(0, os.path.abspath('../../..'))
+#print os.path.abspath('../..')
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.

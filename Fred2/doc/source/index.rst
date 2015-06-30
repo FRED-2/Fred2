@@ -15,6 +15,7 @@ Basis modules
 Prediction
 ==========
 .. toctree::
+
     Fred2.EpitopePrediction
     Fred2.CleavagePrediction
     Fred2.TAPPrediction
@@ -22,17 +23,20 @@ Prediction
 VaccineDesign
 =============
 .. toctree::
+
     Fred2.EpitopeSelection
     Fred2.EpitopeAssembly
 
 HLATyping
 =========
 .. toctree::
+
     Fred2.HLAtyping
 
 Commandline Tools
 =================
 .. toctree::
+
     Fred2.Apps
 
 
