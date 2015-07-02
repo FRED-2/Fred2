@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Fred2.Core.Result &mdash; FRED 2.01 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '2.01',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="FRED 2.01 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">FRED 2.01 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Fred2.Core.Result</h1><div class="highlight"><pre>
+<span class="c"># This code is part of the Fred2 distribution and governed by its</span>
+<span class="c"># license.  Please see the LICENSE file that should have been included</span>
+<span class="c"># as part of this package.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: Core.Result</span>
+<span class="sd">   :synopsis: Contains relevant classes describing results of predictions.</span>
+<span class="sd">.. moduleauthor:: schubert,</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;schubert&#39;</span>
+
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
+
+
+<div class="viewcode-block" id="Result"><a class="viewcode-back" href="../../../Fred2.Core.html#Fred2.Core.Result.Result">[docs]</a><span class="k">class</span> <span class="nc">Result</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A Result object is a DataFrame with with multi-indexing.</span>
+
+<span class="sd">        This class is used as interface and cann be extended with custom short-cuts for the sometimes often tedious</span>
+<span class="sd">        calls in pandas</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+</div>
+<div class="viewcode-block" id="EpitopePredictionResult"><a class="viewcode-back" href="../../../Fred2.Core.html#Fred2.Core.Result.EpitopePredictionResult">[docs]</a><span class="k">class</span> <span class="nc">EpitopePredictionResult</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A Result object is a DataFrame with with multi-indexing, where column Id are the prediction model (i.e HLA allele</span>
+<span class="sd">        for epitope prediction), row ID the target of the prediction (i.e. peptide) and the second row ID the predictor</span>
+<span class="sd">        (i.e BIMAS)</span>
+
+<span class="sd">        Epitope prediction result</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="EpitopePredictionResult.merge_result"><a class="viewcode-back" href="../../../Fred2.Core.html#Fred2.Core.Result.EpitopePredictionResult.merge_result">[docs]</a>    <span class="k">def</span> <span class="nf">merge_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_epi_pred_result</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a epitope result object and merges the two and returns the merge</span>
+<span class="sd">        result object</span>
+
+<span class="sd">        :param: (EpitopePredictionResult) _epi_pred_result: the result object to be merged</span>
+<span class="sd">        :return: EpitopePredictionResult - the merged EpitopePredictionResult object</span>
+<span class="sd">        :raise: ValueError - if _epi_pred_result is not of type EpitopePredictionResult</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_epi_pred_result</span><span class="p">,</span> <span class="n">EpitopePredictionResult</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Input is not of type EpitopePredictionResult.&quot;</span><span class="p">)</span>
+
+        <span class="n">df1a</span><span class="p">,</span> <span class="n">df2a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">_epi_pred_result</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">EpitopePredictionResult</span><span class="p">(</span><span class="n">df1a</span><span class="o">+</span><span class="n">df2a</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="EpitopePredictionResult.filter_result"><a class="viewcode-back" href="../../../Fred2.Core.html#Fred2.Core.Result.EpitopePredictionResult.filter_result">[docs]</a>    <span class="k">def</span> <span class="nf">filter_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_filter_criteria</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Takes a list triples (Prediction_Method,Threshold,Sign) where Prediction_Method is the prediction methods</span>
+<span class="sd">        name to filter for, Threshold the value an epitope as to exceed/</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+</div></div>
+<div class="viewcode-block" id="CleavageSitePredictionResult"><a class="viewcode-back" href="../../../Fred2.Core.html#Fred2.Core.Result.CleavageSitePredictionResult">[docs]</a><span class="k">class</span> <span class="nc">CleavageSitePredictionResult</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Epitope prediction result</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="CleavageFragmentPredictionResult"><a class="viewcode-back" href="../../../Fred2.Core.html#Fred2.Core.Result.CleavageFragmentPredictionResult">[docs]</a><span class="k">class</span> <span class="nc">CleavageFragmentPredictionResult</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Epitope prediction result</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</div>
+<div class="viewcode-block" id="TAPPredictionResult"><a class="viewcode-back" href="../../../Fred2.Core.html#Fred2.Core.Result.TAPPredictionResult">[docs]</a><span class="k">class</span> <span class="nc">TAPPredictionResult</span><span class="p">(</span><span class="n">Result</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Epitope prediction result</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">FRED 2.01 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2014, Schbert Walzer Brachvogel.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
