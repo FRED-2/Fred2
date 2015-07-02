@@ -25,9 +25,8 @@ from __future__ import division
 import itertools as itr
 import copy
 
-import coopr.environ
-from coopr.pyomo import *
-from coopr.opt import SolverFactory
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
 
 from Fred2.Core.Result import EpitopePredictionResult
 

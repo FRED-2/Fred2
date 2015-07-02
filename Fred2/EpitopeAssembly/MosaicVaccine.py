@@ -5,9 +5,8 @@ import warnings
 import string
 import copy
 
-import coopr.environ
-from coopr.pyomo import *
-from coopr.opt import SolverFactory
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
 from Fred2.Core.Result import EpitopePredictionResult
 
 
