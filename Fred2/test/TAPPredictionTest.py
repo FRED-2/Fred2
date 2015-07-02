@@ -1,0 +1,35 @@
+import unittest
+
+
+from Fred2.Core.Peptide import Peptide
+from Fred2.TAPPrediction import TAPPredictorFactory
+
+class TAPPredictionTestCaste(unittest.TestCase):
+
+    def setUp(self):
+        self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
+
+
+    def test_tap_multiple_peptide_input(self):
+        """
+            Tests SVMTAP prediction
+
+            not compared yet (dont know where)
+        """
+        for m in TAPPredictorFactory.available_methods():
+            print m
+            pred = TAPPredictorFactory(m)
+            r = pred.predict(self.peptides)
+            print r
+
+    def test_tap_single_peptide_input(self):
+        """
+            Tests SVMTAP prediction
+
+            not compared yet (dont know where)
+        """
+        for m in TAPPredictorFactory.available_methods():
+            print m
+            pred = TAPPredictorFactory(m)
+            r = pred.predict(self.peptides[0])
+            print r

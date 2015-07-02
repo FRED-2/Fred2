@@ -13,8 +13,8 @@ from Fred2.Core.Generator import generate_transcripts_from_variants
 from Fred2.IO.MartsAdapter import MartsAdapter
 from Fred2.IO.FileReader import read_annovar_exonic
 
-from Fred2.TestSuite.DummyAdapter import DummyAdapter
-from Fred2.TestSuite.VariantsForTesting import *
+from Fred2.test.DummyAdapter import DummyAdapter
+from Fred2.test.VariantsForTesting import *
 
 
 class TranskriptGeneratorTestCase(unittest.TestCase):

@@ -37,13 +37,11 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         are made.
 
         :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :param list(Alleles) alleles: a list of Alleles
         :param kwargs: optional parameter (not used yet)
         :return: Returns a Result object with the prediction results
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
-
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[model]), model)
 
         if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
@@ -56,7 +54,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
         length = min(self.supportedLength) if length is None else length
         if length not in self.supportedLength:
-            raise ValueError("Length %i is not supported by this method"%length)
+            raise ValueError("Length %i is not supported by %s"%(length, self.name))
 
         #group peptides by length and
         result = {"Seq":{},self.name:{}}
@@ -69,7 +67,18 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         diff = length - self.cleavagePos
         for j,seq in enumerate(pep_seqs.iterkeys()):
 
+
             seq_id = "seq_%i"%j
+            p = pep_seqs[seq]
+
+            if isinstance(p, Protein):
+                if p.transcript_id:
+                    seq_id = p.transcript_id
+            else:
+                for t in p.transcripts.iterkeys():
+                    if t:
+                        seq_id = t
+                        break
 
             #dynamicaly import prediction PSSMS for alleles and predict
             if len(seq) < length:
@@ -84,10 +93,10 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
                 else:
                     result[self.name][(seq_id, i)] = 0.0
                     result["Seq"][(seq_id, i)] = seq[i]
-                    score = sum(pssm[i][aa] for i,aa in enumerate(seq[i-(length-1):(i+1)]))+pssm.get(-1,{}).get("con",0)
+                    score = sum(pssm.get(i,{}).get(aa,0) for i,aa in enumerate(seq[i-(length-1):(i+1)]))+pssm.get(-1,{}).get("con",0)
                     result[self.name][(seq_id, i-diff)] = score
 
-        if not result:
+        if not result["Seq"]:
             raise ValueError("No predictions could be made for the given input.")
         df_result = CleavageSitePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],

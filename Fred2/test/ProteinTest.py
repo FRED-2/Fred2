@@ -5,8 +5,8 @@ import unittest
 
 # Variants and Generator
 from Fred2.Core.Generator import generate_transcripts_from_variants
-from Fred2.TestSuite.DummyAdapter import DummyAdapter
-from Fred2.TestSuite.VariantsForTesting import *
+from Fred2.test.DummyAdapter import DummyAdapter
+from Fred2.test.VariantsForTesting import *
 
 # Transcripts
 

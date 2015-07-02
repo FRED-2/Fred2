@@ -23,7 +23,7 @@ class CleavageSitePredictorFactory(object):
             '''
             just as I think it works.....
 
-            If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
+            If a third person wants to write a new Cleavage Site Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
             '''
             try:
@@ -40,11 +40,11 @@ class CleavageSitePredictorFactory(object):
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a list of available cleavage site predictors
 
-        :return: list of epitope predictors represented as string
+        :return: list of cleavage site predictor represented as string
         """
-        return ACleavageSitePrediction.registry.keys()
+        return [k for k in ACleavageSitePrediction.registry.iterkeys() if k not in ["APSSMCleavageSitePredictor", "ACleavageSitePrediction"]]
 
 
 class CleavageFragmentPredictorFactory(object):
@@ -56,7 +56,7 @@ class CleavageFragmentPredictorFactory(object):
             '''
             just as I think it works.....
 
-            If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
+            If a third person wants to write a new Cleavage Fragment Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
             '''
             try:
@@ -73,8 +73,9 @@ class CleavageFragmentPredictorFactory(object):
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a list of available cleavage fragment predictors
 
-        :return: list of epitope predictors represented as string
+        :return: list of cleavage fragment represented as string
         """
-        return ACleavageFragmentPrediction.registry.keys()
+        return [k for k in ACleavageFragmentPrediction.registry.iterkeys()
+                if k not in ["APSSMCleavageFragmentPredictor", "ACleavageFragmentPrediction"]]
