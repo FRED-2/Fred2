@@ -42,22 +42,31 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             #load svm model
+
+            if length not in self.supportedLength:
+                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
+                continue
+
             encoding = self.encode(peps)
 
             for a in allales_string.keys():
-                try:
-                    model_path = pkg_resources.resource_string("Fred2.Data.svms.%s"%self.name, "%s_%i"%(a,length))
-                    #model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, a, length))
-                    model = svmlight.read_model(model_path)
-                except OSError:
-                    warnings.warn("No model exists for peptides of length %i or allele %s."%(length, a.name))
+                model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s_%i"%(a,length))
+                if not os.path.exists(model_path):
+                    warnings.warn("No model exists for peptides of length %i or allele %s."%(length,
+                                                                                            allales_string[a].name))
                     continue
+                model = svmlight.read_model(model_path)
+
 
                 model = svmlight.read_model(model_path)
                 pred = svmlight.classify(model, encoding.values())
@@ -66,8 +75,8 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
                     result[allales_string[a]][pep_seqs[pep]] = score
 
         if not result:
-            raise ValueError("No predictions could be made for given input. Check your \
-            epitope length and HLA allele combination.")
+            raise ValueError("No predictions could be made for given input. Check your "
+                             "epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
@@ -429,11 +438,16 @@ class UniTope(ASVMEpitopePrediction):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
-        model_path = pkg_resources.resource_string("Fred2.Data.svms.%s"%self.name, "%s"%self.name)
+
+        model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s"%self.name)
         #model_path = os.path.abspath("../Data/svms/%s/%s"%(self.name, self.name))
         model = svmlight.read_model(model_path)
 
@@ -445,11 +459,12 @@ class UniTope(ASVMEpitopePrediction):
                 continue
 
             for a in allales_string.keys():
-                encoding = self.encode(peps, a)
-                pred = svmlight.classify(model, encoding.values())
-                result[allales_string[a]] = {}
-                for pep, score in itertools.izip(encoding.keys(), pred):
-                    result[allales_string[a]][pep_seqs[pep]] = score
+                if allales_string[a].name in self.supportedAlleles:
+                    encoding = self.encode(peps, a)
+                    pred = svmlight.classify(model, encoding.values())
+                    result[allales_string[a]] = {}
+                    for pep, score in itertools.izip(encoding.keys(), pred):
+                        result[allales_string[a]][pep_seqs[pep]] = score
 
         if not result:
             raise ValueError("No predictions could be made for given input. Check your \
@@ -469,8 +484,8 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
     __name = "mhcIImulti"
     __supported_length = frozenset([15])
 
-    models_dir = pkg_resources.resource_string("Fred2.Data.svms.MHCIIMulti", "models")
-    pockets = pkg_resources.resource_string("Fred2.Data.svms.MHCIIMulti", "pockets.txt")
+    models_dir = pkg_resources.resource_filename("Fred2.Data.svms.MHCIIMulti", "")
+    pockets = pkg_resources.resource_filename("Fred2.Data.svms.MHCIIMulti", "pockets.txt")
     __command = "MHCIILeveraging %s %s %s "+str(models_dir)+" "+str(pockets)
     __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
                  'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
@@ -608,6 +623,10 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         tmp_file = NamedTemporaryFile(delete=False)
@@ -623,21 +642,23 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
         for a in allales_string.iterkeys():
 
             #cmd = self.command%(data_file, a, prediction_file, self._modelpath) #modelpath?
+
             r = subprocess.call(self.command%(tmp_file.name, a, tmp_out.name), shell=True)
 
-            if r == -6:
+            if r == 127:
+                raise RuntimeError("%s is not installed or globally executable."%self.name)
+            elif r == -6:
                 warnings.warn("No model exists for allele %s."%str(allales_string[a]))
                 continue
-
             elif r != 0:
                 warnings.warn("An unknown error occurred for method %s."%self.name)
                 continue
 
             results[allales_string[a]] = {p:s for p, s in itertools.izip(pep_seqs.values(), self.parse_external_result(tmp_out))}
-
-        if not results:
-            raise ValueError("No predictions could be made for given input. Check your \
-            epitope length and HLA allele combination.")
+        print results
+        if any( not results[k] for k in results.iterkeys()):
+            raise ValueError("No predictions could be made for " +self.name+" given input. Check your "
+                             "epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(results)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])

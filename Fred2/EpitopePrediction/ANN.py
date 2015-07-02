@@ -46,6 +46,10 @@ class ANetMHC(AEpitopePrediction, AExternal):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         result = defaultdict(defaultdict)
@@ -86,13 +90,17 @@ class ANetMHC(AEpitopePrediction, AExternal):
             tmp_file.close()
 
             #generate cmd command
-
             for allele_group in allele_groups:
                 #print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
-                r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
-                if r != 0:
-                    warnings.warn("An unknown error occurred for method %s."%self.name)
-                    continue
+                try:
+                    r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
+
+                except OSError as e:
+                    if e.errno == os.errno.ENOENT:
+                        raise RuntimeError("%s is not installed or globally executable."%self.name)
+                    else:
+                        warnings.warn("An unknown error occurred for method %s."%self.name)
+                        continue
 
                 res_tmp = self.parse_external_result(tmp_out.name)
                 for al, ep_dict in res_tmp.iteritems():
@@ -103,7 +111,7 @@ class ANetMHC(AEpitopePrediction, AExternal):
             os.remove(tmp_out.name)
 
         if not result:
-            raise ValueError("No predictions could be made for given input. Check your epitope length and HLA allele combination.")
+            raise ValueError("No predictions could be made with " +self.name+" for given input. Check your epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])

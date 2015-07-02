@@ -19,7 +19,7 @@ from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction
 
 
-class APSSMEpitopePredictor(AEpitopePrediction):
+class APSSMEpitopePrediction(AEpitopePrediction):
     """
         Abstract base class for PSSM predictions.
 
@@ -52,6 +52,10 @@ class APSSMEpitopePredictor(AEpitopePrediction):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
@@ -60,7 +64,7 @@ class APSSMEpitopePredictor(AEpitopePrediction):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:
-                warnings.warn("Peptide length of %i not supported"%length, RuntimeWarning)
+                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
                 continue
 
             for a in allales_string.keys():
@@ -78,8 +82,9 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                     #print a, score, result
 
         if not result:
-            raise ValueError("No predictions could be made for given input. Check your \
-            epitope length and HLA allele combination.")
+            raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
+                             "epitope length and HLA allele combination.")
+
 
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
@@ -87,7 +92,7 @@ class APSSMEpitopePredictor(AEpitopePrediction):
         return df_result
 
 
-class Syfpeithi(APSSMEpitopePredictor):
+class Syfpeithi(APSSMEpitopePrediction):
     """
         Represents the Syfpeithi PSSM predictor
     """
@@ -118,7 +123,7 @@ class Syfpeithi(APSSMEpitopePredictor):
         return super(Syfpeithi, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class BIMAS(APSSMEpitopePredictor):
+class BIMAS(APSSMEpitopePrediction):
     """
         Represents the BIMAS PSSM predictor
     """
@@ -153,7 +158,7 @@ class BIMAS(APSSMEpitopePredictor):
         return super(BIMAS, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(math.e,x))
 
 
-class Epidemix(APSSMEpitopePredictor):
+class Epidemix(APSSMEpitopePrediction):
     __alleles = frozenset(['B*27', 'A*11:01', 'B*27:05', 'B*07', 'B*27', 'A*01', 'B*44', 'A*03',
                  'A*25', 'B*37:01', 'A*02:01', 'A*02:01', 'B*18:01', 'B*18:01', 'A*03',
                  'A*24', 'A*25', 'A*02:01', 'A*11:01', 'A*24:02', 'B*08', 'B*08',
@@ -182,7 +187,7 @@ class Epidemix(APSSMEpitopePredictor):
         return super(Epidemix, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class Hammer(APSSMEpitopePredictor):
+class Hammer(APSSMEpitopePrediction):
     __alleles = frozenset(['DRB1*07:03', 'DRB1*07:01', 'DRB1*11:28', 'DRB1*11:21', 'DRB1*11:20', 'DRB1*04:26', 'DRB1*04:23',
                  'DRB1*04:21', 'DRB5*01:05:', 'DRB1*08:17', 'DRB1*13:05', 'DRB1*13:04', 'DRB1*13:07', 'DRB1*13:01',
                  'DRB1*13:02', 'DRB1*08:04', 'DRB1*08:06', 'DRB1*08:01', 'DRB1*01:01', 'DRB1*01:02', 'DRB1*08:02',
@@ -215,7 +220,7 @@ class Hammer(APSSMEpitopePredictor):
         return super(Hammer, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class SMM(APSSMEpitopePredictor):
+class SMM(APSSMEpitopePrediction):
     """
     Implements IEDBs SMM PSSM method
     """
@@ -252,7 +257,7 @@ class SMM(APSSMEpitopePredictor):
         return super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
 
 
-class SMMPMBEC(APSSMEpitopePredictor):
+class SMMPMBEC(APSSMEpitopePrediction):
     """
     Implements IEDBs SMMPMBEC PSSM method
     """
@@ -291,7 +296,7 @@ class SMMPMBEC(APSSMEpitopePredictor):
         return super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
 
 
-class ARB(APSSMEpitopePredictor):
+class ARB(APSSMEpitopePrediction):
     """
     Implements IEDBs ARB method
     """
@@ -336,7 +341,7 @@ class ARB(APSSMEpitopePredictor):
         return super(ARB, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
 
 
-class ComblibSidney2008(APSSMEpitopePredictor):
+class ComblibSidney2008(APSSMEpitopePrediction):
     """
     Implements IEDBs Comblib_Sidney2008 PSSM method
     """
@@ -368,7 +373,7 @@ class ComblibSidney2008(APSSMEpitopePredictor):
                                                       alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
 
 
-class TEPITOPEpan(APSSMEpitopePredictor):
+class TEPITOPEpan(APSSMEpitopePrediction):
     """
     Implements TEPITOPEpan
     TEPITOPEpan: Extending TEPITOPE for Peptide Binding Prediction Covering over 700 HLA-DR Molecules

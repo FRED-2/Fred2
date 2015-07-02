@@ -26,7 +26,7 @@ from Fred2.Core.Base import ACleavageSitePrediction
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Peptide import Peptide
 from Fred2.CleavagePrediction.PSSM import APSSMCleavageSitePredictor
-from Fred2.EpitopePrediction.PSSM import APSSMEpitopePredictor
+from Fred2.EpitopePrediction.PSSM import APSSMEpitopePrediction
 
 
 class EpitopeAssembly(object):
@@ -473,8 +473,8 @@ class EpitopeAssemblyWithSpacer(object):
         if not isinstance(cleav_pred, APSSMCleavageSitePredictor):
             raise ValueError("Second input must be a PSSM-based cleavage site predictor.")
 
-        #if not isinstance(epi_pred, APSSMEpitopePredictor):
-        #    raise ValueError("Third input must be a PSSM-based epitope predictor.")
+        if not isinstance(epi_pred, APSSMEpitopePrediction):
+            raise ValueError("Third input must be a PSSM-based epitope predictor.")
 
         if en not in epi_pred.supportedLength:
             raise ValueError("Specified epitope length of en=%i is not supported by %s"%(en,epi_pred.name))
