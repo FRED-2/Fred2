@@ -63,10 +63,10 @@ class NetChop(ACleavageSitePrediction, AExternal):
         tmp_file.close()
 
         r = subprocess.call(self.command%(tmp_file.name, tmp_out.name), shell=True)
-
-        if r != 0:
-            warnings.warn("An unknown error occurred for method %s"%self.name)
-            sys.exit(-1)
+        if r == 127:
+                raise RuntimeError("%s is not installed or globally executable."%self.name)
+        elif r != 0:
+                raise RuntimeError("An unknown error occurred for method %s. Please check whether %s is globally executable."%(self.name,self.name))
 
         return self.parse_external_result(tmp_out)
 

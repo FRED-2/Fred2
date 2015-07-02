@@ -10,7 +10,6 @@
 from __future__ import division
 
 import os
-import copy
 import subprocess
 import warnings
 import itertools as itr
@@ -23,7 +22,6 @@ from pyomo.environ import *
 from pyomo.opt import SolverFactory,SolverStatus, TerminationCondition
 
 from Fred2.Core.Base import ACleavageSitePrediction
-from Fred2.Core.Protein import Protein
 from Fred2.Core.Peptide import Peptide
 from Fred2.CleavagePrediction.PSSM import APSSMCleavageSitePredictor
 from Fred2.EpitopePrediction.PSSM import APSSMEpitopePrediction
@@ -89,8 +87,6 @@ class EpitopeAssembly(object):
             for i in set(cleave_pred.index.get_level_values(0)):
                 fragment = "".join(cleave_pred.ix[i]["Seq"])
                 start, stop = fragments[fragment]
-    #            edge_matrix[(start, stop)] = -1.0 * (cleave_pred.loc[(i, len(str(start)) - 1), pred.name] - weight * sum(
-    #                cleave_pred.loc[(i, j), pred.name] for j in xrange(len(fragment)) if j != len(str(start)) - 1))
 
                 cleav_pos = len(str(start)) - 1
                 edge_matrix[(start, stop)] = -1.0 * (cleave_pred.loc[(i, len(str(start)) - 1), pred.name] - weight * sum(
@@ -142,20 +138,20 @@ class EpitopeAssembly(object):
             print "MODEL INSTANCE"
             self.instance.pprint()
 
-    def solve(self):
+    def solve(self, options=""):
         """
         Solves the Epitope Assembly problem and returns an ordered list of the peptides
 
         .. note::
 
             This can take quite long and should not be done for more and 30 epitopes max!
-
+        :param str options: Solver specific options as string (will not be checked for correctness)
         :return: list(Peptide) - An order list of the peptides (based on the string-of-beads ordering)
         """
 
         self.instance.preprocess()
 
-        res = self.__solver.solve(self.instance)
+        res = self.__solver.solve(self.instance, options=options)
         self.instance.load(res)
         if self.__verbosity > 0:
             res.write(num=1)
@@ -195,12 +191,11 @@ class EpitopeAssembly(object):
 
         #try:
         r = subprocess.call("LKH %s"%tmp_conf.name, shell=True)
-        #os.system("LKH %s"%tmp_conf.name,shell=True)
-        #except Exception as e:
-        #    print e
-        #    return []
-
-        #read in result
+        if r == 127:
+                raise RuntimeError("LKH is not installed or globally executable.")
+        elif r != 0:
+                raise RuntimeError("An unknown error occurred for method LKH. "
+                                   "Please check whether LKH is globally executable.")
         result = []
         with open(tmp_out.name, "r") as resul_f:
             is_tour = False
@@ -216,12 +211,7 @@ class EpitopeAssembly(object):
                 else:
                     pass
 
-
-
-
         tmp_out.close()
-        #print tmp_prob.name
-        #print tmp_out.name
         os.remove(tmp_conf.name)
         os.remove(tmp_prob.name)
         os.remove(tmp_out.name)
@@ -467,7 +457,8 @@ class EpitopeAssemblyWithSpacer(object):
         :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
-    def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", alpha=0.99,beta=0.99, verbosity=0):
+    def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", alpha=0.99,
+                 beta=0, verbosity=0):
 
         #test input
         if not isinstance(cleav_pred, APSSMCleavageSitePredictor):
@@ -540,7 +531,7 @@ class EpitopeAssemblyWithSpacer(object):
         self.__peptides = peptides
         #model construction for spacer design
 
-    def solve(self, threads=None, options="",start=0):
+    def solve(self, start=0, threads=None, options=""):
         """
         solve the epitope assembly problem with spacers optimally using integer linear programming.
 
@@ -615,7 +606,7 @@ class EpitopeAssemblyWithSpacer(object):
             sob.append(Peptide(ej))
         return sob
 
-    def approximate(self, start=0, threads=1,options=""):
+    def approximate(self, start=0, threads=1, options=""):
         """
         Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
 
