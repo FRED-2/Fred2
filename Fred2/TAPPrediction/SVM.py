@@ -35,23 +35,23 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
         result = {self.name:{}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             #load svm model
+            if length not in self.supportedLength:
+                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
+                continue
+
+
             encoding = self.encode(peps)
 
-            if length not in self.supportedLength:
-                warnings.warn("No model exists for peptides of length %i. Allowed lengths are (%s)"%(length,
-                                                                                    ", ".join(self.supportedLength)))
-                continue
-            model_path = pkg_resources.resource_string("Fred2.Data.svms.%s"%self.name, "%s_%i"%(self.name, length))
+            model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s_%i"%(self.name, length))
             model = svmlight.read_model(model_path)
-
 
             pred = svmlight.classify(model, encoding.values())
             result[self.name] = {}
             for pep, score in itertools.izip(encoding.keys(), pred):
                     result[self.name][pep_seqs[pep]] = score
 
-        if not result:
-            raise ValueError("No predictions could be made for given input.")
+        if not result[self.name]:
+            raise ValueError("No predictions could be made with "+self.name+" for given input.")
         df_result = TAPPredictionResult.from_dict(result)
 
         return df_result
@@ -68,7 +68,7 @@ class SVMTAP(ASVMTAPPrediction):
     """
 
     __name = "svmtap"
-    __length = [9]
+    __length = frozenset([9])
 
     @property
     def name(self):

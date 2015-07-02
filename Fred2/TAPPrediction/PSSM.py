@@ -22,7 +22,7 @@ class APSSMTAPPrediction(ATAPPrediction):
 
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
-            return getattr( __import__("Fred2.Data.TAPPSSMMatrices.py", fromlist=[model]), model)
+            return getattr( __import__("Fred2.Data.TAPPSSMMatrices", fromlist=[model]), model)
 
 
         if isinstance(peptides, Peptide):
@@ -45,14 +45,14 @@ class APSSMTAPPrediction(ATAPPrediction):
                 score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))+pssm.get(-1,{}).get("con", 0)
                 result[self.name][pep_seqs[p]] = score
 
-        if not result:
+        if not result[self.name]:
             raise ValueError("No predictions could be made for given input.")
         df_result = TAPPredictionResult.from_dict(result)
 
         return df_result
 
 
-class TAPDoytchinova(ATAPPrediction):
+class TAPDoytchinova(APSSMTAPPrediction):
     """
         Implements the TAP prediction model from Doytchinova
 
@@ -62,7 +62,7 @@ class TAPDoytchinova(ATAPPrediction):
     """
 
     __name = "doytchinova"
-    __supported_length = [9]
+    __supported_length = frozenset([9])
 
     @property
     def name(self):

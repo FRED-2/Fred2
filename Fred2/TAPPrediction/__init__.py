@@ -11,7 +11,7 @@ from Fred2.TAPPrediction.SVM import *
 from Fred2.TAPPrediction.PSSM import *
 
 
-class TAPePredictorFactory(object):
+class TAPPredictorFactory(object):
     class __metaclass__(type):
         def __init__(cls, name, bases, nmspc):
             type.__init__(cls, name, bases, nmspc)
@@ -41,4 +41,4 @@ class TAPePredictorFactory(object):
 
         :return: list of epitope predictors represented as string
         """
-        return ATAPPrediction.registry.keys()
+        return [k for k in ATAPPrediction.registry.iterkeys() if k not in ["ATAPPrediction","APSSMTAPPrediction", "ASVMTAPPrediction"]]
