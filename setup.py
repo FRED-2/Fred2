@@ -53,7 +53,7 @@ setup(
 
     # Specify  packages via find_packages() and exclude the tests and 
     # documentation:
-    packages=find_packages(exclude=['test', 'doc']),
+    packages=find_packages(exclude=['test', 'doc', 'tutorials']),
 
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
     install_requires=['pandas','pyomo>=4.0','biopython', 'svmlight'],
