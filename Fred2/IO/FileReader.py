@@ -13,9 +13,31 @@ import os
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
+from Fred2.Core.Allele import Allele
 from Fred2.Core.Peptide import Peptide
+from Fred2.Core.Protein import Protein
+from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 
+
+def __check_type(type, allowed=['Peptide', 'Protein','Transcript']):
+    if not type in allowed:
+        raise ValueError("An invalid sequence object type was specified for \
+parsing a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
+
+
+def __create_single_sequ(sequ, id, type):
+    if type == "Peptide":
+        return Peptide(sequ)
+
+    elif type == "Protein":
+        return Protein(sequ, "unknown", id)
+
+    elif type == "Transcript":
+        return Transcript(sequ, "unkown", id)
+
+    elif type == "Allele":
+        return Allele(sequ)
 
 
 ####################################
@@ -43,15 +65,23 @@ def read_fasta(files, type=Peptide, id_position=1):
             if any(not os.path.exists(f) for f in files):
                 raise ValueError("Specified Files do not exist")
 
+    collect = set()
     # open all specified files:
     for name in files:
         with open(name, 'r') as handle:
             # iterate over all FASTA entries:
             for _id, seq in SimpleFastaParser(handle):
+                # generate element:
                 try:
-                    yield type(seq.upper(), _transcript_id=_id)
+                    _id = _id.split("|")[id_position]
+                except KeyError:
+                   pass
+
+                try:
+                    collect.add(type(seq.strip().upper(), _transcript_id=_id))
                 except TypeError:
-                    yield type(seq.upper())
+                    collect.add(type(seq.strip().upper()))
+
 
 
 
@@ -82,12 +112,17 @@ def read_lines(files, type=Peptide):
             if any(not os.path.exists(f) for f in files):
                 raise ValueError("Specified Files do not exist")
 
+
+    collect = set()
     for name in files:
         with open(name, 'r') as handle:
             # iterate over all lines:
             for line in handle:
-                yield type(line.strip().upper())
+                # generate element:
+                collect.add(type(line.strip().upper()))
 
+
+    return collect
 
 
 #####################################
