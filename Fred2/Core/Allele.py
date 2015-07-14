@@ -39,7 +39,7 @@ class Allele(MetadataLogger):
         return self.name
 
     def __eq__(self, other):
-        return self.name == other.name
+        return str(self.name) == str(other)
 
     def __cmp__(self, other):
-        return cmp(self.name, other.name)
+        return cmp(self.name, str(other))
