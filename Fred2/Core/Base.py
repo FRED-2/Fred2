@@ -123,6 +123,15 @@ class ACleavageSitePrediction(object):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def threshold(self):
+        """
+        parameter specifying the prediction threshold of a cleavage site
+
+        :return: float -- the threshold of a true cleavage site
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def predict(self, _aa_seq,  **kwargs):
         """
         Predicts the proteom cleavage site of the given sequences
@@ -165,6 +174,15 @@ class ACleavageFragmentPrediction(object):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def threshold(self):
+        """
+        parameter specifying the prediction threshold of a cleavage fragment
+
+        :return: float -- the threshold of a true cleavage fragment
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def predict(self, _aa_seq,  **kwargs):
         """
         Predicts the probability that the fragment can be produced by the proteasom
@@ -202,6 +220,15 @@ class AEpitopePrediction(object):
         Returns a list of supported peptide lenghts
 
         :return: List of supported peptide lengths
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def threshold(self, allele):
+        """
+        parameter specifying the prediction threshold of a epitope
+        :param: Allele allele: the Allele object for which the binding threshold should be returned
+        :return: float -- the threshold of a true epitope
         """
         raise NotImplementedError
 
@@ -248,6 +275,30 @@ class ASVM(object):
         raise NotImplementedError
 
 
+class AExternal(object):
+    """
+     Base class for external tools
+    """
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractproperty
+    def command(self):
+        """
+        defines the external execution path ?
+        :return:
+        """
+
+    @abc.abstractmethod
+    def parse_external_result(self, _file):
+        """
+        Parses external NetMHC results and returns a Result object
+
+        :param str _file: The file path or the external prediction results
+        :return: Result - Returns a Result object
+        """
+        raise NotImplementedError
+
+
 class ATAPPrediction(object):
     __metaclass__ = APluginRegister
 
@@ -266,6 +317,15 @@ class ATAPPrediction(object):
         Returns the supported lengths of the predictor
 
         :return: list(int) - Supported peptide length
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def threshold(self):
+        """
+        parameter specifying the prediction threshold of TAP binding
+
+        :return: float -- the threshold of a true TAP binding
         """
         raise NotImplementedError
 

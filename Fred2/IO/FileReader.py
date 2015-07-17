@@ -60,7 +60,7 @@ def read_fasta(*argv, **kwargs):
     _type = kwargs.get("type", "Peptide")
 
     __check_type(_type)
-
+    print kwargs
     collect = {}
     # open all specified files:
     for name in argv:
@@ -68,8 +68,12 @@ def read_fasta(*argv, **kwargs):
             # iterate over all FASTA entries:
             for _id, seq in SimpleFastaParser(handle):
                 # generate element:
-                collect[seq.upper()] = _id
-    
+                try:
+                    collect[seq.upper()] = _id.split("|")[kwargs["id_position"]]
+		    print collect[seq.upper()]
+                except KeyError:
+                    collect[seq.upper()] = _id
+
     return [__create_single_sequ(seq, _id, _type) \
             for seq, _id in collect.items()]
 
@@ -112,7 +116,7 @@ def read_lines(*argv, **kwargs):
 #####################################
 #       A N N O V A R  -  R E A D E R
 #####################################
-def read_annovar_exonic(annovar_file, gene_filter=None):
+def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
     """
     Reads an gene-based ANNOVAR output file and generates Variant objects containing
     all annotated transcript ids an outputs a list variants.
@@ -171,5 +175,8 @@ def read_annovar_exonic(annovar_file, gene_filter=None):
 
             ty = tuple(type.split())
 
-            vars.append(Variant(id, type_mapper[ty], chrom, int(genome_start), ref.upper(), alt.upper(), coding, zygos == "hom", ty[0] == "synonymous"))
+            vars.append(
+                Variant(id, type_mapper.get(ty, VariationType.UNKNOWN), chrom, int(genome_start), ref.upper(),
+                        alt.upper(), coding, zygos == "hom", ty[0] == "synonymous",
+                        experimentalDesign=experimentalDesig))
     return vars

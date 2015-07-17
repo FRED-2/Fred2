@@ -18,6 +18,8 @@ class APSSMEpitopePredictor(AEpitopePrediction):
         Implements predict functionality
 
     """
+    def threshold(self, allele):
+        return 0.0
 
     def predict(self, peptides, alleles=None, **kwargs):
         """
@@ -45,7 +47,7 @@ class APSSMEpitopePredictor(AEpitopePrediction):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
-            allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
@@ -66,7 +68,7 @@ class APSSMEpitopePredictor(AEpitopePrediction):
                 result[allales_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
-                    score = sum(pssm[i][p[i]] for i in xrange(length))
+                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1,{}).get("con", 0)
                     result[allales_string[a]][pep_seqs[p]] = score
                     #print a, score, result
 
@@ -80,11 +82,11 @@ class Syfpeithi(APSSMEpitopePredictor):
     """
         Represents the Syfpeithi PSSM predictor
     """
-    __alleles = ['B*15:10', 'B*41:01', 'B*37:01', 'B*27:05', 'B*38:01', 'A*02:01', 'B*47:01', 'A*26:01', 'B*3701',
+    __alleles = frozenset(['B*15:10', 'B*41:01', 'B*37:01', 'B*27:05', 'B*38:01', 'A*02:01', 'B*47:01', 'A*26:01', 'B*37:01',
                  'DRB1*11:01', 'B*50:01', 'B*07:02', 'A*68:01', 'A*24:02', 'DRB1*15:01', 'B*15:01', 'B*45:01',
                  'A*11:01', 'A*03:01', 'B*40:01', 'DRB1*03:01', 'B*39:01', 'DRB1*01:01', 'B*51:01', 'B*39:02',
-                 'B*08:01', 'B*18:01', 'B*44:02', 'B*49:01', 'DRB1*07:01', 'B*14:02', 'A*01:01']
-    __supported_length = [8, 9, 10, 11]
+                 'B*08:01', 'B*18:01', 'B*44:02', 'B*49:01', 'DRB1*07:01', 'B*14:02', 'A*01:01'])
+    __supported_length = frozenset([8, 9, 10, 11])
     __name = "syfpeithi"
 
     @property
@@ -112,14 +114,14 @@ class BIMAS(APSSMEpitopePredictor):
         Represents the BIMAS PSSM predictor
     """
 
-    __alleles = ['B*04:01', 'A*31:01', 'B*58:01', 'Cw*06:02', 'A*03:01', 'B*35:01',
+    __alleles = frozenset(['B*04:01', 'A*31:01', 'B*58:01', 'C*06:02', 'A*03:01', 'B*35:01',
                  'B*35:01', 'B*15:01', 'A*02:05', 'B*27:05', 'B*27:05', 'A*33:02',
                  'B*39:01', 'B*38:01', 'B*40:', 'A*24:02', 'B*51:01', 'B*07:02', 'B*08:01',
                  'B*51:02', 'B*40:06', 'B*40:06', 'B*51:02', 'B*37:01', 'A*11:01',
                  'B*08:01', 'B*44:03', 'A*68:01', 'B*51:03', 'B*52:01', 'A*02:01',
                  'A*01:01', 'C*07:02', 'C*03:01', 'B*40:01', 'B*51:01', 'B*39:02',
-                 'B*52:01', 'C*04:01', 'B*27:02', 'B*39:01']
-    __supported_length = [8, 9]
+                 'B*52:01', 'C*04:01', 'B*27:02', 'B*39:01'])
+    __supported_length = frozenset([8, 9])
     __name = "bimas"
 
     @property
@@ -139,15 +141,15 @@ class BIMAS(APSSMEpitopePredictor):
 
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
-        return super(BIMAS, self).predict(peptides, alleles=alleles, **kwargs)
+        return super(BIMAS, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(math.e,x))
 
 
 class Epidemix(APSSMEpitopePredictor):
-    __alleles = ['B*27', 'A*11:01', 'B*27:05', 'B*07', 'B*27', 'A*01', 'B*44', 'A*03',
+    __alleles = frozenset(['B*27', 'A*11:01', 'B*27:05', 'B*07', 'B*27', 'A*01', 'B*44', 'A*03',
                  'A*25', 'B*37:01', 'A*02:01', 'A*02:01', 'B*18:01', 'B*18:01', 'A*03',
                  'A*24', 'A*25', 'A*02:01', 'A*11:01', 'A*24:02', 'B*08', 'B*08',
-                 'B*51:01', 'B*51:01']
-    __supported_length = [9, 10, 8, 11]
+                 'B*51:01', 'B*51:01'])
+    __supported_length = frozenset([9, 10, 8, 11])
     __name = "epidemix"
 
 
@@ -172,15 +174,15 @@ class Epidemix(APSSMEpitopePredictor):
 
 
 class Hammer(APSSMEpitopePredictor):
-    __alleles = ['DRB1*07:03', 'DRB1*07:01', 'DRB1*11:28', 'DRB1*11:21', 'DRB1*11:20', 'DRB1*04:26', 'DRB1*04:23',
+    __alleles = frozenset(['DRB1*07:03', 'DRB1*07:01', 'DRB1*11:28', 'DRB1*11:21', 'DRB1*11:20', 'DRB1*04:26', 'DRB1*04:23',
                  'DRB1*04:21', 'DRB5*01:05:', 'DRB1*08:17', 'DRB1*13:05', 'DRB1*13:04', 'DRB1*13:07', 'DRB1*13:01',
                  'DRB1*13:02', 'DRB1*08:04', 'DRB1*08:06', 'DRB1*08:01', 'DRB1*01:01', 'DRB1*01:02', 'DRB1*08:02',
                  'DRB1*13:11', 'DRB1*03:11', 'DRB1*11:07', 'DRB1*11:06', 'DRB1*11:04', 'DRB1*11:02', 'DRB1*11:01',
                  'DRB1*04:08', 'DRB1*04:01', 'DRB1*04:02', 'DRB1*04:05', 'DRB1*04:04', 'DRB1*13:23', 'DRB1*13:22',
                  'DRB1*13:21', 'DRB1*13:27', 'DRB1*08:13', 'DRB1*13:28', 'DRB1*03:06', 'DRB1*03:07', 'DRB1*03:05',
                  'DRB1*11:14', 'DRB1*03:01', 'DRB1*15:02', 'DRB1*15:01', 'DRB1*15:06', 'DRB1*03:08', 'DRB1*03:09',
-                 'DRB1*04:10', 'DRB5*01:01']
-    __supported_length = [9]
+                 'DRB1*04:10', 'DRB5*01:01'])
+    __supported_length = frozenset([9])
     __name = "hammer"
 
 
@@ -209,7 +211,7 @@ class SMM(APSSMEpitopePredictor):
     Implements IEDBs SMM PSSM method
     """
 
-    __alleles = ['B*27:20', 'B*83:01', 'A*32:15', 'B*15:17', 'B*40:13', 'A*24:02', 'A*24:03', 'B*53:01', 'B*15:01',
+    __alleles = frozenset(['B*27:20', 'B*83:01', 'A*32:15', 'B*15:17', 'B*40:13', 'A*24:02', 'A*24:03', 'B*53:01', 'B*15:01',
                  'B*27:05', 'B*42:01', 'B*39:01', 'B*38:01', 'A*23:01', 'A*25:01', 'C*04:01', 'A*29:02', 'A*02:06',
                  'A*02:01', 'A*02:02', 'A*02:03', 'A*26:02', 'A*26:03', 'A*26:01', 'C*03:03', 'E*01:01', 'E*01:03',
                  'B*58:01', 'A*31:01', 'C*06:02', 'B*07:02', 'A*66:01', 'B*57:01', 'A*68:01', 'A*68:02', 'C*14:02',
@@ -217,8 +219,8 @@ class SMM(APSSMEpitopePredictor):
                  'B*58:02', 'A*69:01', 'A*68:23', 'A*11:01', 'A*03:01', 'B*73:01', 'B*40:01', 'B*44:03', 'B*46:01',
                  'B*40:02', 'C*12:03', 'B*44:02', 'A*30:01', 'A*02:19', 'A*30:02', 'A*02:17', 'A*02:16', 'B*51:01',
                  'B*45:01', 'A*02:12', 'A*02:11', 'B*54:01', 'B*08:01', 'B*18:01', 'B*08:03', 'B*08:02', 'C*05:01',
-                 'C*15:02', 'A*33:01', 'B*14:02', 'C*07:01', 'B*48:01', 'B*15:42', 'C*07:02', 'A*01:01', 'C*08:02']
-    __supported_length = [8, 9, 10, 11]
+                 'C*15:02', 'A*33:01', 'B*14:02', 'C*07:01', 'B*48:01', 'B*15:42', 'C*07:02', 'A*01:01', 'C*08:02'])
+    __supported_length = frozenset([8, 9, 10, 11])
     __name = "smm"
     @property
     def name(self):
@@ -238,7 +240,7 @@ class SMM(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+        return super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
 
 
 class SMMPMBEC(APSSMEpitopePredictor):
@@ -246,7 +248,7 @@ class SMMPMBEC(APSSMEpitopePredictor):
     Implements IEDBs SMMPMBEC PSSM method
     """
 
-    __alleles = ['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:17',
+    __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:17',
                  'A*02:19', 'A*02:50', 'A*03:01', 'A*11:01', 'A*23:01', 'A*24:02', 'A*24:03', 'A*25:01', 'A*26:01',
                  'A*26:02', 'A*26:03', 'A*29:02', 'A*30:01', 'A*30:02', 'A*31:01', 'A*32:01', 'A*32:07', 'A*32:15',
                  'A*33:01', 'A*66:01', 'A*68:01', 'A*68:02', 'A*68:23', 'A*69:01', 'A*80:01', 'B*07:02', 'B*08:01',
@@ -255,8 +257,8 @@ class SMMPMBEC(APSSMEpitopePredictor):
                  'B*40:02', 'B*40:13', 'B*42:01', 'B*44:02', 'B*44:03', 'B*45:01', 'B*45:06', 'B*46:01', 'B*48:01',
                  'B*51:01', 'B*53:01', 'B*54:01', 'B*57:01', 'B*58:01', 'B*58:02', 'B*73:01', 'B*83:01', 'C*03:03',
                  'C*04:01', 'C*05:01', 'C*06:02', 'C*07:01', 'C*07:02', 'C*08:02', 'C*12:03', 'C*14:02', 'C*15:02',
-                 'E*01:01', 'E*01:03']
-    __supported_length = [8, 9, 10, 11]
+                 'E*01:01', 'E*01:03'])
+    __supported_length = frozenset([8, 9, 10, 11])
     __name = "smmpmbec"
 
     @property
@@ -277,7 +279,7 @@ class SMMPMBEC(APSSMEpitopePredictor):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+        return super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
 
 
 class ARB(APSSMEpitopePredictor):
@@ -285,14 +287,14 @@ class ARB(APSSMEpitopePredictor):
     Implements IEDBs ARB method
     """
 
-    __alleles = ['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:19',
+    __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:19',
                  'A*02:50', 'A*03:01', 'A*11:01', 'A*23:01', 'A*24:02', 'A*24:03', 'A*25:01', 'A*26:01', 'A*26:02',
                  'A*26:03', 'A*29:02', 'A*30:01', 'A*30:02', 'A*31:01', 'A*32:01', 'A*33:01', 'A*68:01', 'A*68:02',
                  'A*69:01', 'A*80:01', 'B*07:02', 'B*08:01', 'B*08:02', 'B*08:03', 'B*15:01', 'B*15:02', 'B*15:03',
                  'B*15:09', 'B*15:17', 'B*18:01', 'B*27:03', 'B*27:05', 'B*35:01', 'B*38:01', 'B*39:01', 'B*40:01',
                  'B*40:02', 'B*44:02', 'B*44:03', 'B*45:01', 'B*46:01', 'B*48:01', 'B*51:01', 'B*53:01', 'B*54:01',
-                 'B*57:01', 'B*58:01', 'B*73:01']
-    __supported_length = [8, 9, 10, 11]
+                 'B*57:01', 'B*58:01', 'B*73:01'])
+    __supported_length = frozenset([8, 9, 10, 11])
     __name = "arb"
 
     @property
@@ -330,9 +332,9 @@ class ComblibSidney2008(APSSMEpitopePredictor):
     Implements IEDBs Comblib_Sidney2008 PSSM method
     """
 
-    __alleles = ['B*35:01', 'B*51:01', 'B*54:01', 'B*58:02', 'A*02:01', 'A*68:02', 'B*27:05', 'B*08:01', 'B*07:02',
-                 'A*32:01', 'B*53:01', 'A*30:01', 'B*15:03', 'B*15:01', 'B*58:01']
-    __supported_length = [9]
+    __alleles = frozenset(['B*35:01', 'B*51:01', 'B*54:01', 'B*58:02', 'A*02:01', 'A*68:02', 'B*27:05', 'B*08:01', 'B*07:02',
+                 'A*32:01', 'B*53:01', 'A*30:01', 'B*15:03', 'B*15:01', 'B*58:01'])
+    __supported_length = frozenset([9])
     __name = "comblibSidney"
 
     @property
@@ -364,7 +366,7 @@ class TEPITOPEpan(APSSMEpitopePredictor):
                 Lianming Zhang , Yiqing Chen , Hau-San Wong, Shuigeng Zhou, Hiroshi Mamitsuka, Shanfeng Zhu
     """
 
-    __alleles = ['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',
+    __alleles = frozenset(['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',
                  'DRB1*01:08', 'DRB1*01:09', 'DRB1*01:10', 'DRB1*01:11', 'DRB1*01:12', 'DRB1*01:13', 'DRB1*01:14',
                  'DRB1*01:15', 'DRB1*01:16', 'DRB1*01:17', 'DRB1*01:18', 'DRB1*01:19', 'DRB1*01:20', 'DRB1*01:21',
                  'DRB1*01:22', 'DRB1*01:23', 'DRB1*01:24', 'DRB1*01:25', 'DRB1*01:26', 'DRB1*01:27', 'DRB1*01:28',
@@ -468,8 +470,8 @@ class TEPITOPEpan(APSSMEpitopePredictor):
                  'DRB3*02:28', 'DRB3*03:01', 'DRB3*03:02', 'DRB3*03:03', 'DRB4*01:01', 'DRB4*01:03', 'DRB4*01:04',
                  'DRB4*01:05', 'DRB4*01:06', 'DRB4*01:07', 'DRB4*01:08', 'DRB5*01:01', 'DRB5*01:02', 'DRB5*01:04',
                  'DRB5*01:05', 'DRB5*01:06', 'DRB5*01:07', 'DRB5*01:08', 'DRB5*01:09', 'DRB5*01:11', 'DRB5*01:12',
-                 'DRB5*01:13', 'DRB5*01:14', 'DRB5*02:02', 'DRB5*02:03', 'DRB5*02:04', 'DRB5*02:05']
-    __supported_length = [9]
+                 'DRB5*01:13', 'DRB5*01:14', 'DRB5*02:02', 'DRB5*02:03', 'DRB5*02:04', 'DRB5*02:05'])
+    __supported_length = frozenset([9])
     __name = "tepitopepan"
 
     @property

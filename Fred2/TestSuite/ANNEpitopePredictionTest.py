@@ -22,47 +22,40 @@ from Fred2.EpitopePrediction import EpitopePredictorFactory
 class TestCaseANN(unittest.TestCase):
 
     def setUp(self):
-        self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
-        self.alleles = [Allele("HLA-A*24:02"),Allele("HLA-A*02:01")]
-        self.methods = ["NetMHC","NetMHCpan"]
+        self.peptides = [Peptide("SYFPEITHIAAAAAAAA"),Peptide("IHTIEPFYS")]
+        self.alleles = [Allele("HLA-A*02:01"),Allele("HLA-A*01:01"), Allele("HLA-A*24:02")]
+        self.methods = ["NetMHCpan","NetMHC"]
 
-    def test_netMHC_initialization(self):
-        p = EpitopePredictorFactory('NetMHC')
-        self.assertTrue(p.name == 'netmhc')
 
-    def test_netMHC_prediction(self):
-        p = EpitopePredictorFactory("NetMHC")
-        results = p.predict(self.peptides, self.alleles)
-        print results
+    # def test_netMHC_prediction(self):
+    #     p = EpitopePredictorFactory("NetMHC")
+    #     results = p.predict(self.peptides)
+    #     print results
 
-    def test_netMHCpan_initialization(self):
-        p = EpitopePredictorFactory("NetMHCpan")
-        self.assertTrue(p.name == "netmhcpan")
+    def test_netMHCpan_prediction(self):
+         p = EpitopePredictorFactory("NetMHCII")
+         results = p.predict(self.peptides)
+         print results
+    #
+    # def test_netMHCII_prediction(self):
+    #     p = EpitopePredictorFactory("NetMHCII")
+    #     results = p.predict(self.peptides, [Allele("DRB1*01:01"), Allele("DRB1*04:01")])
+    #     print results
 
-    def test_netMHC_prediction(self):
-        p = EpitopePredictorFactory("NetMHCpan")
-        results = p.predict(self.peptides, self.alleles)
-        print results
 
-    def test_multiple_prediction_and_concatination(self):
-        results = [EpitopePredictorFactory(method).predict(self.peptides, self.alleles) for method in self.methods]
-        df1 = results[0]
+    # def test_netMHCIIpan_prediction(self):
+    #     p = EpitopePredictorFactory("NetMHCIIpan")
+    #     results = p.predict(self.peptides, [Allele("DRB1*01:01"), Allele("DRB1*14:64")])
+    #     print results
+    #
+    # def test_multiple_prediction_and_concatination(self):
+    #     results = [EpitopePredictorFactory(method).predict(self.peptides, self.alleles) for method in self.methods]
+    #     df1 = results[0]
+    #     print df1
+    #     for t in results[1:]:
+    #         df1a, df2a = df1.align(t, fill_value=0)
+    #         df1 = df1a+df2a
+    #     print df1
 
-        #for t in df1:
-        #    print type(t)
-        df2 = results[1]
-        df1a, df2a = df1.align(df2, fill_value=0)
-        df3= df1a+df2a
-        df3a,df4a = df3.align(results[2], fill_value=0)
-        df3 = df3a+df4a
-        print df3
-        print df3.index.levels
-        df=df3.xs(df3.index.values[0][1], level="Method")
-        for p in df.itertuples():
-            for a,s in zip(df.columns,p[1:]):
-                print p[0], a, s
-                print type(p[0])
-
-        #print df3
 if __name__ == '__main__':
     unittest.main()

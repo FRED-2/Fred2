@@ -26,3 +26,8 @@ class SVMEpitopePredictionTestCase(unittest.TestCase):
         pred = EpitopePredictorFactory("UniTope")
         r = pred.predict(self.peptides, self.alleles)
         print r
+
+    def test_MHCIIMulti_simple(self):
+        pred = EpitopePredictorFactory("MHCIIMulti")
+        r = pred.predict(self.peptides, [Allele("DRB1*07:09")])
+        print r

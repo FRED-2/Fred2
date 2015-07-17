@@ -5,7 +5,7 @@ __author__ = 'schubert'
 
 from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *
-
+from Fred2.CleavagePrediction.ANN import *
 
 class CleavageSitePredictorFactory(object):
     class __metaclass__(type):
@@ -31,7 +31,7 @@ class CleavageSitePredictorFactory(object):
                                  "supported by FRED2 and inherits ACleavageSitePrediction.")
 
     @staticmethod
-    def available_methods(self):
+    def available_methods():
         """
         Returns a list of available epitope predictors
 
@@ -64,7 +64,7 @@ class CleavageFragmentPredictorFactory(object):
                                  "supported by FRED2 and inherits ACleavageFragmentPrediction.")
 
     @staticmethod
-    def available_methods(self):
+    def available_methods():
         """
         Returns a list of available epitope predictors
 

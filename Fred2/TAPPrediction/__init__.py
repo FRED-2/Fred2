@@ -28,7 +28,7 @@ class TAPePredictorFactory(object):
                                  "supported by FRED2 and inherits AEpitopePredictor.")
 
     @staticmethod
-    def available_methods(self):
+    def available_methods():
         """
         Returns a list of available epitope predictors
 

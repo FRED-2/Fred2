@@ -72,7 +72,7 @@ class Variant(MetadataLogger):
 
     """
     def __init__(self, id, type, chrom, genomePos, ref, obs, coding,
-                 isHomozygous, isSynonymous, metadata=None):
+                 isHomozygous, isSynonymous, experimentalDesign=None, metadata=None):
         """
         Constructor for a variant, see init-types in class parameters
         """
@@ -88,13 +88,16 @@ class Variant(MetadataLogger):
         self.isSynonymous = isSynonymous
         self.offsets = {}
         self.coding = coding  # dict transcript_id:MutationSyntax
+        self.experimentalDesign = "" if experimentalDesign is None else experimentalDesign
 
         if metadata is not None:
             for meta in metadata:
                 self.log_metadata(meta, metadata[meta])
 
     def __repr__(self):
-        return "Variant(%s%i%s)"%(self.ref, self.genomePos, self.obs)
+        return "Variant(%s%i%s):%s" % (self.ref, self.genomePos, self.obs,
+                                       self.experimentalDesign) if self.experimentalDesign else "Variant(%s%i%s)" % (
+        self.ref, self.genomePos, self.obs)
 
     def get_transcript_offset(self):
         return len(self.obs) - len(self.ref)

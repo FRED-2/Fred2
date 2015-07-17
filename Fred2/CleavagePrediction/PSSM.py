@@ -25,6 +25,9 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
     """
 
+    def threshold(self):
+        return 0.5
+
     def predict(self, aa_seq, length=None, **kwargs):
         """
         Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
@@ -38,7 +41,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
 
-            #TODO: what if there exists no allele model for this length?
             return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[model]), model)
 
         if isinstance(aa_seq, collections.Iterable):
@@ -66,12 +68,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         diff = length - self.cleavagePos
         for j,seq in enumerate(pep_seqs.iterkeys()):
 
-            #convention for peptides its always the first transcript ID after sorting
-            try:
-                seq_id = pep_seqs[seq].transcript_id if isinstance(pep_seqs[seq], Protein) else \
-                                                    pep_seqs[seq].transcripts.keys().sort()[0]
-            except Exception:
-                seq_id = "seq_%i"%j
+            seq_id = "seq_%i"%j
 
             #dynamicaly import prediction PSSMS for alleles and predict
             if len(seq) < length:
@@ -103,7 +100,7 @@ class PCM(APSSMCleavageSitePredictor):
         :input list(Peptide) peptides: list of peptides for which cleave probability prediction should be performed
     """
 
-    __supported_length = [6]
+    __supported_length = frozenset([6])
     __name = "pcm"
     __cleavage_pos = 4
 
@@ -121,6 +118,94 @@ class PCM(APSSMCleavageSitePredictor):
 
     def predict(self, peptides, **kwargs):
         return super(PCM, self).predict(peptides, **kwargs)
+
+
+class ProteoSMMConsecutive(APSSMCleavageSitePredictor):
+    """
+        Implements the ProteaSMM cleavage prediction method
+
+        Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
+        TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
+
+        This model represents the consecutive proteasom
+
+        The matrices are generated not using the preon-dataset since a reacent study has show that including those
+        worsened the results. See
+
+        Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
+        contribution of different prediction programs." Immunogenetics (2014): 1-9.
+
+
+        :input list(Peptide) peptides: list of peptides for which cleave probability prediction should be performed
+    """
+
+    __supported_length = frozenset([10])
+    __name = "proteosmm_c"
+    __cleavage_pos = 6
+    __threshold = 1.03283
+
+    @property
+    def threshold(self):
+        return self.__threshold
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    @property
+    def cleavagePos(self):
+        return self.__cleavage_pos
+
+    @property
+    def name(self):
+        return self.__name
+
+    def predict(self, peptides, **kwargs):
+        return super(ProteoSMMConsecutive, self).predict(peptides, **kwargs)
+
+
+class ProteoSMMImmuno(APSSMCleavageSitePredictor):
+    """
+        Implements the ProteaSMM cleavage prediction method
+
+        Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
+        TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
+
+        This model represents the immuno proteasom
+
+        The matrices are generated not using the preon-dataset since a reacent study has show that including those
+        worsened the results. See
+
+        Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
+        contribution of different prediction programs." Immunogenetics (2014): 1-9.
+
+
+        :input list(Peptide) peptides: list of peptides for which cleave probability prediction should be performed
+    """
+
+    __supported_length = frozenset([10])
+    __name = "proteosmm_i"
+    __cleavage_pos = 6
+    __threshold = 1.23437
+
+    @property
+    def threshold(self):
+        return self.__threshold
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    @property
+    def cleavagePos(self):
+        return self.__cleavage_pos
+
+    @property
+    def name(self):
+        return self.__name
+
+    def predict(self, peptides, **kwargs):
+        return super(ProteoSMMConsecutive, self).predict(peptides, **kwargs)
 
 
 class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
@@ -149,6 +234,9 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         :return:
         """
         raise NotImplementedError
+
+    def threshold(self):
+        return 0.5
 
     def predict(self, peptides,  **kwargs):
         """

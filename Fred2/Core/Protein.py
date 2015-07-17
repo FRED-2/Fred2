@@ -89,3 +89,12 @@ class Protein(MetadataLogger, Seq):
 
         return '\n\t'.join(lines) + '\n'
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __cmp__(self, other):
+        return cmp(str(self), str(other))
+
+    def __hash__(self):
+        return hash(str(self))
+

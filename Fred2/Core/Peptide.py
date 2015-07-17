@@ -39,6 +39,7 @@ class Peptide(MetadataLogger, Seq):
     def __init__(self, _seq, proteins=None, vars=None,  transcripts=None):
         """
         :param str _seq: sequence of the peptide in one letter amino acid code
+
         """
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, IUPAC.IUPACProtein)
@@ -86,6 +87,9 @@ class Peptide(MetadataLogger, Seq):
 
     def __eq__(self, other):
         return str(self) == str(other)
+
+    def __cmp__(self, other):
+        return cmp(str(self), str(other))
 
     def __hash__(self):
         return hash(str(self))

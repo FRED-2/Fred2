@@ -13,9 +13,12 @@ import itertools
 import pandas
 import os
 import warnings
+import subprocess
+
+from tempfile import NamedTemporaryFile
 
 from Fred2.Core.Allele import Allele
-from Fred2.Core.Base import AEpitopePrediction, ASVM
+from Fred2.Core.Base import AEpitopePrediction, ASVM, AExternal
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Data.UniTope_encodedAlleles import UniTope_encodedAlleles
 
@@ -24,6 +27,9 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
     """
         implements default prediction routine for SVM based epitope prediction tools
     """
+
+    def threshold(self, allele):
+        return 0.0
 
     def predict(self, peptides, alleles=None, **kwargs):
 
@@ -36,7 +42,7 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
-            allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
@@ -46,7 +52,7 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
             for a in allales_string.keys():
                 try:
-                    model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, a, length))
+                    model_path = os.path.abspath("/abi-projects/etk/Fred2/Fred2/Data/svms/%s/%s_%i"%(self.name, a, length))
                     model = svmlight.read_model(model_path)
                 except OSError:
                     warnings.warn("No model exists for peptides of length %i or allele %s."%(length, a.name))
@@ -74,10 +80,10 @@ class SVMHC(ASVMEpitopePrediction):
 
     """
     __name = "svmhc"
-    __alleles = ['A*02:01', 'A*02:01', 'A*11:01', 'A*11:01', 'A*24:02', 'B*15:01',
+    __alleles = frozenset(['A*02:01', 'A*02:01', 'A*11:01', 'A*11:01', 'A*24:02', 'B*15:01',
                  'B*15:01', 'B*18:01', 'B*18:01', 'B*27:05', 'B*35:01', 'B*37:01',
-                 'B*51:01', 'B*51:01', 'C*04:01']
-    __supported_length = [8, 9, 10]
+                 'B*51:01', 'B*51:01', 'C*04:01'])
+    __supported_length = frozenset([8, 9, 10])
 
     @property
     def name(self):
@@ -130,8 +136,8 @@ class UniTope(ASVMEpitopePrediction):
     """
 
     __name = "unitope"
-    __supported_length = [8, 9, 10]
-    __alleles = ['B*51:43', 'A*11:02', 'C*07:27', 'B*35:55', 'B*49:02', 'A*11:17',
+    __supported_length = frozenset([8, 9, 10])
+    __alleles = frozenset(['B*51:43', 'A*11:02', 'C*07:27', 'B*35:55', 'B*49:02', 'A*11:17',
                  'B*51:02', 'B*15:61', 'A*33:04', 'C*02:12', 'B*55:07', 'A*24:13',
                  'C*01:02', 'A*24:15', 'A*24:59', 'A*11:19', 'B*15:63', 'A*32:06',
                  'B*55:05', 'B*47:04', 'B*67:01', 'C*16:09', 'B*53:02', 'B*56:04',
@@ -355,7 +361,7 @@ class UniTope(ASVMEpitopePrediction):
                  'B*44:02', 'A*02:06', 'B*15:90', 'C*04:07', 'B*15:24', 'A*02:13',
                  'B*51:40', 'B*07:42', 'A*02:26', 'A*01:02', 'B*44:41', 'B*44:04',
                  'A*02:04', 'A*24:19', 'B*35:71', 'B*56:08', 'A*36:04', 'C*17:01',
-                 'A*24:35', 'B*07:40', 'B*40:19', 'B*44:17']
+                 'A*24:35', 'B*07:40', 'B*40:19', 'B*44:17'])
 
     @property
     def name(self):
@@ -417,11 +423,11 @@ class UniTope(ASVMEpitopePrediction):
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
-            allales_string ={conv_a:a.name for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
-        model_path = os.path.abspath("../Data/svms/%s/%s"%(self.name, self.name))
+        model_path = os.path.abspath("/abi-projects/etk/Fred2/Fred2/Data/svms/%s/%s"%(self.name, self.name))
         model = svmlight.read_model(model_path)
 
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -441,4 +447,185 @@ class UniTope(ASVMEpitopePrediction):
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
+        return df_result
+
+
+class MHCIIMulti(AEpitopePrediction, AExternal):
+    """
+        Implements MHCIIMulti
+    """
+
+    __name = "mhcIImulti"
+    __supported_length = frozenset([15])
+    __command = "MHCIILeveraging %s %s %s /abi-projects/etk/software/NicoTope/models  /abi-projects/etk/software/NicoTope/pockets.txt"
+    __supported_length = frozenset([15])
+    __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
+                 'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
+                 'DRB1*08:04:04', 'DRB1*04:59', 'DRB1*14:21', 'DRB1*04:54', 'DRB1*04:55', 'DRB1*04:56', 'DRB1*04:57',
+                 'DRB1*04:50', 'DRB1*04:51', 'DRB1*04:52', 'DRB1*04:53', 'DRB1*14:24', 'DRB1*14:25', 'DRB1*07:08',
+                 'DRB1*07:09', 'DRB1*13:29', 'DRB1*13:28', 'DRB1*13:25', 'DRB1*07:03', 'DRB1*13:27', 'DRB1*07:01',
+                 'DRB1*07:06', 'DRB1*07:07', 'DRB1*07:04', 'DRB1*07:05', 'DRB1*15:09', 'DRB1*01:02:04', 'DRB1*01:02:03',
+                 'DRB1*01:02:02', 'DRB1*01:02:01', 'DRB1*15:08', 'DRB1*03:37', 'DRB1*03:36', 'DRB1*03:35', 'DRB1*03:34',
+                 'DRB1*03:33', 'DRB1*03:32', 'DRB1*03:31', 'DRB1*03:30', 'DRB5*01:04', 'DRB5*01:05', 'DRB1*14:26',
+                 'DRB5*01:07', 'DRB5*01:01', 'DRB1*03:39', 'DRB1*03:38', 'DRB1*11:02:01', 'DRB1*11:02:02',
+                 'DRB3*01:01:02:02', 'DRB1*01:19', 'DRB1*01:18', 'DRB1*01:17', 'DRB1*01:16', 'DRB1*01:15', 'DRB1*01:14',
+                 'DRB1*01:13', 'DRB1*01:12', 'DRB1*01:11', 'DRB1*01:10', 'DRB3*02:17', 'DRB1*14:27', 'DRB1*11:51',
+                 'DRB1*11:12:01', 'DRB1*11:12:02', 'DRB1*14:59', 'DRB1*14:58', 'DRB1*14:51', 'DRB1*14:50', 'DRB1*14:53',
+                 'DRB1*14:52', 'DRB1*14:55', 'DRB1*14:54', 'DRB1*14:57', 'DRB1*14:56', 'DRB3*02:09', 'DRB3*02:08',
+                 'DRB3*02:03', 'DRB3*02:01', 'DRB3*02:07', 'DRB3*02:06', 'DRB3*02:05', 'DRB3*02:04', 'DRB1*09:01',
+                 'DRB1*09:02', 'DRB1*09:03', 'DRB1*09:04', 'DRB1*09:05', 'DRB1*09:06', 'DRB1*15:01:01', 'DRB1*15:01:03',
+                 'DRB1*15:01:02', 'DRB1*15:01:05', 'DRB1*15:01:04', 'DRB1*15:01:06', 'DRB1*08:32', 'DRB1*08:33',
+                 'DRB1*08:30', 'DRB1*08:31', 'DRB1*08:34', 'DRB1*04:18', 'DRB1*11:26', 'DRB1*11:25', 'DRB1*11:24',
+                 'DRB1*11:23', 'DRB1*11:22', 'DRB1*11:21', 'DRB1*11:20', 'DRB1*04:10', 'DRB1*04:11', 'DRB1*04:12',
+                 'DRB1*04:13', 'DRB1*04:14', 'DRB1*04:15', 'DRB1*11:29', 'DRB1*11:28', 'DRB3*02:10', 'DRB1*04:58',
+                 'DRB1*13:05:02', 'DRB1*13:05:01', 'DRB1*15:01', 'DRB1*15:03', 'DRB1*15:05', 'DRB1*15:04', 'DRB1*15:07',
+                 'DRB1*15:06', 'DRB1*04:01:03', 'DRB1*04:01:02', 'DRB1*04:01:01', 'DRB1*11:52', 'DRB1*11:53',
+                 'DRB1*11:50', 'DRB1*08:03:02', 'DRB1*11:56', 'DRB1*11:57', 'DRB1*11:55', 'DRB1*11:58', 'DRB1*11:59',
+                 'DRB1*13:82', 'DRB1*04:07:01', 'DRB1*04:07:03', 'DRB1*04:07:02', 'DRB1*13:81', 'DRB1*14:01:01',
+                 'DRB1*16:04', 'DRB1*12:13', 'DRB1*12:12', 'DRB1*12:11', 'DRB1*12:10', 'DRB1*03:02:01', 'DRB1*12:16',
+                 'DRB1*12:15', 'DRB1*03:02:02', 'DRB1*11:65:02', 'DRB1*11:65:01', 'DRB1*16:07', 'DRB1*13:58',
+                 'DRB1*13:59', 'DRB1*13:02:02', 'DRB1*13:02:03', 'DRB1*13:02:01', 'DRB1*11:08:02', 'DRB1*13:54',
+                 'DRB1*11:08:01', 'DRB1*03:08', 'DRB1*03:09', 'DRB1*03:06', 'DRB1*03:07', 'DRB1*03:04', 'DRB1*03:03',
+                 'DRB1*03:01', 'DRB1*14:15', 'DRB1*14:14', 'DRB1*04:05:04', 'DRB1*13:57', 'DRB1*14:11', 'DRB1*14:10',
+                 'DRB1*14:13', 'DRB1*14:12', 'DRB1*14:44:02', 'DRB1*14:44:01', 'DRB1*14:19', 'DRB1*14:18', 'DRB1*13:51',
+                 'DRB1*13:52', 'DRB1*12:14', 'DRB1*13:14:01', 'DRB1*13:14:02', 'DRB1*13:24', 'DRB1*13:26', 'DRB1*13:21',
+                 'DRB1*14:07:02', 'DRB1*13:20', 'DRB3*03:02', 'DRB3*03:03', 'DRB1*13:23', 'DRB1*13:22', 'DRB1*11:27:01',
+                 'DRB1*11:27:02', 'DRB1*14:05:01', 'DRB1*14:05:02', 'DRB1*14:05:03', 'DRB1*11:18', 'DRB1*15:17N',
+                 'DRB1*11:16', 'DRB1*11:17', 'DRB1*11:15', 'DRB1*11:13', 'DRB1*11:10', 'DRB1*04:43', 'DRB1*04:42',
+                 'DRB1*04:41', 'DRB1*04:40', 'DRB1*04:47', 'DRB1*04:46', 'DRB1*04:45', 'DRB1*04:44', 'DRB1*04:49',
+                 'DRB1*04:48', 'DRB1*10:02', 'DRB1*13:10', 'DRB1*13:11', 'DRB1*13:12', 'DRB1*13:13', 'DRB1*13:15',
+                 'DRB1*13:16', 'DRB1*13:17', 'DRB1*07:11', 'DRB1*13:19', 'DRB1*07:13', 'DRB1*07:12', 'DRB1*07:15',
+                 'DRB1*07:14', 'DRB4*01:03:01:01', 'DRB1*12:01:02', 'DRB1*16:01:02', 'DRB1*12:01:01', 'DRB1*16:01:01',
+                 'DRB5*01:13', 'DRB5*01:12', 'DRB5*01:11', 'DRB3*01:01:03', 'DRB3*01:01:04', 'DRB1*12:03:02',
+                 'DRB4*01:03:03', 'DRB4*01:03:02', 'DRB4*01:03:04', 'DRB1*03:05:01', 'DRB1*03:05:02', 'DRB1*13:80',
+                 'DRB1*14:16', 'DRB1*14:68', 'DRB1*14:69', 'DRB1*14:64', 'DRB1*14:65', 'DRB1*14:67', 'DRB1*14:60',
+                 'DRB1*14:61', 'DRB1*14:62', 'DRB1*14:63', 'DRB1*13:55', 'DRB5*01:06', 'DRB1*11:14:02', 'DRB1*11:14:01',
+                 'DRB1*13:56', 'DRB1*08:21', 'DRB1*08:20', 'DRB1*08:23', 'DRB1*08:22', 'DRB1*08:25', 'DRB1*08:24',
+                 'DRB1*08:27', 'DRB1*08:26', 'DRB1*08:29', 'DRB1*08:28', 'DRB5*01:03', 'DRB1*09:01:02', 'DRB1*09:01:03',
+                 'DRB5*01:09', 'DRB1*04:06:02', 'DRB1*04:09', 'DRB1*04:08', 'DRB1*04:05', 'DRB1*04:04', 'DRB1*04:02',
+                 'DRB1*04:01', 'DRB1*14:17', 'DRB3*01:01:02:01', 'DRB1*13:70', 'DRB1*11:41', 'DRB1*11:40', 'DRB1*11:43',
+                 'DRB1*11:42', 'DRB1*11:45', 'DRB1*11:44', 'DRB1*11:47', 'DRB1*11:46', 'DRB1*11:49', 'DRB1*11:48',
+                 'DRB1*04:70', 'DRB1*04:71', 'DRB1*04:03:04', 'DRB1*04:03:01', 'DRB1*04:03:03', 'DRB1*04:03:02',
+                 'DRB5*01:01:02', 'DRB5*01:01:01', 'DRB1*11:11:01', 'DRB1*11:11:02', 'DRB1*13:48', 'DRB1*13:43',
+                 'DRB1*13:42', 'DRB1*13:41', 'DRB1*13:40', 'DRB1*13:47', 'DRB1*13:46', 'DRB1*13:45', 'DRB1*13:44',
+                 'DRB1*13:53', 'DRB1*14:03:02', 'DRB1*14:03:01', 'DRB1*14:28', 'DRB1*14:29', 'DRB3*02:23', 'DRB3*02:22',
+                 'DRB1*03:19', 'DRB1*03:18', 'DRB1*03:15', 'DRB1*03:14', 'DRB1*03:17', 'DRB1*03:16', 'DRB1*03:11',
+                 'DRB1*03:10', 'DRB1*03:13', 'DRB1*03:12', 'DRB3*02:14', 'DRB1*16:03', 'DRB1*08:02:02', 'DRB1*08:02:03',
+                 'DRB1*08:02:01', 'DRB1*16:08', 'DRB1*16:09', 'DRB3*02:15', 'DRB1*13:65', 'DRB1*13:64', 'DRB1*15:02:04',
+                 'DRB1*15:02:01', 'DRB1*15:02:02', 'DRB1*15:02:03', 'DRB1*04:06:01', 'DRB5*01:02', 'DRB1*13:69',
+                 'DRB3*02:16', 'DRB1*13:68', 'DRB1*13:01:03', 'DRB1*13:01:02', 'DRB1*13:01:01', 'DRB1*11:09',
+                 'DRB1*11:05', 'DRB1*11:07', 'DRB1*11:01', 'DRB1*11:03', 'DRB1*04:36', 'DRB1*04:37', 'DRB1*04:34',
+                 'DRB1*04:35', 'DRB1*04:32', 'DRB1*04:33', 'DRB1*04:30', 'DRB1*04:31', 'DRB1*04:38', 'DRB1*04:39',
+                 'DRB3*02:11', 'DRB1*13:06', 'DRB1*13:04', 'DRB1*13:02', 'DRB1*13:01', 'DRB1*13:09', 'DRB1*13:08',
+                 'DRB3*02:12', 'DRB1*16:02:02', 'DRB1*16:02:01', 'DRB3*01:06', 'DRB3*01:07', 'DRB3*01:04', 'DRB3*01:05',
+                 'DRB3*01:02', 'DRB3*01:03', 'DRB3*01:01', 'DRB3*02:13', 'DRB3*01:08', 'DRB3*01:09', 'DRB1*14:07:01',
+                 'DRB1*13:72', 'DRB1*13:73', 'DRB1*11:04:04', 'DRB1*13:71', 'DRB1*11:04:02', 'DRB1*11:04:03',
+                 'DRB1*13:74', 'DRB1*11:04:01', 'DRB1*13:78', 'DRB1*13:79', 'DRB1*14:39', 'DRB1*13:07:01',
+                 'DRB1*13:07:02', 'DRB1*07:01:01', 'DRB1*07:01:02', 'DRB1*04:72', 'DRB1*14:73', 'DRB1*14:72',
+                 'DRB1*14:71', 'DRB1*14:70', 'DRB1*14:75', 'DRB1*14:74', 'DRB1*12:02:02', 'DRB1*12:02:01',
+                 'DRB1*11:01:05', 'DRB1*11:01:04', 'DRB1*11:01:07', 'DRB1*11:01:06', 'DRB1*11:01:01', 'DRB1*11:01:03',
+                 'DRB1*11:01:02', 'DRB1*04:05:05', 'DRB1*08:14', 'DRB1*08:15', 'DRB1*08:16', 'DRB1*08:17', 'DRB1*08:10',
+                 'DRB1*08:11', 'DRB1*08:12', 'DRB1*08:13', 'DRB1*04:05:03', 'DRB1*14:01:02', 'DRB1*14:01:03',
+                 'DRB1*08:18', 'DRB1*08:19', 'DRB1*04:05:02', 'DRB1*04:05:01', 'DRB1*11:19:01', 'DRB1*11:19:02',
+                 'DRB1*14:38', 'DRB1*14:37', 'DRB1*14:36', 'DRB3*02:18', 'DRB3*03:01:02', 'DRB3*03:01:01', 'DRB1*15:23',
+                 'DRB1*15:22', 'DRB1*15:21', 'DRB1*15:20', 'DRB1*15:27', 'DRB1*15:26', 'DRB1*15:25', 'DRB1*15:24',
+                 'DRB4*01:01:01:01', 'DRB1*04:69', 'DRB1*04:68', 'DRB1*04:61', 'DRB1*04:60', 'DRB1*04:63', 'DRB1*04:62',
+                 'DRB1*04:65', 'DRB1*04:64', 'DRB1*04:67', 'DRB1*04:66', 'DRB1*13:38', 'DRB1*13:39', 'DRB1*13:36',
+                 'DRB1*13:37', 'DRB1*13:34', 'DRB1*13:35', 'DRB1*13:32', 'DRB1*13:33', 'DRB1*13:30', 'DRB1*13:31',
+                 'DRB1*08:01:03', 'DRB1*08:01:02', 'DRB1*08:01:01', 'DRB1*13:50:01', 'DRB4*01:05', 'DRB1*03:01:01',
+                 'DRB1*03:01:02', 'DRB1*03:01:03', 'DRB1*03:01:04', 'DRB1*03:01:05', 'DRB1*03:01:06', 'DRB1*13:50:02',
+                 'DRB1*03:20', 'DRB1*03:21', 'DRB1*03:22', 'DRB1*03:23', 'DRB1*03:24', 'DRB1*03:25', 'DRB1*03:26',
+                 'DRB1*03:27', 'DRB1*03:28', 'DRB1*03:29', 'DRB1*14:35', 'DRB1*14:34', 'DRB1*14:33', 'DRB3*02:19',
+                 'DRB1*14:31', 'DRB1*14:30', 'DRB1*01:08', 'DRB1*01:09', 'DRB4*01:06', 'DRB1*04:73', 'DRB1*01:01',
+                 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07', 'DRB1*16:05:02', 'DRB4*01:04',
+                 'DRB4*01:07', 'DRB1*16:05:01', 'DRB4*01:01', 'DRB4*01:02', 'DRB1*16:12', 'DRB1*16:11', 'DRB1*16:10',
+                 'DRB1*14:48', 'DRB1*14:49', 'DRB1*01:01:02', 'DRB1*01:01:03', 'DRB1*01:01:01', 'DRB1*14:42',
+                 'DRB1*14:43', 'DRB1*14:40', 'DRB1*14:41', 'DRB1*14:46', 'DRB1*14:47', 'DRB1*14:45', 'DRB1*11:54:02',
+                 'DRB1*11:54:01', 'DRB1*04:19', 'DRB1*13:03:01', 'DRB1*11:06:01', 'DRB1*11:06:02', 'DRB1*13:03:02',
+                 'DRB1*13:76', 'DRB1*13:77', 'DRB1*11:30', 'DRB1*11:31', 'DRB1*11:32', 'DRB1*11:33', 'DRB1*11:34',
+                 'DRB1*11:35', 'DRB1*11:36', 'DRB1*11:37', 'DRB1*11:38', 'DRB1*11:39', 'DRB1*13:75', 'DRB1*13:49',
+                 'DRB1*04:25', 'DRB1*04:24', 'DRB1*04:27', 'DRB1*04:26', 'DRB1*04:21', 'DRB1*04:20', 'DRB1*04:23',
+                 'DRB1*04:22', 'DRB1*04:29', 'DRB1*04:28', 'DRB1*14:32:02', 'DRB1*14:32:01', 'DRB1*04:16', 'DRB1*04:17',
+                 'DRB1*15:12', 'DRB1*15:13', 'DRB1*15:10', 'DRB1*15:11', 'DRB1*15:16', 'DRB1*15:14', 'DRB1*15:15',
+                 'DRB1*15:18', 'DRB1*15:19', 'DRB3*02:02:04', 'DRB3*02:02:05', 'DRB3*02:02:02', 'DRB3*02:02:03',
+                 'DRB3*02:02:01', 'DRB3*01:11', 'DRB3*01:10', 'DRB5*02:05', 'DRB5*02:04', 'DRB5*02:03', 'DRB5*02:02',
+                 'DRB1*13:61', 'DRB1*13:60', 'DRB1*13:63', 'DRB1*13:62', 'DRB1*12:08', 'DRB1*12:09', 'DRB1*13:67',
+                 'DRB1*13:66', 'DRB1*12:04', 'DRB1*12:05', 'DRB1*12:06', 'DRB1*12:07', 'DRB1*12:01', 'DRB5*01:08N',
+                 'DRB1*14:06', 'DRB1*13:18', 'DRB1*14:04', 'DRB1*14:02', 'DRB1*14:08', 'DRB1*14:09', 'DRB1*14:23:01',
+                 'DRB1*14:23:02', 'DRB1*08:09', 'DRB1*08:08', 'DRB1*10:01:01', 'DRB1*10:01:02', 'DRB1*08:02',
+                 'DRB1*08:01', 'DRB1*08:07', 'DRB1*08:06', 'DRB1*08:05', 'DRB1*14:20'])
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    @property
+    def command(self):
+        return self.__command
+
+    def parse_external_result(self, _file):
+        res = []
+        for l in _file:
+            if l.strip() == "":
+                continue
+            res.append(float(l.strip()))
+        return res
+
+    def threshold(self, allele):
+        return 0
+
+    def convert_alleles(self, alleles):
+        return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def predict(self, peptides, alleles=None, **kwargs):
+
+        if isinstance(peptides, collections.Iterable):
+            pep_seqs = {str(p):p for p in peptides}
+        else:
+            pep_seqs = {str(peptides):peptides}
+
+        if alleles is None:
+            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+        else:
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+
+        tmp_file = NamedTemporaryFile(delete=False)
+        pep = [ p for p in pep_seqs.keys() if len(p) >= max(self.__supported_length)]
+        if not pep:
+            raise ValueError("No epitopes with length >= %i"%max(self.__supported_length))
+        
+        tmp_file.write("\n".join(pep_seqs.keys()))
+        tmp_file.close()
+        tmp_out = NamedTemporaryFile(delete=False)
+
+        results = {}
+        for a in allales_string.iterkeys():
+
+            #cmd = self.command%(data_file, a, prediction_file, self._modelpath) #modelpath?
+            print self.command%(tmp_file.name, a, tmp_out.name)
+            r = subprocess.call(self.command%(tmp_file.name, a, tmp_out.name), shell=True)
+            print "returnvalue ", type(r)
+
+            if r == -6:
+                warnings.warn("No model exists for allele %s."%str(allales_string[a]))
+                continue
+
+            elif r != 0:
+                warnings.warn("An unknown error occurred for method %s."%self.name)
+                continue
+
+            results[allales_string[a]] = {p:s for p, s in itertools.izip(pep_seqs.values(), self.parse_external_result(tmp_out))}
+
+        df_result = EpitopePredictionResult.from_dict(results)
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
+                                                        names=['Seq','Method'])
         return df_result

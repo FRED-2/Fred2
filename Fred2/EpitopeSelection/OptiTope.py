@@ -25,9 +25,8 @@ from __future__ import division
 import itertools as itr
 import copy
 
-import coopr.environ
-from coopr.pyomo import *
-from coopr.opt import SolverFactory
+from pyomo.environ import *
+from pyomo.opt import SolverFactory
 
 from Fred2.Core.Result import EpitopePredictionResult
 
@@ -43,7 +42,7 @@ class OptiTope(object):
             :param solver (String): the solver to be used (default glpsol)
     """
 
-    def __init__(self, _results, _alleles, _threshold, k=10, solver="glpsol", verbosity=0):
+    def __init__(self, _results,  threshold=None, k=10, solver="glpsol", verbosity=0):
         """
             Constructor
 
@@ -54,7 +53,8 @@ class OptiTope(object):
         if not isinstance(_results, EpitopePredictionResult):
             raise ValueError("first input parameter is not of type EpitopePredictionResult")
 
-        _alleles = copy.deepcopy(_alleles)
+        _alleles = copy.deepcopy(_results.columns.values.tolist())
+
         print map(lambda x: x.locus, _alleles)
         #test if allele prob is set, if not set allele prob uniform
         #if only partly set infer missing values (assuming uniformity of missing value)
@@ -98,7 +98,7 @@ class OptiTope(object):
         self.__alleleProb = _alleles
         self.__k = k
         self.__result = None
-        self.__thresh = _threshold
+        self.__thresh = {} if threshold is None else threshold
 
         # Variable, Set and Parameter preparation
         alleles_I = {}
@@ -112,19 +112,19 @@ class OptiTope(object):
         #and filter for binding epitopes
 
         res_df = _results.xs(_results.index.values[0][1], level="Method")
-        res_df = res_df[[a.name for a in _alleles]]
-        res_df = res_df[res_df.apply(lambda x: any(x[a.name] > self.__thresh[a.name] for a in self.__alleleProb), axis=1)]
+        res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, -float("inf"))
+                                                   for a in res_df.columns), axis=1)]
 
         for tup in res_df.itertuples():
             p = tup[0]
             seq = str(p)
             peps[seq] = p
             for a, s in itr.izip(res_df.columns, tup[1:]):
-                if s > self.__thresh[a]:
-                    alleles_I.setdefault(a, set()).add(seq)
-                imm[seq, a] = s
+                if s > self.__thresh.get(a.name, -float("inf")):
+                    alleles_I.setdefault(a.name, set()).add(seq)
+                imm[seq, a.name] = s
 
-            prots = set(p.transcript_id for p in p.get_all_proteins())
+            prots = set(pr for pr in p.get_all_proteins())
             cons[seq] = len(prots)
             for prot in prots:
                 variations.append(prot.gene_id)
@@ -155,7 +155,7 @@ class OptiTope(object):
         model.k = Param(initialize=self.__k, within=PositiveIntegers, mutable=True)
         model.p = Param(model.A, initialize=lambda model, a: probs[a])
 
-        model.c = Param(model.E, initialize=lambda model, e: cons[e])
+        model.c = Param(model.E, initialize=lambda model, e: cons[e],mutable=True)
 
         #threshold parameters
         model.i = Param(model.E, model.A, initialize=lambda model, e, a: imm[e, a])
@@ -166,6 +166,7 @@ class OptiTope(object):
         # Variable Definition
         model.x = Var(model.E, within=Binary)
         model.y = Var(model.A, within=Binary)
+        model.z = Var(model.Q, within=Binary)
 
         # Objective definition
         model.Obj = Objective(
@@ -180,33 +181,39 @@ class OptiTope(object):
         model.IsAlleleCovConst = Constraint(model.A,
                                             rule=lambda model, a: sum(model.x[e] for e in model.A_I[a]) >= model.y[a])
         model.MinAlleleCovConst = Constraint(rule=lambda model: sum(model.y[a] for a in model.A) >= model.t_allele)
-        model.AntigenCovConst = Constraint(model.Q,
-                                           rule=lambda model, q: sum(model.x[e] for e in model.E_var[q]) >= model.t_var)
+        #model.AntigenCovConst = Constraint(model.Q,
+        #                                   rule=lambda model, q: sum(model.x[e] for e in model.E_var[q]) >= model.t_var)
+        model.IsAntigenCovConst = Constraint(model.Q,
+                                             rule=lambda model, q: sum(model.x[e] for e in model.E_var[q]) >= model.z[q])
+        model.MinAntigenCovConst = Constraint(rule=lambda model: sum(model.z[q] for q in model.Q) >= model.t_var)
         model.EpitopeConsConst = Constraint(model.E,
                                             rule=lambda model, e: (1 - model.c[e]) * model.x[e] <= 1 - model.t_c)
 
         #generate instance
-        self.__instance = model.create()
+        self.instance = model.create()
         if self.__verbosity > 0:
             print "MODEL INSTANCE"
-            self.__instance.pprint()
+            self.instance.pprint()
 
         #deactivate additional constraints and variables
         #params
-        self.__instance.c.deactivate()
-        self.__instance.t_c.deactivate()
-        self.__instance.t_allele.deactivate()
-        self.__instance.t_var.deactivate()
+        self.instance.c.deactivate()
+        self.instance.t_c.deactivate()
+        self.instance.t_allele.deactivate()
+        self.instance.t_var.deactivate()
 
         #constraints
-        self.__instance.IsAlleleCovConst.deactivate()
-        self.__instance.MinAlleleCovConst.deactivate()
-        self.__instance.AntigenCovConst.deactivate()
-        self.__instance.EpitopeConsConst.deactivate()
+        #self.instance.IsAlleleCovConst.deactivate()
+        self.instance.MinAlleleCovConst.deactivate()
+        #self.instance.AntigenCovConst.deactivate()
+        #self.instance.IsAntigenCovConst.deactivate()
+        self.instance.MinAntigenCovConst.deactivate()
+        self.instance.EpitopeConsConst.deactivate()
 
         #variables
-        self.__instance.y.deactivate()
-
+        self.instance.y.deactivate()
+        self.instance.z.deactivate()
+        
     def set_k(self, k):
         """
             sets the number of epitopes to select
@@ -214,13 +221,13 @@ class OptiTope(object):
             @type k: int
             @exception OptiTopeException: if the input variable is not in the same domain as the parameter
         """
-        tmp = self.__instance.k.value
+        tmp = self.instance.k.value
         try:
-            getattr(self.__instance, str(self.__instance.k)).set_value(int(k))
+            getattr(self.instance, str(self.instance.k)).set_value(int(k))
             self.__changed = True
         except:
             self.__changed = False
-            getattr(self.__instance, str(self.__instance.k)).set_value(int(tmp))
+            getattr(self.instance, str(self.instance.k)).set_value(int(tmp))
             raise Exception('set_k', 'An error has occurred during setting parameter k. Please check if k is integer.')
 
     def activate_allele_coverage_const(self, minCoverage):
@@ -231,21 +238,21 @@ class OptiTope(object):
             @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
         """
         # parameter
-        mc = self.__instance.t_allele.value
+        mc = self.instance.t_allele.value
 
         try:
-            self.__instance.t_allele.activate()
-            getattr(self.__instance, str(self.__instance.t_allele)).set_value(int(len(self.__alleleProb) * minCoverage))
+            self.instance.t_allele.activate()
+            getattr(self.instance, str(self.instance.t_allele)).set_value(int(len(self.__alleleProb) * minCoverage))
             #variables
-            self.__instance.y.activate()
+            self.instance.y.activate()
 
             #constraints
-            self.__instance.IsAlleleCovConst.activate()
-            self.__instance.MinAlleleCovConst.activate()
+            self.instance.IsAlleleCovConst.activate()
+            self.instance.MinAlleleCovConst.activate()
             self.__changed = True
         except:
-            getattr(self.__instance, str(self.__instance.t_allele)).set_value(mc)
-            self.__instance.t_allele.deactivate()
+            getattr(self.instance, str(self.instance.t_allele)).set_value(mc)
+            self.instance.t_allele.deactivate()
             self.__changed = False
             raise Exception(
                 'activate_allele_coverage_const","An error occurred during activation of of the allele coverage constraint. ' +
@@ -258,14 +265,14 @@ class OptiTope(object):
 
         # parameter
         self.__changed = True
-        self.__instance.t_allele.deactivate()
+        self.instance.t_allele.deactivate()
 
         #variables
-        self.__instance.y.deactivate()
+        self.instance.y.deactivate()
 
         #constraints
-        self.__instance.IsAlleleCovConst.deactivate()
-        self.__instance.MinAlleleCovConst.deactivate()
+        self.instance.IsAlleleCovConst.deactivate()
+        self.instance.MinAlleleCovConst.deactivate()
 
     def activate_antigen_coverage_const(self, t_var):
         """
@@ -275,16 +282,20 @@ class OptiTope(object):
             @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
 
         """
-        tmp = self.__instance.t_var.value
+        tmp = self.instance.t_var.value
         try:
-            self.__instance.t_var.activate()
-            getattr(self.__instance, str(self.__instance.t_var)).set_value(int(t_var))
-            self.__instance.AntigenCovConst.activate()
+            self.instance.t_var.activate()
+            self.instance.z.activate()
+            getattr(self.instance, str(self.instance.t_var)).set_value(int(len(self.instance.Q)*t_var))
+            self.instance.IsAntigenCovConst.activate()
+            self.instance.MinAntigenCovConst.activate()
             self.__changed = True
         except:
-            self.__instance.t_var.deactivate()
-            getattr(self.__instance, str(self.__instance.t_var)).set_value(int(tmp))
-            self.__instance.AntigenCovConst.activate()
+            self.instance.t_var.deactivate()
+            self.instance.z.deactivate()
+            getattr(self.instance, str(self.instance.t_var)).set_value(int(tmp))
+            self.instance.IsAntigenCovConst.deactivate()
+            self.instance.MinAntigenCovConst.deactivate()
             self.__changed = False
             raise Exception("activate_antigen_coverage_const",
                             "An error has occurred during activation of the coverage constraint. Please make sure your input is an integer.")
@@ -294,14 +305,18 @@ class OptiTope(object):
             deactivates the variation coverage constraint
         """
         self.__changed = True
-        self.__instance.t_var.deactivate()
-        self.__instance.AntigenCovConst.deactivate()
+        self.instance.z.activate()
+        self.instance.t_var.deactivate()
+        self.instance.IsAntigenCovConst.deactivate()
+        self.instance.MinAntigenCovConst.deactivate()
 
-    def activate_epitope_conservation_const(self, t_c):
+    def activate_epitope_conservation_const(self, t_c, conservation=None):
         """
             activates the epitope conservation constraint
             @param t_c: the percentage of conservation an epitope has to have.
             @type t_c: float [0.0,1.0]
+            :param:dict(Peptide,float) conservation: A dict with key=Peptide specifieying a different conservation score
+                                                    for each peptide
             @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
         """
         if t_c < 0 or t_c > 1:
@@ -309,19 +324,26 @@ class OptiTope(object):
                             "The conservation threshold is out of its numerical bound. It has to be between 0.0 and 1.0.")
 
         self.__changed = True
-        self.__instance.c.activate()
-        self.__instance.t_c.activate()
-        getattr(self.__instance, str(self.__instance.t_c)).set_value(float(t_c))
-        self.__instance.EpitopeConsConst.activate()
+        self.instance.c.activate()
+        self.instance.t_c.activate()
+        getattr(self.instance, str(self.instance.t_c)).set_value(float(t_c))
+        if conservation is not None:
+            for e in self.instance.E:
+                if e in conservation:
+                    getattr(self.instance, str(self.instance.c))[e] = conservation[e]
+                else:
+                    getattr(self.instance, str(self.instance.c))[e] = 1.0
+
+        self.instance.EpitopeConsConst.activate()
 
     def deactivate_epitope_conservation_const(self):
         """
             deactivates epitope conservation constraint
         """
         self.__changed = True
-        self.__instance.c.deactivate()
-        self.__instance.t_c.deactivate()
-        self.__instance.EpitopeConsConst.deactivate()
+        self.instance.c.deactivate()
+        self.instance.t_c.deactivate()
+        self.instance.EpitopeConsConst.deactivate()
 
     def solve(self):
         """
@@ -333,20 +355,20 @@ class OptiTope(object):
         """
         if self.__changed:
             try:
-                self.__instance.x.reset()
-                self.__instance.y.reset()
-                self.__instance.preprocess()
+                self.instance.x.reset()
+                self.instance.y.reset()
+                self.instance.preprocess()
 
-                res = self.__solver.solve(self.__instance)
-                self.__instance.load(res)
+                res = self.__solver.solve(self.instance)
+                self.instance.load(res)
                 if self.__verbosity > 0:
                     res.write(num=1)
 
                 if str(res.Solution.status) != 'optimal':
                     print "Could not solve problem - " + str(res.Solution.status) + ". Please check your settings"
-                    sys.exit()
+                    sys.exit(-1)
 
-                self.__result = [self.__peptideSet[x] for x in self.__instance.x if self.__instance.x[x].value == 1.0]
+                self.__result = [self.__peptideSet[x] for x in self.instance.x if self.instance.x[x].value == 1.0]
                 #self.__result.log_metadata("obj", res.Solution.Objective.Value)
 
                # DEPRECATED CODE ... Dont know how to give additional information to user
@@ -356,7 +378,8 @@ class OptiTope(object):
 
                 self.__changed = False
                 return self.__result
-            except:
+            except Exception as e:
+                print e
                 raise Exception("solve",
                                 "An Error has occurred during solving. Please check your settings and if the solver is registered in PATH environment variable.")
         else:

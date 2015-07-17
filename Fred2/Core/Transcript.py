@@ -104,3 +104,11 @@ is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
         gene_id = self.gene_id
         return Protein(prot_seq, gene_id, self.transcript_id, self, new_vars)
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __cmp__(self, other):
+        return cmp(str(self), str(other))
+
+    def __hash__(self):
+        return hash(str(self))
