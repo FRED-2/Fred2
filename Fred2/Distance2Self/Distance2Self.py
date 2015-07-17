@@ -26,7 +26,7 @@ class Distance2Self(object):
     """
 
 
-    def __init__(self, _matrix = DistanceMatrix(DistanceMatrices.BLOSUM45_distances), trie=None):
+    def __init__(self, _matrix, trie=None):
 
         self.__matrix = _matrix
         self.__trie = trie

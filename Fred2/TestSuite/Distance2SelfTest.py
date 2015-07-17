@@ -16,11 +16,11 @@ class Distance2SelfTest(unittest.TestCase):
 
     def setUp(self):
         self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
-        self.testFasta = open("../testSequences.fasta", 'r')
+        self.testFasta = "testSequences.fasta"
 
     def test_init_matrices(self):
-        blosum45 = DistanceMatrix(DistanceMatrices.BLOSUM45_distances)
-        blosum50 = DistanceMatrix(DistanceMatrices.BLOSUM50_distances)
+        blosum45 = DistanceMatrix(DistanceMatrices.BLOSUM45_distances, True)
+        blosum50 = DistanceMatrix(DistanceMatrices.BLOSUM50_distances, True)
         blosum90 = DistanceMatrix(DistanceMatrices.BLOSUM90_distances)
 
         print blosum45
@@ -28,20 +28,23 @@ class Distance2SelfTest(unittest.TestCase):
         print blosum90
 
     def test_init(self):
-        d2s = Distance2Self()
+        blosum90 = DistanceMatrix(DistanceMatrices.BLOSUM90_distances)
+        d2s = Distance2Self(blosum90)
 
     def test_trie_generation(self):
-        d2s = Distance2Self()
+        blosum90 = DistanceMatrix(DistanceMatrices.BLOSUM90_distances)
+        d2s = Distance2Self(blosum90)
         d2s.generate_trie(self.testFasta)
 
     def test_distance_computation(self):
-        d2s=Distance2Self()
+        blosum90 = DistanceMatrix(DistanceMatrices.BLOSUM90_distances)
+        d2s=Distance2Self(blosum90)
         d2s.generate_trie(self.testFasta)
         result = d2s.calculate_distances(self.peptides, n=20)
         print result
 
-        self.assertTrue(len(result.columns) == 22)
-        self.assertTrue(len(result.index) == 2)
+        self.assertTrue(len(result.columns) == 4)
+        self.assertTrue(len(result.index) == 20)
 
 
 if __name__ == '__main__':

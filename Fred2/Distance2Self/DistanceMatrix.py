@@ -1,19 +1,25 @@
 
 __author__ = 'mohr'
 
-import time
+import datetime
 import os
 from collections import OrderedDict
 
 
 class DistanceMatrix(object):
 
-    def __init__(self, data):
+    def __init__(self, data, saveMatrixFile=False):
 
+        self.__saveMatrixFile = saveMatrixFile
         self.__matrix = data
         self.__pathToMatrixFile = None
         assert isinstance(data, OrderedDict), 'DistanceMatrix object has to be initiated with dictionary.'
         self.to_file()
+
+    def __del__(self):
+
+        if not self.__saveMatrixFile:
+            os.remove(self.__pathToMatrixFile)
 
     def __str__(self):
 
@@ -21,27 +27,27 @@ class DistanceMatrix(object):
         repr += '\t'.join(self.__matrix.keys())
         repr += '\n'
         for k in self.__matrix.keys():
-            lineStr = '%s ' % k
+            lineStr = '%s\t' % k
             for kk in self.__matrix[k].keys():
-                lineStr += '%s ' % self.__matrix[k][kk]
+                lineStr += '%s\t' % self.__matrix[k][kk]
 
             repr += '%s\n' % lineStr
         return repr
 
     @property
     def path_to_matrix_file(self):
-
         return self.__pathToMatrixFile
 
     def to_file(self):
 
-        timestr = time.strftime("%Y%m%d-%H%M%S")
+        timestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S.%f")
         pathToMatrix = os.path.abspath("../Data/tmp/%s.mat"% timestr)
+
         with open(pathToMatrix,'w') as newMatrixFile:
             for k in self.__matrix.keys():
-                lineStr = '%s\t' % k
+                lineStr = '%s ' % k
                 for kk in self.__matrix[k].keys():
-                    lineStr += '%s\t' % self.__matrix[k][kk]
+                    lineStr += '%s ' % self.__matrix[k][kk]
                 newMatrixFile.write(lineStr + '\n')
         self.__pathToMatrixFile = pathToMatrix
 
