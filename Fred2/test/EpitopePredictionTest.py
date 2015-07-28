@@ -29,8 +29,10 @@ class TestCaseEpitopePrediction(unittest.TestCase):
         self.mhcII = [Allele("HLA-DRB1*07:01"), Allele("HLA-DRB1*15:01")]
 
 
+    def test_syf(self):
+        print EpitopePredictorFactory("Syfpeithi").predict(self.peptides_mhcI,self.mhcI)
 
-    def test_multiple_peptide_input_mhcI(self):
+    def est_multiple_peptide_input_mhcI(self):
 
             for m in EpitopePredictorFactory.available_methods():
 
@@ -40,7 +42,7 @@ class TestCaseEpitopePrediction(unittest.TestCase):
 
 
 
-    def test_single_peptide_input_mhcI(self):
+    def est_single_peptide_input_mhcI(self):
 
             for m in EpitopePredictorFactory.available_methods():
                 model = EpitopePredictorFactory(m)
@@ -48,7 +50,7 @@ class TestCaseEpitopePrediction(unittest.TestCase):
                     res = model.predict(self.peptides_mhcI[0],alleles=self.mhcI[0])
 
 
-    def test_multiple_peptide_input_mhcII(self):
+    def est_multiple_peptide_input_mhcII(self):
 
             for m in EpitopePredictorFactory.available_methods():
                 model = EpitopePredictorFactory(m)

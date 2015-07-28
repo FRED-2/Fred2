@@ -56,7 +56,7 @@ YFVIFFVAA""".split()]
         r =opt.solve()
         self.assertTrue(len(set(str(p) for p in r) - set(["GPTPLLYRL", "QYLAGLSTL", "ALYDVVSTL"])) == 0 )
 
-     def test_allele_cov_constraint(self):
+    def test_allele_cov_constraint(self):
          """
          tests the allele converage constraints
 
@@ -81,7 +81,7 @@ YFVIFFVAA""".split()]
 
          self.assertTrue(len(set(str(p) for p in r) - set(["ALYDVVSTL", "KLLPRLPGV", "GPTPLLYRL"])) == 0 )
 
-     def test_epitope_conservation_constraint(self):
+    def test_epitope_conservation_constraint(self):
          import random
          self.result = EpitopePredictorFactory("BIMAS").predict(self.peptides, self.alleles)
          conservation = {}

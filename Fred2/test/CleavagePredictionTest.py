@@ -10,7 +10,7 @@ from Fred2.CleavagePrediction import CleavageSitePredictorFactory, CleavageFragm
 class PSSMCleavagePredictonTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.seqs = [Peptide("SYFPEISYFP"), Protein("IHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYS","ID-01","FOXP3")]
+        self.seqs = [Peptide("SYFPEISYFP"), Protein("IHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYS", "ID-01", "FOXP3")]
         self.fragments= [Peptide("FSYFPEITHIR"), Peptide("FIHTIEPFYSR")]
 
     def test_peptide_cleavage_prediction_mixed_input(self):

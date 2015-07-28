@@ -17,8 +17,7 @@ from Fred2.Core.Generator import generate_peptides_from_protein, generate_transc
 class TestProteinClass(unittest.TestCase):
     def setUp(self):
         # generate a Protein to test it
-        self.single_protein = Protein("ASDERWQTGHKILPMNVFCY", 'gene 1', 
-                                      'someID')
+        self.single_protein = Protein("ASDERWQTGHKILPMNVFCY", 'gene 1', 'someID')
 
         self.prot_set = list()
         self.prot_set.append(Protein("IIIVRC", 'gene 1', 'set entry 1'))
