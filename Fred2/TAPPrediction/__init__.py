@@ -10,6 +10,11 @@ from Fred2.Core.Base import ATAPPrediction
 from Fred2.TAPPrediction.SVM import *
 from Fred2.TAPPrediction.PSSM import *
 
+try:
+    from fred_plugin import *
+except ImportError:
+    pass
+
 
 class TAPPredictorFactory(object):
     class __metaclass__(type):
@@ -23,10 +28,6 @@ class TAPPredictorFactory(object):
             If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
             inherit from AEpitopePrediction. That's it nothing more.
             '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
 
             try:
                 return ATAPPrediction.registry[_predictor](*args)
@@ -41,4 +42,5 @@ class TAPPredictorFactory(object):
 
         :return: list of epitope predictors represented as string
         """
-        return [k for k in ATAPPrediction.registry.iterkeys() if k not in ["ATAPPrediction","APSSMTAPPrediction", "ASVMTAPPrediction"]]
+        return sorted([k for k in ATAPPrediction.registry.iterkeys()
+                       if k not in ["ATAPPrediction","APSSMTAPPrediction", "ASVMTAPPrediction"]])
