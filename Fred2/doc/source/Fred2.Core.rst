@@ -34,10 +34,10 @@ Fred2.Core.Protein
 .. automodule:: Fred2.Core.Protein
     :members:
 
-Fred2.Core.Result
+Fred2.Core.AResult
 -----------------
 
-.. automodule:: Fred2.Core.Result
+.. automodule:: Fred2.Core.AResult
     :members:
 
 Fred2.Core.Transcript
