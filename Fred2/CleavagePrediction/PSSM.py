@@ -38,7 +38,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
         :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
         :param kwargs: optional parameter (not used yet)
-        :return: Returns a Result object with the prediction results
+        :return: Returns a AResult object with the prediction results
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
@@ -132,7 +132,7 @@ class PCM(APSSMCleavageSitePredictor):
         return super(PCM, self).predict(peptides, **kwargs)
 
 
-class ProteoSMMConsecutive(APSSMCleavageSitePredictor):
+class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
     """
         Implements the ProteaSMM cleavage prediction method
 
@@ -152,7 +152,7 @@ class ProteoSMMConsecutive(APSSMCleavageSitePredictor):
     """
 
     __supported_length = frozenset([10])
-    __name = "proteosmm_c"
+    __name = "proteasmm_c"
     __cleavage_pos = 6
 
 
@@ -169,10 +169,10 @@ class ProteoSMMConsecutive(APSSMCleavageSitePredictor):
         return self.__name
 
     def predict(self, peptides, **kwargs):
-        return super(ProteoSMMConsecutive, self).predict(peptides, **kwargs)
+        return super(ProteaSMMConsecutive, self).predict(peptides, **kwargs)
 
 
-class ProteoSMMImmuno(APSSMCleavageSitePredictor):
+class ProteaSMMImmuno(APSSMCleavageSitePredictor):
     """
         Implements the ProteaSMM cleavage prediction method
 
@@ -192,7 +192,7 @@ class ProteoSMMImmuno(APSSMCleavageSitePredictor):
     """
 
     __supported_length = frozenset([10])
-    __name = "proteosmm_i"
+    __name = "proteasmm_i"
     __cleavage_pos = 6
 
 
@@ -209,7 +209,7 @@ class ProteoSMMImmuno(APSSMCleavageSitePredictor):
         return self.__name
 
     def predict(self, peptides, **kwargs):
-        return super(ProteoSMMImmuno, self).predict(peptides, **kwargs)
+        return super(ProteaSMMImmuno, self).predict(peptides, **kwargs)
 
 
 class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
@@ -243,7 +243,7 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         """
         Takes peptides plus their trailing C and N-terminal residues to predict
         the probability that this 9mer was produced by proteasomal cleavage. It returns the score and
-        the peptide sequence in a Result object. Row-IDs are the peitopes column is the prediction score.
+        the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
 
         :param _aa_seq:
         :param kwargs:

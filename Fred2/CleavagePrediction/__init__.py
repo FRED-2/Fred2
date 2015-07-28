@@ -13,6 +13,11 @@ from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *
 from Fred2.CleavagePrediction.ANN import *
 
+try:
+    from fred_plugin import *
+except ImportError:
+    pass
+
 
 class CleavageSitePredictorFactory(object):
     class __metaclass__(type):
@@ -26,10 +31,6 @@ class CleavageSitePredictorFactory(object):
             If a third person wants to write a new Cleavage Site Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
             '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
 
             try:
                 return ACleavageSitePrediction.registry[_predictor](*args)
@@ -44,7 +45,8 @@ class CleavageSitePredictorFactory(object):
 
         :return: list of cleavage site predictor represented as string
         """
-        return [k for k in ACleavageSitePrediction.registry.iterkeys() if k not in ["APSSMCleavageSitePredictor", "ACleavageSitePrediction"]]
+        return sorted([k for k in ACleavageSitePrediction.registry.iterkeys()
+                       if k not in ["APSSMCleavageSitePredictor", "ACleavageSitePrediction"]])
 
 
 class CleavageFragmentPredictorFactory(object):
@@ -59,10 +61,6 @@ class CleavageFragmentPredictorFactory(object):
             If a third person wants to write a new Cleavage Fragment Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
             '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
 
             try:
                 return ACleavageFragmentPrediction.registry[_predictor](*args)
@@ -77,5 +75,5 @@ class CleavageFragmentPredictorFactory(object):
 
         :return: list of cleavage fragment represented as string
         """
-        return [k for k in ACleavageFragmentPrediction.registry.iterkeys()
-                if k not in ["APSSMCleavageFragmentPredictor", "ACleavageFragmentPrediction"]]
+        return sorted([k for k in ACleavageFragmentPrediction.registry.iterkeys()
+                if k not in ["APSSMCleavageFragmentPredictor", "ACleavageFragmentPrediction"]])
