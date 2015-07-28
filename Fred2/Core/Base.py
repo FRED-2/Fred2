@@ -128,7 +128,7 @@ class ACleavageSitePrediction(object):
         Predicts the proteom cleavage site of the given sequences
 
         :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
-        :return: Returns a Result object for the specified Bio.Seq
+        :return: Returns a AResult object for the specified Bio.Seq
         """
         raise NotImplementedError
 
@@ -170,7 +170,7 @@ class ACleavageFragmentPrediction(object):
         Predicts the probability that the fragment can be produced by the proteasom
 
         :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
-        :return: Returns a Result object for the specified Bio.Seq
+        :return: Returns a AResult object for the specified Bio.Seq
         """
         raise NotImplementedError
 
@@ -227,7 +227,7 @@ class AEpitopePrediction(object):
 
         :param Peptide/list(Peptide) peptides: The peptide objects for which predictions should be performed
         :param Allele/list(Allele) alleles: An Allele or list of Alleles for which prediction models should be used
-        :return: Returns a Result object for the specified Peptides and Alleles
+        :return: Returns a AResult object for the specified Peptides and Alleles
         """
         raise NotImplementedError
 
@@ -265,10 +265,10 @@ class AExternal(object):
     @abc.abstractmethod
     def parse_external_result(self, _file):
         """
-        Parses external NetMHC results and returns a Result object
+        Parses external NetMHC results and returns a AResult object
 
         :param str _file: The file path or the external prediction results
-        :return: Result - Returns a Result object
+        :return: AResult - Returns a AResult object
         """
         raise NotImplementedError
 

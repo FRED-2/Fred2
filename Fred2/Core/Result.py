@@ -62,9 +62,16 @@ class EpitopePredictionResult(AResult):
         :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
         :return: filtered result object
         """
+        if isinstance(expressions, tuple):
+            expressions = [expressions]
+
         #builde logical expression
-        masks = numpy.logical_and(*map(list,[comp(self.loc[(slice(None), method), :], thr).any(axis=1)
-                                             for method, comp, thr in expressions]))
+        masks = map(list,[comp(self.loc[(slice(None), method), :], thr).any(axis=1)
+                                             for method, comp, thr in expressions])
+        if len(masks) > 1:
+            masks = numpy.logical_and(*masks)
+        else:
+            masks = masks[0]
 
         #apply to all rows
         idx = [f for f in masks
@@ -74,7 +81,7 @@ class EpitopePredictionResult(AResult):
     def merge_results(self, others):
         df = self.copy(deep=False)
 
-        if isinstance(others, EpitopePredictionResult):
+        if type(others) == type(self):
             others = [others]
 
         for i in xrange(len(others)):
@@ -87,7 +94,6 @@ class EpitopePredictionResult(AResult):
             true_zero = zero1 | zero2
             false_zero = df == 0
             zero = true_zero & false_zero
-            print zero
             nans = ~true_zero & false_zero
             df[zero] = 0
             df[nans] = numpy.NaN
@@ -100,14 +106,74 @@ class CleavageSitePredictionResult(AResult):
     """
 
     def filter_result(self, expressions):
-        return None
+        """
+        filters a result data frame based on a specified expression consisting
+        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
+        columns full fill the criteria the row remains.
+
+        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
+        :return: filtered result object
+        """
+        if isinstance(expressions, tuple):
+            expressions = [expressions]
+
+        #builde logical expression
+        masks = [list(comp(self.loc[:, method], thr)) for method, comp, thr in expressions]
+
+        if len(masks) > 1:
+            masks = numpy.logical_and(*masks)
+        else:
+            masks = masks[0]
+        #apply to all rows
+
+        return CleavageSitePredictionResult(self.loc[masks, :])
 
     def merge_results(self, others):
-        if isinstance(others, CleavageSitePredictionResult):
+        if type(others) == type(self):
             others = [others]
+        df = self
 
-        df = pandas.concat([self]+others, axis=1)
-        return df.T.drop_duplicates().T
+        for i in xrange(len(others)):
+            o = others[i]
+            df1a,df2a = df.align(o,)
+
+            o_diff = o.index.difference(df.index)
+            d_diff = df.index.difference(o.index)
+
+            if len(d_diff) and len(o_diff):
+                df2a.loc[d_diff,"Seq"] = ""
+                df1a.loc[o_diff, "Seq"] = ""
+            elif len(o_diff):
+                df2a.loc[df.index.intersection(o.index),"Seq"] = ""
+                df1a.loc[o_diff, "Seq"] = ""
+            elif len(d_diff):
+                df2a.loc[d_diff,"Seq"] = ""
+                df1a.loc[o.index.intersection(df.index), "Seq"] = ""
+            else:
+                df2a.loc[o.index, "Seq"] = ""
+
+            zero1 = df1a == 0
+            zero2 = df2a == 0
+            true_zero = zero1 | zero2
+
+            df1 = df1a.fillna(0)
+            df2 = df2a.fillna(0)
+
+            df_merged = df1+df2
+            false_zero = df_merged == 0
+            zero = true_zero & false_zero
+
+
+
+            nans = ~true_zero & false_zero
+            df_merged = df_merged.where(~zero, other=0)
+            df_merged = df_merged.where(~nans, other=numpy.NaN)
+            df = df_merged
+        return CleavageSitePredictionResult(df)
+
+
+    def get_peptides(self,expression, length=9):
+        pass
 
 
 class CleavageFragmentPredictionResult(AResult):
@@ -124,33 +190,24 @@ class CleavageFragmentPredictionResult(AResult):
         :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
         :return: filtered result object
         """
-        #builde logical expression
-        masks = numpy.logical_and(*map(list,[comp(self.loc[(slice(None), method), :], thr).any(axis=1)
-                                             for method, comp, thr in expressions]))
 
+        if isinstance(expressions, tuple):
+            expressions = [expressions]
+
+        masks = [list(comp(self.loc[:, method], thr)) for method, comp, thr in expressions]
+
+        if len(masks) > 1:
+            masks = numpy.logical_and(*masks)
+        else:
+            masks = masks[0]
         #apply to all rows
-        idx = [f for f in masks
-                    for _ in xrange(len(self.index.levels[1]))]
-        return CleavageFragmentPredictionResult(self.loc[idx, :])
+        return CleavageFragmentPredictionResult(self.loc[masks, :])
 
     def merge_results(self, others):
-        df = self.copy(deep=False)
+        if type(others) == type(self):
+            others = [others]
 
-        for i in xrange(len(others)):
-            df1a, df2a = df.align(others[i])
-            zero1 = df1a == 0
-            zero2 = df2a == 0
-            df1a = df1a.fillna(0)
-            df2a = df2a.fillna(0)
-            df = df1a+df2a
-            true_zero = zero1 | zero2
-            false_zero = df == 0
-            zero = true_zero & false_zero
-            print zero
-            nans = ~true_zero & false_zero
-            df[zero] = 0
-            df[nans] = numpy.NaN
-        return CleavageFragmentPredictionResult(df)
+        return CleavageFragmentPredictionResult(pandas.concat([self]+others, axis=1))
 
 
 class TAPPredictionResult(AResult):
@@ -167,30 +224,21 @@ class TAPPredictionResult(AResult):
         :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
         :return: filtered result object
         """
-        #builde logical expression
-        masks = numpy.logical_and(*map(list,[comp(self.loc[(slice(None), method), :], thr).any(axis=1)
-                                             for method, comp, thr in expressions]))
+        if isinstance(expressions, tuple):
+            expressions = [expressions]
 
+        masks = [list(comp(self.loc[:, method], thr)) for method, comp, thr in expressions]
+
+        if len(masks) > 1:
+            masks = numpy.logical_and(*masks)
+        else:
+            masks = masks[0]
         #apply to all rows
-        idx = [f for f in masks
-                    for _ in xrange(len(self.index.levels[1]))]
-        return TAPPredictionResult(self.loc[idx, :])
+
+        return TAPPredictionResult(self.loc[masks, :])
 
     def merge_results(self, others):
-        df = self.copy(deep=False)
+        if type(others) == type(self):
+            others = [others]
 
-        for i in xrange(len(others)):
-            df1a, df2a = df.align(others[i])
-            zero1 = df1a == 0
-            zero2 = df2a == 0
-            df1a = df1a.fillna(0)
-            df2a = df2a.fillna(0)
-            df = df1a+df2a
-            true_zero = zero1 | zero2
-            false_zero = df == 0
-            zero = true_zero & false_zero
-            print zero
-            nans = ~true_zero & false_zero
-            df[zero] = 0
-            df[nans] = numpy.NaN
-        return TAPPredictionResult(df)
+        return TAPPredictionResult(pandas.concat([self]+others, axis=1))
