@@ -56,7 +56,7 @@ setup(
     packages=find_packages(exclude=['test', 'doc', 'tutorials']),
 
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
-    install_requires=['pandas','pyomo>=4.0','biopython', 'svmlight'],
+    install_requires=['pandas','pyomo>=4.0','biopython', 'svmlight', 'MySQL-python'],
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
