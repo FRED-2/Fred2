@@ -34,6 +34,7 @@ def _update_var_offset(vars, transId_old, transId_new):
         offset = v.offsets[transId_old]
         v.offsets[transId_new] = offset
 
+
 def _incorp_snp(seq, var, transId, offset):
     """
     incorporates a snp into the given transcript sequence
@@ -265,9 +266,9 @@ def generate_peptides_from_variants(vars, length, dbadapter):
                     frac_seq = varSeq[i:end]
                     frac_var = filter(lambda x: i <= x.get_transcript_position < end, vs_hetero)
                     for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
-                        prots.append(Transcript(geneid, ttId, "".join(vvarSeq), _vars=vvarComb).translate())
+                        prots.append(Transcript("".join(vvarSeq), geneid, ttId, _vars=vvarComb).translate())
             else:
-                prots.append(Transcript(geneid, tId, "".join(varSeq), _vars=varComb).translate())
+                prots.append(Transcript("".join(varSeq), geneid, tId, _vars=varComb).translate())
 
         return generate_peptides_from_protein(prots, length)
 
@@ -361,7 +362,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             continue
         generate_transcripts_from_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
-            yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
+            yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
 
 
 def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
@@ -456,7 +457,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
 
         generate_transcripts_from_tumor_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
-            yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
+            yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
 
 
 ################################################################################
@@ -497,7 +498,6 @@ def generate_peptides_from_protein(proteins, window_size):
                 res += accu
                 break
 
-
     def gen_peptide_info(protein):
         # Generate peptide sequences and find the variants within each
         res = []
@@ -524,10 +524,9 @@ def generate_peptides_from_protein(proteins, window_size):
             res.append((pep_seq, pep_var))
         return res
 
-
     final_peptides = {} # sequence : peptide-instance
 
-    if  isinstance(proteins, Protein):
+    if isinstance(proteins, Protein):
         proteins = [proteins]
 
     if any(not isinstance(p, Protein) for p in proteins):

@@ -19,27 +19,6 @@ from Fred2.Core.Protein import Protein
 from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 
-
-def __check_type(type, allowed=['Peptide', 'Protein','Transcript']):
-    if not type in allowed:
-        raise ValueError("An invalid sequence object type was specified for \
-parsing a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
-
-
-def __create_single_sequ(sequ, id, type):
-    if type == "Peptide":
-        return Peptide(sequ)
-
-    elif type == "Protein":
-        return Protein(sequ, "unknown", id)
-
-    elif type == "Transcript":
-        return Transcript(sequ, "unkown", id)
-
-    elif type == "Allele":
-        return Allele(sequ)
-
-
 ####################################
 #       F A S T A  -  R E A D E R
 ####################################
@@ -75,7 +54,7 @@ def read_fasta(files, type=Peptide, id_position=1):
                 try:
                     _id = _id.split("|")[id_position]
                 except KeyError:
-                   pass
+                   _id = _id
 
                 try:
                     collect.add(type(seq.strip().upper(), _transcript_id=_id))
