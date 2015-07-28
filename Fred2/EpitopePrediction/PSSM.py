@@ -35,7 +35,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
         :param list(Alleles) alleles: a list of Alleles
         :param kwargs: optional parameter (not used yet)
-        :return: Returns a Result object with the prediction results
+        :return: Returns a AResult object with the prediction results
         """
         def __load_allele_model(allele,length):
             allele_model = "%s_%s_%i"%(self.name, allele, length)
@@ -58,7 +58,6 @@ class APSSMEpitopePrediction(AEpitopePrediction):
                 raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
-        #group peptides by length and
         result = {}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             peps = list(peps)
@@ -155,7 +154,9 @@ class BIMAS(APSSMEpitopePrediction):
 
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
-        return super(BIMAS, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(math.e,x))
+        return EpitopePredictionResult(
+            super(BIMAS, self).predict(peptides, alleles=alleles,
+                                       **kwargs).applymap(lambda x: math.pow(math.e,x)))
 
 
 class Epidemix(APSSMEpitopePrediction):
@@ -254,7 +255,8 @@ class SMM(APSSMEpitopePrediction):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
+        return EpitopePredictionResult(
+            super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x)))
 
 
 class SMMPMBEC(APSSMEpitopePrediction):
@@ -293,7 +295,8 @@ class SMMPMBEC(APSSMEpitopePrediction):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x))
+        return EpitopePredictionResult(
+            super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x)))
 
 
 class ARB(APSSMEpitopePrediction):
@@ -338,7 +341,8 @@ class ARB(APSSMEpitopePrediction):
         #        score = 0.0001
         #    elif score > 1e6:
         #        score = 1e6
-        return super(ARB, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+        return EpitopePredictionResult(
+            super(ARB, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
 
 
 class ComblibSidney2008(APSSMEpitopePrediction):
@@ -369,8 +373,9 @@ class ComblibSidney2008(APSSMEpitopePrediction):
     def predict(self, peptides, alleles=None, **kwargs):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
-        return super(ComblibSidney2008, self).predict(peptides,
-                                                      alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x))
+        return EpitopePredictionResult(
+            super(ComblibSidney2008, self).predict(peptides,
+                                                      alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
 
 
 class TEPITOPEpan(APSSMEpitopePrediction):
