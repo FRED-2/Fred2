@@ -16,7 +16,7 @@ class EnsemblDB:
         combined fasta files. Search is done with python's fast search  based on a mix between boyer-moore and horspool
         (http://svn.python.org/view/python/trunk/Objects/stringlib/fastsearch.h?revision=68811&view=markup)
         :param name: a name for the EnsembleDB object
-        Usage examples:
+        Usage tutorials:
             import EnsembleDB
             db = EnsembleDB.EnsembleDB('Ensemble') #give it a name
             db.read_seqs('/path/to/file.fasta')

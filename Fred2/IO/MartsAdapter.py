@@ -475,7 +475,7 @@ class MartsAdapter(ADBAdapter):
     def get_variant_ids(self, **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
-        Result is a list of dicts with either of the tree combinations:
+        AResult is a list of dicts with either of the tree combinations:
             - 'Ensembl Gene ID', 'Ensembl Transcript ID', 'Ensembl Protein ID'
             - 'RefSeq Protein ID [e.g. NP_001005353]', 'RefSeq mRNA [e.g. NM_001195597]', first triplet
             - 'RefSeq Predicted Protein ID [e.g. XP_001720922]', 'RefSeq mRNA predicted [e.g. XM_001125684]', first triplet
@@ -562,7 +562,7 @@ class MartsAdapter(ADBAdapter):
     def get_all_variant_ids(self,  **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
-        Result is a list of dicts with either of the tree combinations:
+        AResult is a list of dicts with either of the tree combinations:
             - 'Ensembl Gene ID', 'Ensembl Transcript ID', 'Ensembl Protein ID'
             - 'RefSeq Protein ID [e.g. NP_001005353]', 'RefSeq mRNA [e.g. NM_001195597]', first triplet
             - 'RefSeq Predicted Protein ID [e.g. XP_001720922]', 'RefSeq mRNA predicted [e.g. XM_001125684]', first triplet

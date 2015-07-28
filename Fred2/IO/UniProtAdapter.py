@@ -22,7 +22,7 @@ class UniProtDB:
 
         :param name: a name for the UniProtDB object
 
-        Usage examples:
+        Usage tutorials:
             import UniProtDB
             db = UniProtDB.UniProtDB('uniprot') #give it a name
             db.read_seqs('/path/to/file.fasta')
