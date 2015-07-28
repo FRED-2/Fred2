@@ -14,7 +14,7 @@ import subprocess
 import warnings
 import itertools as itr
 import multiprocessing as mp
-
+import copy
 
 from tempfile import NamedTemporaryFile
 
