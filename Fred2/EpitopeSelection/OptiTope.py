@@ -46,7 +46,6 @@ class OptiTope(object):
 
     def __init__(self, _results,  threshold=None, k=10, solver="glpk", verbosity=0):
 
-
         #check input data
         if not isinstance(_results, EpitopePredictionResult):
             raise ValueError("first input parameter is not of type EpitopePredictionResult")
@@ -109,6 +108,8 @@ class OptiTope(object):
         res_df = _results.xs(_results.index.values[0][1], level="Method")
         res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, -float("inf"))
                                                    for a in res_df.columns), axis=1)]
+        print "After Filtering"
+        print res_df
 
         for tup in res_df.itertuples():
             p = tup[0]
@@ -197,10 +198,9 @@ class OptiTope(object):
         self.instance.t_var.deactivate()
 
         #constraints
-        #self.instance.IsAlleleCovConst.deactivate()
+        self.instance.IsAlleleCovConst.deactivate()
         self.instance.MinAlleleCovConst.deactivate()
-        #self.instance.AntigenCovConst.deactivate()
-        #self.instance.IsAntigenCovConst.deactivate()
+        self.instance.IsAntigenCovConst.deactivate()
         self.instance.MinAntigenCovConst.deactivate()
         self.instance.EpitopeConsConst.deactivate()
 
@@ -326,7 +326,7 @@ class OptiTope(object):
                 if e in conservation:
                     getattr(self.instance, str(self.instance.c))[e] = conservation[e]
                 else:
-                    getattr(self.instance, str(self.instance.c))[e] = 1.0
+                    getattr(self.instance, str(self.instance.c))[e] = 0.0
 
         self.instance.EpitopeConsConst.activate()
 
@@ -361,10 +361,8 @@ class OptiTope(object):
                 if str(res.Solution.status) != 'optimal':
                     raise ValueError("Could not solve problem - " + str(res.Solution.status) + ". Please check your settings")
 
-
                 self.__result = [self.__peptideSet[x] for x in self.instance.x if self.instance.x[x].value == 1.0]
                 #self.__result.log_metadata("obj", res.Solution.Objective.Value)
-
 
                 self.__changed = False
                 return self.__result
