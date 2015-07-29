@@ -53,5 +53,9 @@ class TestCasePSSM(unittest.TestCase):
 
         #print df3
 
+    def test_PickPocket(self):
+        p = EpitopePredictorFactory("PickPocket")
+        print p.predict(self.peptides, alleles=self.alleles)
+
 if __name__ == '__main__':
     unittest.main()
