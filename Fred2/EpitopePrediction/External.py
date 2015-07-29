@@ -26,7 +26,7 @@ from Fred2.Core.Base import AEpitopePrediction, AExternal
 from tempfile import NamedTemporaryFile
 
 
-class ANNEpitopePrediction(AEpitopePrediction, AExternal):
+class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
     """
         Abstract class representing NetMHC prediction function. These are wrapper of external binaries
 
@@ -119,7 +119,7 @@ class ANNEpitopePrediction(AEpitopePrediction, AExternal):
         return df_result
 
 
-class NetMHC(ANNEpitopePrediction):
+class NetMHC(AExternalEpitopePrediction):
     """
         Implements the NetMHC binding (in current form for netMHC3.0)
         Possibility could exist for function injection to support also older versions
@@ -179,7 +179,7 @@ class NetMHC(ANNEpitopePrediction):
         return super(NetMHC, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class NetMHCpan(ANNEpitopePrediction):
+class NetMHCpan(AExternalEpitopePrediction):
     """
         Implements the NetMHC binding (in current form for netMHCpan 2.4)
         Possibility could exist for function injection to support also older versions
@@ -557,7 +557,7 @@ class NetMHCpan(ANNEpitopePrediction):
         return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class NetMHCII(ANNEpitopePrediction,AExternal):
+class NetMHCII(AExternalEpitopePrediction,AExternal):
     """
         Implements a wrapper for NetMHCII
     """
@@ -604,7 +604,7 @@ class NetMHCII(ANNEpitopePrediction,AExternal):
         return result
 
 
-class NetMHCIIpan(ANNEpitopePrediction,AExternal):
+class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
     """
         Implements a wrapper for NetMHCIIpan
     """

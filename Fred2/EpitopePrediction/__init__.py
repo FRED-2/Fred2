@@ -10,7 +10,7 @@
 """
 
 from Fred2.Core.Base import AEpitopePrediction
-from Fred2.EpitopePrediction.ANN import *
+from Fred2.EpitopePrediction.External import *
 from Fred2.EpitopePrediction.PSSM import *
 from Fred2.EpitopePrediction.SVM import *
 try:
@@ -45,5 +45,5 @@ class EpitopePredictorFactory(object):
         :return: list of epitope predictors represented as string
         """
         return sorted([k for k in AEpitopePrediction.registry.iterkeys() if
-                k not in ["ANNEpitopePrediction", "APSSMEpitopePrediction",
+                k not in ["AExternalEpitopePrediction", "APSSMEpitopePrediction",
                           "ASVMEpitopePrediction", "AEpitopePrediction"]])
