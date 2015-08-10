@@ -7,7 +7,7 @@
 .. moduleauthor:: schubert, szolek, walzer
 
 """
-__author__ = 'schubert'
+import math
 
 from Fred2.Core.Base import MetadataLogger
 
@@ -143,6 +143,7 @@ class Variant(MetadataLogger):
 
         :param str transcriptId: A transcript_id
         :return: (int) -- the protein position of the variant
+        :raises: KeyError
         """
         trans_id = trans_variant_id.split(":FRED2_")[0]
         try: 
@@ -152,4 +153,4 @@ class Variant(MetadataLogger):
         except KeyError:
             raise KeyError("Transcript ID %s not associated with variant %s"%
                            (str(trans_variant_id), self.__str__()))
-        return max((tpos//3) + 1, 0) # generate protein pos from transcript pos
+        return int(math.ceil(tpos/3.0)) # generate protein pos from transcript pos

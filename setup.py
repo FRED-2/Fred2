@@ -18,7 +18,7 @@ setup(
     long_description=readme,
 
     # The project's main homepage.
-    url='https://github.com/b-schubert/Fred2',
+    url='https://github.com/Fred-2/Fred2',
 
     # Author details
     author='Benjamin Schubert',
@@ -53,16 +53,16 @@ setup(
 
     # Specify  packages via find_packages() and exclude the tests and 
     # documentation:
-    packages=find_packages(exclude=['TestSuite', 'doc']),
+    packages=find_packages(exclude=['test', 'doc', 'tutorials']),
 
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
-    install_requires=['pandas','pyomo>=4.0','biopython', 'svmlight'],
+    install_requires=['pandas','pyomo>=4.0','biopython', 'svmlight', 'MySQL-python'],
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'sample': ['package_data.dat'],
+        '': ['Data/*'],
     },
 
     # 'package_data' is used to als install non package data files

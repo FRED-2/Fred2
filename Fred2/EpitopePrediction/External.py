@@ -1,10 +1,14 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert','walzer',
+"""
+.. module:: EpitopePrediction.ANN
+   :synopsis: This module contains all classes for ANN-based epitope prediction methods.
+.. moduleauthor:: schubert,  walzer
+
+"""
 
 
-import collections
 import itertools
 import warnings
 import pandas
@@ -16,36 +20,36 @@ import math
 from collections import defaultdict
 
 from Fred2.Core.Allele import Allele
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction, AExternal
 from tempfile import NamedTemporaryFile
 
 
-class ANetMHC(AEpitopePrediction, AExternal):
+class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
     """
         Abstract class representing NetMHC prediction function. These are wrapper of external binaries
 
 
     """
 
-    def threshold(self, allele):
-        allele_id = "%s*%s:%s"%(allele.locus, allele.subtype, allele.subtype)
-        if allele_id in self.__alleles:
-            return 0.425
-        else:
-            raise KeyError("Allele %s is not supported by method %s"%(allele.name, self.name))
-
     def predict(self, peptides, alleles=None, **kwargs):
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide)  for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         result = defaultdict(defaultdict)
@@ -86,21 +90,28 @@ class ANetMHC(AEpitopePrediction, AExternal):
             tmp_file.close()
 
             #generate cmd command
-
             for allele_group in allele_groups:
-                print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
-                r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
-                if r != 0:
-                    warnings.warn("An unknown error occurred for method %s."%self.name)
-                    continue
+                #print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
+                try:
+                    r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
+
+                except OSError as e:
+                    if e.errno == os.errno.ENOENT:
+                        raise RuntimeError("%s is not installed or globally executable."%self.name)
+                    else:
+                        warnings.warn("An unknown error occurred for method %s."%self.name)
+                        continue
 
                 res_tmp = self.parse_external_result(tmp_out.name)
                 for al, ep_dict in res_tmp.iteritems():
                     for p, v in ep_dict.iteritems():
                         result[allales_string[al]][pep_seqs[p]] = v
-            #os.remove(tmp_file.name)
+            os.remove(tmp_file.name)
             tmp_out.close()
-            #os.remove(tmp_out.name)
+            os.remove(tmp_out.name)
+
+        if not result:
+            raise ValueError("No predictions could be made with " +self.name+" for given input. Check your epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])
@@ -108,7 +119,7 @@ class ANetMHC(AEpitopePrediction, AExternal):
         return df_result
 
 
-class NetMHC(ANetMHC):
+class NetMHC(AExternalEpitopePrediction):
     """
         Implements the NetMHC binding (in current form for netMHC3.0)
         Possibility could exist for function injection to support also older versions
@@ -150,7 +161,7 @@ class NetMHC(ANetMHC):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        print "reading ", _file
+        #print "reading ", _file
         f = csv.reader(open(_file, "r"), delimiter='\t')
         f.next()
         f.next()
@@ -168,7 +179,7 @@ class NetMHC(ANetMHC):
         return super(NetMHC, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class NetMHCpan(ANetMHC):
+class NetMHCpan(AExternalEpitopePrediction):
     """
         Implements the NetMHC binding (in current form for netMHCpan 2.4)
         Possibility could exist for function injection to support also older versions
@@ -546,7 +557,7 @@ class NetMHCpan(ANetMHC):
         return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class NetMHCII(ANetMHC,AExternal):
+class NetMHCII(AExternalEpitopePrediction,AExternal):
     """
         Implements a wrapper for NetMHCII
     """
@@ -593,7 +604,7 @@ class NetMHCII(ANetMHC,AExternal):
         return result
 
 
-class NetMHCIIpan(ANetMHC,AExternal):
+class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
     """
         Implements a wrapper for NetMHCIIpan
     """

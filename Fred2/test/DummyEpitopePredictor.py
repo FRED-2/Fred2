@@ -9,7 +9,7 @@ from Fred2.Core.Base import AEpitopePrediction
 class DummyEpitopePredictor(AEpitopePrediction):
 
     __alleles = ["HLA-A*01:01"]
-    __name__ = "DummyPredictor"
+    __name = "DummyPredictor"
 
     @property
     def supportedAlleles(self):

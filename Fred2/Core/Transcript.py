@@ -2,12 +2,13 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Transcript
+.. module:: Core.Transcript
    :synopsis: Contains the Transcript Class.
-.. moduleauthor:: brachvogel, szolek, walzer
+.. moduleauthor:: brachvogel, schubert, walzer
 
 """
-__author__ = 'brachvogel', 'szolek', 'walzer'
+
+import itertools
 
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_rna
@@ -29,8 +30,9 @@ class Transcript(MetadataLogger, Seq):
     :param dict(int,Variant) vars: Dict of Variants for specific positions in
                                    the transcript. key=position, value=Variant
     """
+    newid = itertools.count().next
 
-    def __init__(self, _gene_id, _transcript_id, _seq, _vars=None):
+    def __init__(self, _seq, _gene_id="unknown", _transcript_id=None, _vars=None):
         """
         :param str _gene_id: input genome ID
         :param str _transcript_id: input transcript RefSeqID
@@ -42,7 +44,7 @@ class Transcript(MetadataLogger, Seq):
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, generic_rna)
         self.gene_id = _gene_id
-        self.transcript_id = _transcript_id
+        self.transcript_id = Transcript.newid() if _transcript_id is None else _transcript_id
         if _vars is not None:
             self.vars = {v.get_transcript_position(_transcript_id): v \
                          for v in _vars}
@@ -60,7 +62,7 @@ class Transcript(MetadataLogger, Seq):
         letter at position :attr:`index`.
         """
         item = str(self)[index]
-        return Transcript(self.transcript_id, item, self.vars)
+        return Transcript(self.vars, self.transcript_id, item)
 
 
     def __repr__(self):

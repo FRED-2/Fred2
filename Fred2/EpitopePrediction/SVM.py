@@ -14,10 +14,11 @@ import pandas
 import os
 import warnings
 import subprocess
-
+import pkg_resources
 from tempfile import NamedTemporaryFile
 
 from Fred2.Core.Allele import Allele
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Base import AEpitopePrediction, ASVM, AExternal
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Data.UniTope_encodedAlleles import UniTope_encodedAlleles
@@ -28,35 +29,44 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
         implements default prediction routine for SVM based epitope prediction tools
     """
 
-    def threshold(self, allele):
-        return 0.0
-
     def predict(self, peptides, alleles=None, **kwargs):
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             #load svm model
+
+            if length not in self.supportedLength:
+                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
+                continue
+
             encoding = self.encode(peps)
 
             for a in allales_string.keys():
-                try:
-                    model_path = os.path.abspath("/abi-projects/etk/Fred2/Fred2/Data/svms/%s/%s_%i"%(self.name, a, length))
-                    model = svmlight.read_model(model_path)
-                except OSError:
-                    warnings.warn("No model exists for peptides of length %i or allele %s."%(length, a.name))
+                model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s_%i"%(a,length))
+                if not os.path.exists(model_path):
+                    warnings.warn("No model exists for peptides of length %i or allele %s."%(length,
+                                                                                            allales_string[a].name))
                     continue
+                model = svmlight.read_model(model_path)
+
 
                 model = svmlight.read_model(model_path)
                 pred = svmlight.classify(model, encoding.values())
@@ -64,6 +74,9 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
                 for pep, score in itertools.izip(encoding.keys(), pred):
                     result[allales_string[a]][pep_seqs[pep]] = score
 
+        if not result:
+            raise ValueError("No predictions could be made for given input. Check your "
+                             "epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
@@ -414,20 +427,28 @@ class UniTope(ASVMEpitopePrediction):
     #overrides encoding from base class
     def predict(self, peptides, alleles=None, **kwargs):
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         #group peptides by length and
         result = {}
-        model_path = os.path.abspath("/abi-projects/etk/Fred2/Fred2/Data/svms/%s/%s"%(self.name, self.name))
+
+        model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s"%self.name)
+        #model_path = os.path.abspath("../Data/svms/%s/%s"%(self.name, self.name))
         model = svmlight.read_model(model_path)
 
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -438,18 +459,23 @@ class UniTope(ASVMEpitopePrediction):
                 continue
 
             for a in allales_string.keys():
-                encoding = self.encode(peps, a)
-                pred = svmlight.classify(model, encoding.values())
-                result[allales_string[a]] = {}
-                for pep, score in itertools.izip(encoding.keys(), pred):
-                    result[allales_string[a]][pep_seqs[pep]] = score
+                if allales_string[a].name in self.supportedAlleles:
+                    encoding = self.encode(peps, a)
+                    pred = svmlight.classify(model, encoding.values())
+                    result[allales_string[a]] = {}
+                    for pep, score in itertools.izip(encoding.keys(), pred):
+                        result[allales_string[a]][pep_seqs[pep]] = score
 
+        if not result:
+            raise ValueError("No predictions could be made for given input. Check your \
+            epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
         return df_result
 
 
+#TODO: should we integrate this method or not? This means we have to drag around ~500MB of model data just for this
 class MHCIIMulti(AEpitopePrediction, AExternal):
     """
         Implements MHCIIMulti
@@ -457,8 +483,10 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
 
     __name = "mhcIImulti"
     __supported_length = frozenset([15])
-    __command = "MHCIILeveraging %s %s %s /abi-projects/etk/software/NicoTope/models  /abi-projects/etk/software/NicoTope/pockets.txt"
-    __supported_length = frozenset([15])
+
+    models_dir = pkg_resources.resource_filename("Fred2.Data.svms.MHCIIMulti", "")
+    pockets = pkg_resources.resource_filename("Fred2.Data.svms.MHCIIMulti", "pockets.txt")
+    __command = "MHCIILeveraging %s %s %s "+str(models_dir)+" "+str(pockets)
     __alleles = frozenset(['DRB3*02:21', 'DRB3*02:20', 'DRB1*14:22', 'DRB1*11:63', 'DRB1*11:62', 'DRB1*11:61', 'DRB1*11:60',
                  'DRB1*11:67', 'DRB1*11:66', 'DRB1*11:64', 'DRB1*08:04:01', 'DRB1*08:04:02', 'DRB1*08:04:03',
                  'DRB1*08:04:04', 'DRB1*04:59', 'DRB1*14:21', 'DRB1*04:54', 'DRB1*04:55', 'DRB1*04:56', 'DRB1*04:57',
@@ -579,23 +607,26 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
             res.append(float(l.strip()))
         return res
 
-    def threshold(self, allele):
-        return 0
-
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
 
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
+        if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
             allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
             allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         tmp_file = NamedTemporaryFile(delete=False)
@@ -611,20 +642,23 @@ class MHCIIMulti(AEpitopePrediction, AExternal):
         for a in allales_string.iterkeys():
 
             #cmd = self.command%(data_file, a, prediction_file, self._modelpath) #modelpath?
-            print self.command%(tmp_file.name, a, tmp_out.name)
-            r = subprocess.call(self.command%(tmp_file.name, a, tmp_out.name), shell=True)
-            print "returnvalue ", type(r)
 
-            if r == -6:
+            r = subprocess.call(self.command%(tmp_file.name, a, tmp_out.name), shell=True)
+
+            if r == 127:
+                raise RuntimeError("%s is not installed or globally executable."%self.name)
+            elif r == -6:
                 warnings.warn("No model exists for allele %s."%str(allales_string[a]))
                 continue
-
             elif r != 0:
                 warnings.warn("An unknown error occurred for method %s."%self.name)
                 continue
 
             results[allales_string[a]] = {p:s for p, s in itertools.izip(pep_seqs.values(), self.parse_external_result(tmp_out))}
-
+        print results
+        if any( not results[k] for k in results.iterkeys()):
+            raise ValueError("No predictions could be made for " +self.name+" given input. Check your "
+                             "epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(results)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])

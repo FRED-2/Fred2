@@ -2,20 +2,33 @@
 Fred2.EpitopePrediction
 =======================
 
-Fred2.EpitopePrediction.NetMHC
-------------------------------
+Fred2.EpitopePrediction.ANN
+---------------------------
 
-.. automodule:: Fred2.EpitopePrediction.NetMHC
-    :members:
-    :special-members:
-    :show-inheritance:
+.. automodule:: Fred2.EpitopePrediction.ANN
+   :members:
+   :inherited-members:
+   :special-members:
+   :show-inheritance:
+   :undoc-members:
 
 Fred2.EpitopePrediction.PSSM
 ----------------------------
 
 .. automodule:: Fred2.EpitopePrediction.PSSM
-    :members:
-    :special-members:
-    :show-inheritance:
+   :members:
+   :inherited-members:
+   :special-members:
+   :show-inheritance:
+   :undoc-members:
 
 
+Fred2.EpitopePrediction.SVM
+---------------------------
+
+.. automodule:: Fred2.EpitopePrediction.SVM
+   :members:
+   :inherited-members:
+   :special-members:
+   :show-inheritance:
+   :undoc-members:

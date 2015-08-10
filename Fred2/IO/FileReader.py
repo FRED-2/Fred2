@@ -4,11 +4,12 @@
 """
 .. module:: Reader
    :synopsis: Module handles reading of files. line reading, FASTA reading, annovar reading
-.. moduleauthor:: 
-    brachvogel, schubert
+.. moduleauthor:: brachvogel, schubert
 
 """
+
 import warnings
+import os
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
@@ -18,99 +19,89 @@ from Fred2.Core.Protein import Protein
 from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 
-
-def __check_type(type, allowed=['Peptide', 'Protein','Transcript']):
-    if not type in allowed:
-        raise ValueError("An invalid sequence object type was specified for \
-parsing a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
-
-
-def __create_single_sequ(sequ, id, type):
-    if type == "Peptide":
-        return Peptide(sequ)
-
-    elif type == "Protein":
-        return Protein(sequ, "unknown", id)
-
-    elif type == "Transcript":
-        return Transcript("unkown", id, sequ)
-
-    elif type == "Allele":
-        return Allele(sequ)
-
-
 ####################################
 #       F A S T A  -  R E A D E R
 ####################################
-def read_fasta(*argv, **kwargs):
+def read_fasta(files, type=Peptide, id_position=1):
     """
+    Generator function:
+
     Read a (couple of) peptide, protein or rna sequence from a FASTA file.
     User needs to specify the correct type of the underlying sequences. It can
     either be: Peptide, Protein or Transcript (for RNA).
 
-    :param *argv: a string list of absolute file names of the FASTA files to be
-                  read. Give as: get_sequence(*["path/name1", "path/name2"]).
-                  This field is required!
-    :param **kwargs: optional. Use get_sequence(*["path/name1", "path/name2",
-                     type="Protein"). Possible types are Peptide', 'Protein'
-                     and 'Transcript'.
+    :param List(str)/str files: A (List) of file names to read in
+    :param Peptide/Transcript/Protein type: The type to read in
+    :param int id_position: the position of the id specified counted by |
     :returns: (list(SequenceType)) -- a list of the specified sequence type
               derived from the FASTA file sequences.
+    :exception ValueError: if a file is not readable
     """
-    _type = kwargs.get("type", "Peptide")
 
-    __check_type(_type)
-    print kwargs
-    collect = {}
+    if isinstance(files, basestring):
+            files = [files]
+    else:
+            if any(not os.path.exists(f) for f in files):
+                raise ValueError("Specified Files do not exist")
+
+    collect = set()
     # open all specified files:
-    for name in argv:
+    for name in files:
         with open(name, 'r') as handle:
             # iterate over all FASTA entries:
             for _id, seq in SimpleFastaParser(handle):
                 # generate element:
                 try:
-                    collect[seq.upper()] = _id.split("|")[kwargs["id_position"]]
-		    print collect[seq.upper()]
+                    _id = _id.split("|")[id_position]
                 except KeyError:
-                    collect[seq.upper()] = _id
+                   _id = _id
 
-    return [__create_single_sequ(seq, _id, _type) \
-            for seq, _id in collect.items()]
+                try:
+                    collect.add(type(seq.strip().upper(), _transcript_id=_id))
+                except TypeError:
+                    collect.add(type(seq.strip().upper()))
+    return collect
+
 
 
 ####################################
 #       L I N E  -  R E A D E R
 ####################################
-def read_lines(*argv, **kwargs):
+def read_lines(files, type=Peptide):
     """
-    Read a sequence directly from a line. User needs to manually specify the 
-    correct type of the underlying sequences. It can either be: 
-    Peptide, Protein or Transcript (for RNA).
+    Generator function:
 
-    :param *argv: a list of strings of absolute file names of the FASTA files 
+    Read a sequence directly from a line. User needs to manually specify the 
+    correct type of the underlying data. It can either be:
+    Peptide, Protein or Transcript, Allele.
+
+    :param list(str)/str files: a list of strings of absolute file names of the FASTA files
                   that are to be read. Give as: 
                   get_sequence(*["path/name1", "path/name2"]).
                   This field is required!
-    :param **kwargs: optional. Use get_sequence(*["path/name1", "path/name2",
-                     type="Protein"). Possible types are Peptide', 'Protein'
-                     and 'Transcript'.
-    :returns: (list(SequenceType)) -- a list of the specified sequence type
-              derived from the FASTA file sequences.
+    :param Peptide/Protein/Transcript/Allele type: optional. Use get_sequence(*["path/name1", "path/name2",
+                     type="Protein"). Possible types are Peptide, Protein, Transcript and Allele.
+    :returns: (list(type)) -- a list of the specified objects
+    :exception: if a file is not readable
     """
-    _type = kwargs.get("type", "Peptide")
 
-    __check_type(_type, ['Peptide', 'Protein', 'Transcript', 'Allele'])
+    if isinstance(files, basestring):
+            files = [files]
+    else:
+            if any(not os.path.exists(f) for f in files):
+                raise ValueError("Specified Files do not exist")
+
 
     collect = set()
-    for name in argv:
+    for name in files:
         with open(name, 'r') as handle:
             # iterate over all lines:
             for line in handle:
                 # generate element:
-                collect.add(line.strip().upper())
+                collect.add(type(line.strip().upper()))
 
-    return [__create_single_sequ(seq, "generic_id_"+str(_id), _type) \
-            for _id, seq in enumerate(collect)]
+
+    return collect
 
 
 #####################################

@@ -12,7 +12,7 @@ Fred2.IO.ADBAdapter
     :show-inheritance:
 
 Fred2.IO.FileReader
---------------------
+-------------------
 
 .. automodule:: Fred2.IO.FileReader
     :members:

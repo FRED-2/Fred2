@@ -1,9 +1,13 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+"""
+.. module:: IO.ADBAdapter
+   :synopsis: Base class for specific DB-Adapters
+.. moduleauthor:: schubert
+"""
 from abc import ABCMeta, abstractmethod
 
-__author__ = 'schubert'
 
 '''
 :Contract:

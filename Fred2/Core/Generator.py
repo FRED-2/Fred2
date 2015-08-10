@@ -2,18 +2,19 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Generator
+.. module:: Core.Generator
    :synopsis: Contains functions to transform variants to transcripts and 
               proteins to peptides. Transition of transcripts to proteins
               is done via :meth:`~Fred2.Core.Transcript.translate`
 .. moduleauthor:: schubert
 
 """
-__author__ = 'schubert'
 
 import warnings
+import collections
 
 from Fred2.Core.Base import COMPLEMENT
+from Fred2.Core.Protein import Protein
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import VariationType
@@ -21,6 +22,7 @@ from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 
 ################################################################################
 #Private module functions. It should not be possible to import these!
+
 
 def _update_var_offset(vars, transId_old, transId_new):
     """
@@ -31,6 +33,7 @@ def _update_var_offset(vars, transId_old, transId_new):
     for v in vars:
         offset = v.offsets[transId_old]
         v.offsets[transId_new] = offset
+
 
 def _incorp_snp(seq, var, transId, offset):
     """
@@ -124,13 +127,13 @@ def _check_for_problematic_variants(vars):
                                       v.genomePos)
     for v in reversed(v_tmp):
         if v.genomePos <= current_range[1]:
-            print "crash",current_range, v
+            #print "crash",current_range, v
             return False
         else:
             current_range = (v.genomePos, v.genomePos
                                       +len(v.ref)-1 if v.type in [VariationType.FSDEL, VariationType.DEL] else
                                       v.genomePos)
-            print "new block",v, current_range
+            #print "new block",v, current_range
     return True
 
 
@@ -263,9 +266,9 @@ def generate_peptides_from_variants(vars, length, dbadapter):
                     frac_seq = varSeq[i:end]
                     frac_var = filter(lambda x: i <= x.get_transcript_position < end, vs_hetero)
                     for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
-                        prots.append(Transcript(geneid, ttId, "".join(vvarSeq), _vars=vvarComb).translate())
+                        prots.append(Transcript("".join(vvarSeq), geneid, ttId, _vars=vvarComb).translate())
             else:
-                prots.append(Transcript(geneid, tId, "".join(varSeq), _vars=varComb).translate())
+                prots.append(Transcript("".join(varSeq), geneid, tId, _vars=varComb).translate())
 
         return generate_peptides_from_protein(prots, length)
 
@@ -359,7 +362,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             continue
         generate_transcripts_from_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
-            yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
+            yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
 
 
 def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
@@ -454,7 +457,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
 
         generate_transcripts_from_tumor_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
-            yield Transcript(geneid, tId, "".join(varSeq), _vars=varComb)
+            yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
 
 
 ################################################################################
@@ -466,7 +469,7 @@ def generate_peptides_from_protein(proteins, window_size):
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
 
-    :param Protein protein: list of proteins from which a list of unique
+    :param Protein protein: (list of) protein(s) from which a list of unique
                             peptides should be generated
     :param int window_size: size of peptide fragments
     """
@@ -495,7 +498,6 @@ def generate_peptides_from_protein(proteins, window_size):
                 res += accu
                 break
 
-
     def gen_peptide_info(protein):
         # Generate peptide sequences and find the variants within each
         res = []
@@ -522,8 +524,13 @@ def generate_peptides_from_protein(proteins, window_size):
             res.append((pep_seq, pep_var))
         return res
 
-
     final_peptides = {} # sequence : peptide-instance
+
+    if isinstance(proteins, Protein):
+        proteins = [proteins]
+
+    if any(not isinstance(p, Protein) for p in proteins):
+        raise ValueError("Input does contain non protein objects.")
 
     for prot in proteins:
         # generate all peptide sequences per protein:

@@ -1,7 +1,12 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert'
+"""
+.. module:: CleavagePrediction.ANN
+   :synopsis: ANN-based cleavage prediction methods.
+.. moduleauthor:: schubert
+
+"""
 
 import collections
 import warnings
@@ -43,19 +48,14 @@ class NetChop(ACleavageSitePrediction, AExternal):
     def cleavagePos(self):
         return self.__cleavage_pos
 
-    def threshold(self):
-        return 0.5
-
     def predict(self, _aa_seq, **kwargs):
 
-        if isinstance(_aa_seq, collections.Iterable):
+        if isinstance(_aa_seq, Peptide) or isinstance(_aa_seq, Protein):
+            pep_seqs = {str(_aa_seq):_aa_seq}
+        else:
             if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in _aa_seq):
                 raise ValueError("Input is not of type Protein or Peptide")
             pep_seqs = {str(p):p for p in _aa_seq}
-        else:
-            if (not isinstance(_aa_seq, Peptide)) or (not isinstance(_aa_seq, Protein)):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(_aa_seq):_aa_seq}
 
         tmp_out = NamedTemporaryFile(delete=False)
         tmp_file = NamedTemporaryFile(delete=False)
@@ -63,10 +63,10 @@ class NetChop(ACleavageSitePrediction, AExternal):
         tmp_file.close()
 
         r = subprocess.call(self.command%(tmp_file.name, tmp_out.name), shell=True)
-
-        if r != 0:
-            warnings.warn("An unknown error occurred for method %s"%self.name)
-            sys.exit(-1)
+        if r == 127:
+                raise RuntimeError("%s is not installed or globally executable."%self.name)
+        elif r != 0:
+                raise RuntimeError("An unknown error occurred for method %s. Please check whether %s is globally executable."%(self.name,self.name))
 
         return self.parse_external_result(tmp_out)
 

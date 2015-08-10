@@ -1,8 +1,11 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer'
-# Taken from https://github.com/mwalzer/pyBioConveniences/UniProtDB.py
+"""
+.. module:: IO.niProtAdapter
+   :synopsis: DB-Adapter class for UniProt
+.. moduleauthor:: walzer
+"""
 
 import warnings
 import bisect
@@ -19,7 +22,7 @@ class UniProtDB:
 
         :param name: a name for the UniProtDB object
 
-        Usage examples:
+        Usage tutorials:
             import UniProtDB
             db = UniProtDB.UniProtDB('uniprot') #give it a name
             db.read_seqs('/path/to/file.fasta')
