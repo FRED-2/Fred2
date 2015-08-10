@@ -44,8 +44,3 @@ class TAPPredictionResult(Result):
     """
         Epitope prediction result
     """
-
-class Distance2SelfResult(Result):
-    """
-        Distance2Self prediction result
-    """
