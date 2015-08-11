@@ -99,6 +99,10 @@ class EpitopePredictionResult(AResult):
             df[nans] = numpy.NaN
         return EpitopePredictionResult(df)
 
+class Distance2SelfResult(Result):
+    """
+        Distance2Self prediction result
+    """
 
 class CleavageSitePredictionResult(AResult):
     """
