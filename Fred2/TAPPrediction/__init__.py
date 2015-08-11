@@ -1,10 +1,22 @@
-
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
+"""
+.. module:: TAPPRediction
+   :synopsis: Base class for TAP prediction methods
+.. moduleauthor:: schubert
+"""
 from Fred2.Core.Base import ATAPPrediction
 from Fred2.TAPPrediction.SVM import *
 from Fred2.TAPPrediction.PSSM import *
 
+try:
+    from fred_plugin import *
+except ImportError:
+    pass
 
-class TAPePredictorFactory(object):
+
+class TAPPredictorFactory(object):
     class __metaclass__(type):
         def __init__(cls, name, bases, nmspc):
             type.__init__(cls, name, bases, nmspc)
@@ -16,10 +28,6 @@ class TAPePredictorFactory(object):
             If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
             inherit from AEpitopePrediction. That's it nothing more.
             '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
 
             try:
                 return ATAPPrediction.registry[_predictor](*args)
@@ -34,4 +42,5 @@ class TAPePredictorFactory(object):
 
         :return: list of epitope predictors represented as string
         """
-        return ATAPPrediction.registry.keys()
+        return sorted([k for k in ATAPPrediction.registry.iterkeys()
+                       if k not in ["ATAPPrediction","APSSMTAPPrediction", "ASVMTAPPrediction"]])

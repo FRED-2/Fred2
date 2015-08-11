@@ -1,627 +1,624 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
+"""
+.. module:: EpitopeAssembly.MosaicVaccine
+   :synopsis: Embedding of the mosaic vaccine design problem into the asymmetric orienteering problem.
+The methods offers an exact solution for small till medium sized problems as well as heuristics based on a Matheuristic
+using Tabu Search and Branch-and-Bound for large problems.
+
+The heuristic proceeds as follows:
+
+I: initialize solution s_best via greedy construction
+
+s_current = s_best
+WHILE convergence is not reached DO:
+    I: s<-Tabu Search(s_current)
+   II: s<-Intensification via local MIP(s) solution (allow only alpha arcs to change)
+       if s > s_best:
+          s_best = s
+  III: Diversification(s) to escape local maxima
+END
+.. moduleauthor:: schubert
+
+"""
+
 from __future__ import division
 
 import itertools as itr
-import warnings
+import multiprocessing as mp
+import math
+
+import numpy as np
+import collections
 import string
 import copy
 
 from pyomo.environ import *
 from pyomo.opt import SolverFactory
-from Fred2.Core.Result import EpitopePredictionResult
+
+from Fred2.Core import EpitopePredictionResult
 
 
-class MosaicVaccine(object):
+class TabuList(collections.MutableSet):
+
+    def __init__(self, iterable=None, size=None):
+        self.end = end = []
+        end += [None, end, end]         # sentinel node for doubly linked list
+        self.map = {}                   # key --> [key, prev, next]
+        self.maxSize = size
+        if iterable is not None:
+            self |= iterable
+
+    def __len__(self):
+        return len(self.map)
+
+    def __contains__(self, key):
+        return tuple(key) in self.map
+
+    def add(self, key):
+        key = tuple(key)
+        if key not in self.map:
+            if len(self.map) >= self.maxSize:
+                self.pop()
+            end = self.end
+            curr = end[1]
+            curr[2] = end[1] = self.map[key] = [key, curr, end]
+
+    def discard(self, key):
+        if key in self.map:
+            key, prev, next = self.map.pop(key)
+            prev[2] = next
+            next[1] = prev
+
+    def __iter__(self):
+        end = self.end
+        curr = end[2]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[2]
+
+    def __reversed__(self):
+        end = self.end
+        curr = end[1]
+        while curr is not end:
+            yield curr[0]
+            curr = curr[1]
+
+    def pop(self, last=True):
+        if not self:
+            raise KeyError('set is empty')
+        key = self.end[1][0] if last else self.end[2][0]
+        self.discard(key)
+        return key
+
+    def __repr__(self):
+        if not self:
+            return '%s()' % (self.__class__.__name__,)
+        return '%s(%r)' % (self.__class__.__name__, list(self))
+
+    def __eq__(self, other):
+        if isinstance(other, OrderedSet):
+            return len(self) == len(other) and list(self) == list(other)
+        return set(self) == set(other)
+
+
+def suffixPrefixMatch(m):
+    ''' Return length of longest suffix of x of length at least k that
+        matches a prefix of y.  Return 0 if there no suffix/prefix
+        match has length at least k.
+    '''
+    x,y,k = m
+    if x == y:
+        return 0
+    if x == "start":
+        return len(y)
+    if y == "start":
+        return 0
+
+    if len(x) < k or len(y) < k:
+        return 0
+    idx = len(y) # start at the right end of y
+    # Search right-to-left in y for length-k suffix of x
+    while True:
+        hit = string.rfind(y, x[-k:], 0, idx)
+        if hit == -1: # not found
+            return len(y)
+        ln = hit + k
+        # See if match can be extended to include entire prefix of y
+        if x[-ln:] == y[:ln]:
+            return len(y)-ln # return length of prefix
+        idx = hit + k - 1 # keep searching to left in Y
+    return -1
+
+
+def _start(args):
+        return _move(*args)
+
+
+def _move(func, args):
+        return func(*args)
+
+
+def _vertexDel(vins, vdel,  best_obj, best_sol, __imm, __arcCost):
     """
-    Implements a mosaic vaccine. The model is based
-    on the Orienteering Problem based on this formulation
-    http://arxiv.org/pdf/1402.1896.pdf
-    couldnt find a better one
-    maybe this one here:
-    http://users.iems.northwestern.edu/~iravani/Orienteering_IIE.pdf
-    or
-    http://www.fatih.edu.tr/~jesr/tasgetiren.pdf
-
+        simultaniously insert a new vertex and delete a
+        existing vertex
     """
-    def __init__(self, _results,  threshold=None, k=10, solver="glpsol", verbosity=0):
-        """
-            Constructor
-
-
-        """
-        def suffixPrefixMatch(x, y, k):
-            ''' Return length of longest suffix of x of length at least k that
-                matches a prefix of y.  Return 0 if there no suffix/prefix
-                match has length at least k.
-            '''
-            if len(x) < k or len(y) < k:
-                return 0
-            idx = len(y) # start at the right end of y
-            # Search right-to-left in y for length-k suffix of x
-            while True:
-                hit = string.rfind(y, x[-k:], 0, idx)
-                if hit == -1: # not found
-                    return len(y)
-                ln = hit + k
-                # See if match can be extended to include entire prefix of y
-                if x[-ln:] == y[:ln]:
-                    return len(y)-ln # return length of prefix
-                idx = hit + k - 1 # keep searching to left in Y
-            return -1
-
-
-        #check input data
-        if not isinstance(_results, EpitopePredictionResult):
-            raise ValueError("first input parameter is not of type EpitopePredictionResult")
-
-        _alleles = copy.deepcopy(_results.columns.values.tolist())
-
-        print map(lambda x: x.locus, _alleles)
-        #test if allele prob is set, if not set allele prob uniform
-        #if only partly set infer missing values (assuming uniformity of missing value)
-        prob = []
-        no_prob = []
-        for a in _alleles:
-            if a.prob is None:
-                no_prob.append(a)
-            else:
-                prob.append(a)
-
-        print no_prob
-        if len(no_prob) > 0:
-            #group by locus
-            no_prob_grouped = {}
-            prob_grouped = {}
-            for a in no_prob:
-                no_prob_grouped.setdefault(a.locus, []).append(a)
-            for a in prob:
-                prob_grouped.setdefault(a.locus, []).append(a)
-
-            print no_prob_grouped, prob_grouped
-            for g, v in no_prob_grouped.iteritems():
-                total_loc_a = len(v)
-                if g in prob_grouped:
-                    remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
-                    for a in v:
-                        a.prob = remaining_mass/total_loc_a
-                else:
-                    for a in v:
-                        a.prob = 1.0/total_loc_a
-        probs = {a.name:a.prob for a in _alleles}
-        if verbosity:
-            for a in _alleles:
-                print a.name, a.prob
-
-        #start constructing model
-        self.__solver = SolverFactory(solver)
-        self.__verbosity = verbosity
-        self.__changed = True
-        self.__alleleProb = _alleles
-        self.__k = k
-        self.__result = None
-        self.__thresh = {} if threshold is None else threshold
-
-        imm = {}
-        peps = {}
-        alleles_I = {}
-        variations = []
-        epi_var = {}
-
-        #unstack multiindex df to get normal df based on first prediction method
-        #and filter for binding epitopes
-
-        res_df = _results.xs(_results.index.values[0][1], level="Method")
-        #print "before",len(res_df)
-        res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, -float("inf"))
-                                                   for a in res_df.columns), axis=1)]
-        #print "after",len(res_df)
-
-
-        for tup in res_df.itertuples():
-            p = tup[0]
-            seq = str(p)
-            peps[seq] = p
-            for a, s in itr.izip(res_df.columns, tup[1:]):
-                if s > self.__thresh.get(a.name, -float("inf")):
-                    alleles_I.setdefault(a.name, set()).add(seq)
-                imm[seq, a.name] = s
-
-        for a in probs.iterkeys():
-            imm['start', a] = 0.0
-            imm['stop', a] = 0.0
-
-        self.__peptideSet = peps
-
-        #generate overlapping graph as basis of the problem
-        overlapping_graph = {(x,y):suffixPrefixMatch(x,y,1) for x,y in
-                             itr.product(peps.iterkeys(),peps.iterkeys()) if x!=y }
-        self.overlapping = overlapping_graph
-        for k in peps.iterkeys():
-            overlapping_graph[("start",k)] = len(k)
-            overlapping_graph[(k,"stop")] = 0
-        #overlapping_graph[("start","stop")] = 0
-        #model here:
-        #print overlapping_graph
-
-        ep = peps.keys()
-        ep_start = ep + ["start"]
-        ep_end = ep +["stop"]
-        ep.extend(["start","stop"])
-
-        model = ConcreteModel()
-
-        #Sets
-        model.A = Set(initialize=probs.keys())
-
-
-        model.E = Set(initialize=ep)
-        model.E_start = Set(initialize=ep_start)
-        model.E_end = Set(initialize=ep_end)
-        model.E_prim = Set(initialize=peps.keys())
-        model.ExE = Set(initialize=overlapping_graph.iterkeys(),dimen=2)
-
-
-        #Parameters
-        model.p = Param(model.A, initialize=lambda model, a: probs[a])
-        model.i = Param(model.E, model.A, initialize=lambda model, e, a: imm[e, a])
-        model.LMAX = Param(initialize=self.__k, within=PositiveIntegers, mutable=True)
-        model.w_ab = Param(model.ExE, initialize=overlapping_graph)
-        model.n = Param(initialize=len(model.E))
-
-        # Variable Definition
-        model.x = Var(model.ExE, within=Binary)
-        model.u = Var(model.E_end,
-                      domain=PositiveIntegers, bounds=(2,model.n))
-
-        # Objective definition
-        model.Obj = Objective(
-            rule=lambda model: sum(model.x[i,j] * sum( model.i[i, a] for a in model.A)
-                                   for i,j in model.ExE),
-            sense=maximize)
-
-        #OP specific constraints
-        model.StartConnectivity = Constraint(
-                                             rule=lambda model: sum(model.x['start',e] for e in model.E_prim) == 1)
-        model.EndConnectivity = Constraint(
-                                             rule=lambda model: sum(model.x[e,'stop'] for e in model.E_prim) == 1)
-
-        model.Connectivity1 = Constraint(model.E_prim,
-                                         rule=lambda model, e: sum(model.x[j,e]
-                                                                   for j in model.E_start if j !=e ) <= 1)
-
-        model.Connectivity2 = Constraint(model.E_prim,
-                                         rule=lambda model, e: sum(model.x[e,j]
-                                                                   for j in model.E_end if j !=e ) <= 1)
-        model.TourConstraint = Constraint(model.E_prim,
-                                          rule=lambda model, e:sum(model.x[i,e]
-                                                                   for i in model.E_start if i !=e ) == sum(model.x[e,j]
-                                                                   for j in model.E_end if j !=e ))
-        model.LengthConstraint = Constraint(rule=lambda model: sum(model.w_ab[i,j]*model.x[i,j] for i,j in model.ExE)
-                                                               <= model.LMAX)
-
-        model.Cardinality = Constraint(filter(lambda x:  x[0] !="start" and x[1] != "start", model.ExE),
-                                       rule=lambda model, a, b:
-                                                  model.u[a]-model.u[b]+1 <= (model.n -1)*(1-model.x[a, b]))
-        #generate instance
-        self.instance = model.create()
-        if self.__verbosity > 0:
-            print "MODEL INSTANCE"
-        #    self.instance.pprint()
-
-    def solve(self):
-        """
-        Solves the Epitope Assembly problem and returns an ordered list of the peptides
-
-        :return: list(Peptide) - An order list of the peptides
-        """
-        self.instance.x.reset()
-        self.instance.u.reset()
-        self.instance.preprocess()
-
-        res = self.__solver.solve(self.instance,options="threads=4,mip_cuts_all=2,mpi_cuts_covers=3",)#tee=True)
-        self.instance.load(res)
-        if self.__verbosity > 0:
-            res.write(num=1)
-
-        re = { i:j for i,j in self.instance.ExE if self.instance.x[i,j].value}
-        curr = 'start'
-        ep = []
-        while curr != "stop":
-            curr = re[curr]
-            if curr == "stop":
-                break
-            ep.append(curr)
-            #print ep
-        st = ""
-        before = "start"
-        for e in ep:
-            if before == "start":
-                st = e
-                before = e
-            else:
-                st += e[len(e)-self.overlapping[before,e]:]
-                before = e
-        return ep,st,self.instance.Obj()
-        #return [ (i,j) for i,j in self.instance.ExE if self.instance.x[i,j].value]
-        #return [ (self.instance.u[u].value, self.__peptideSet[u]) for u in sorted(self.instance.u, key=lambda x: self.instance.u[x].value) if u not in ["start", "stop"]]
-
-    def set_k(self, k):
-        """
-            sets the number of epitopes to select
-            @param k: the number of epitopes
-            @type k: int
-            @exception OptiTopeException: if the input variable is not in the same domain as the parameter
-        """
-        tmp = self.instance.LMAX.value
-        try:
-            getattr(self.instance, str(self.instance.LMAX)).set_value(int(k))
-            self.__changed = True
-        except:
-            self.__changed = False
-            getattr(self.instance, str(self.instance.LMAX)).set_value(int(tmp))
-            raise Exception('set_k', 'An error has occurred during setting parameter k. Please check if k is integer.')
-
-class MosaicVaccine2(object):
-    """
-    Implements a mosaic vaccine. The model is based
-    on the Orienteering Problem based on this formulation
-    http://arxiv.org/pdf/1402.1896.pdf
-    couldnt find a better one
-    maybe this one here:
-    http://users.iems.northwestern.edu/~iravani/Orienteering_IIE.pdf
-    or
-    http://www.fatih.edu.tr/~jesr/tasgetiren.pdf
-
-    """
-    def __init__(self, _results,  threshold=None, k=10, solver="glpsol", verbosity=0):
-        """
-            Constructor
-
-
-        """
-        def suffixPrefixMatch(x, y, k):
-            ''' Return length of longest suffix of x of length at least k that
-                matches a prefix of y.  Return 0 if there no suffix/prefix
-                match has length at least k.
-            '''
-            if len(x) < k or len(y) < k:
-                return 0
-            idx = len(y) # start at the right end of y
-            # Search right-to-left in y for length-k suffix of x
-            while True:
-                hit = string.rfind(y, x[-k:], 0, idx)
-                if hit == -1: # not found
-                    return len(y)
-                ln = hit + k
-                # See if match can be extended to include entire prefix of y
-                if x[-ln:] == y[:ln]:
-                    return len(y)-ln # return length of prefix
-                idx = hit + k - 1 # keep searching to left in Y
-            return -1
-
-
-        #check input data
-        if not isinstance(_results, EpitopePredictionResult):
-            raise ValueError("first input parameter is not of type EpitopePredictionResult")
-
-        _alleles = copy.deepcopy(_results.columns.values.tolist())
-
-        print map(lambda x: x.locus, _alleles)
-        #test if allele prob is set, if not set allele prob uniform
-        #if only partly set infer missing values (assuming uniformity of missing value)
-        prob = []
-        no_prob = []
-        for a in _alleles:
-            if a.prob is None:
-                no_prob.append(a)
-            else:
-                prob.append(a)
-
-        print no_prob
-        if len(no_prob) > 0:
-            #group by locus
-            no_prob_grouped = {}
-            prob_grouped = {}
-            for a in no_prob:
-                no_prob_grouped.setdefault(a.locus, []).append(a)
-            for a in prob:
-                prob_grouped.setdefault(a.locus, []).append(a)
-
-            print no_prob_grouped, prob_grouped
-            for g, v in no_prob_grouped.iteritems():
-                total_loc_a = len(v)
-                if g in prob_grouped:
-                    remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
-                    for a in v:
-                        a.prob = remaining_mass/total_loc_a
-                else:
-                    for a in v:
-                        a.prob = 1.0/total_loc_a
-        probs = {a.name:a.prob for a in _alleles}
-        if verbosity:
-            for a in _alleles:
-                print a.name, a.prob
-
-        #start constructing model
-        self.__solver = SolverFactory(solver)
-        self.__verbosity = verbosity
-        self.__changed = True
-        self.__alleleProb = _alleles
-        self.__k = k
-        self.__result = None
-        self.__thresh = {} if threshold is None else threshold
-
-        imm = {}
-        peps = {}
-        alleles_I = {}
-        variations = []
-        epi_var = {}
-
-        #unstack multiindex df to get normal df based on first prediction method
-        #and filter for binding epitopes
-
-        res_df = _results.xs(_results.index.values[0][1], level="Method")
-        print "before",len(res_df)
-        res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, -float("inf"))
-                                                   for a in res_df.columns), axis=1)]
-        print "after",len(res_df)
-
-
-        for tup in res_df.itertuples():
-            p = tup[0]
-            seq = str(p)
-            peps[seq] = p
-            for a, s in itr.izip(res_df.columns, tup[1:]):
-                if s > self.__thresh.get(a.name, -float("inf")):
-                    alleles_I.setdefault(a.name, set()).add(seq)
-                imm[seq, a.name] = s
-
-            prots = set(pr for pr in p.get_all_proteins())
-            for prot in prots:
-                #variations.append(prot.gene_id)
-                epi_var.setdefault(prot.gene_id, set()).add(seq)
-
-        for a in probs.iterkeys():
-            imm['start', a] = 0.0
-            imm['stop', a] = 0.0
-
-        self.__peptideSet = peps
-
-        #generate overlapping graph as basis of the problem
-        overlapping_graph = {(x,y):suffixPrefixMatch(x,y,1) for x,y in
-                             itr.product(peps.iterkeys(),peps.iterkeys()) if x!=y }
-        self.__overl = overlapping_graph
-        for k in peps.iterkeys():
-            overlapping_graph[("start",k)] = len(k)
-            overlapping_graph[(k,"stop")] = 0
-        #overlapping_graph[("start","stop")] = 0
-        #model here:
-        #print overlapping_graph
-
-        ep = peps.keys()
-        ep_start = ep + ["start"]
-        ep_end = ep +["stop"]
-        ep.extend(["start","stop"])
-
-        model = ConcreteModel()
-
-        #Sets
-        model.Q = Set(initialize=set(epi_var.iterkeys()))
-        model.A = Set(initialize=probs.keys())
-
-        model.E_var = Set(model.Q, initialize=lambda mode, v: epi_var[v])
-        model.A_I = Set(model.A, initialize=lambda model, a: alleles_I[a])
-
-        model.E = Set(initialize=ep)
-        model.E_start = Set(initialize=ep_start)
-        model.E_end = Set(initialize=ep_end)
-        model.E_prim = Set(initialize=peps.keys())
-        model.ExE = Set(initialize=overlapping_graph.iterkeys(),dimen=2)
-
-
-        #Parameters
-        model.p = Param(model.A, initialize=lambda model, a: probs[a])
-        model.i = Param(model.E, model.A, initialize=lambda model, e, a: imm[e, a])
-        model.LMAX = Param(initialize=self.__k, within=PositiveIntegers, mutable=True)
-        model.w_ab = Param(model.ExE, initialize=overlapping_graph)
-        model.n = Param(initialize=len(model.E))
-        model.t_allele = Param(initialize=0, within=NonNegativeIntegers, mutable=True)
-        model.t_var = Param(initialize=0, within=NonNegativeIntegers, mutable=True)
-
-        # Variable Definition
-        model.x = Var(model.ExE, within=Binary)
-        model.y = Var(model.A, within=Binary)
-        model.z = Var(model.Q, within=Binary)
-        model.u = Var(model.E_end,
-                      domain=PositiveIntegers, bounds=(2,model.n))
-
-        # Objective definition
-        model.Obj = Objective(
-            rule=lambda model: sum(model.x[i,j] * sum( model.i[i, a] for a in model.A)
-                                   for i,j in model.ExE),
-            sense=maximize)
-
-        #OP specific constraints
-        model.StartConnectivity = Constraint(
-                                             rule=lambda model: sum(model.x['start',e] for e in model.E_prim) == 1)
-        model.EndConnectivity = Constraint(
-                                             rule=lambda model: sum(model.x[e,'stop'] for e in model.E_prim) == 1)
-
-        model.Connectivity1 = Constraint(model.E_prim,
-                                         rule=lambda model, e: sum(model.x[j,e]
-                                                                   for j in model.E_start if j !=e ) <= 1)
-
-        model.Connectivity2 = Constraint(model.E_prim,
-                                         rule=lambda model, e: sum(model.x[e,j]
-                                                                   for j in model.E_end if j !=e ) <= 1)
-        model.TourConstraint = Constraint(model.E_prim,
-                                          rule=lambda model, e:sum(model.x[i,e]
-                                                                   for i in model.E_start if i !=e ) == sum(model.x[e,j]
-                                                                   for j in model.E_end if j !=e ))
-        model.LengthConstraint = Constraint(rule=lambda model: sum(model.w_ab[i,j]*model.x[i,j] for i,j in model.ExE)
-                                                               <= model.LMAX)
-
-        model.Cardinality = Constraint(filter(lambda x:  x[0] !="start" and x[1] != "start", model.ExE),
-                                       rule=lambda model, a, b:
-                                                  model.u[a]-model.u[b]+1 <= (model.n -1)*(1-model.x[a, b]))
-
-        #Epitope selection Constraints
-        #optional constraints (in basic model they are disabled)
-        model.IsAlleleCovConst = Constraint(model.A,
-                                            rule=lambda model, a: sum(sum(model.x[e,j] for j in model.E_prim if e != j)
-                                                                      for e in model.A_I[a]) >= model.y[a])
-        model.MinAlleleCovConst = Constraint(rule=lambda model: sum(model.y[a] for a in model.A) >= model.t_allele)
-
-        model.IsAntigenCovConst = Constraint(model.Q,
-                                             rule=lambda model, q: sum(sum(model.x[e,j] for j in model.E_prim if e != j) for e in model.E_var[q]) >= model.z[q])
-        model.MinAntigenCovConst = Constraint(rule=lambda model: sum(model.z[q] for q in model.Q) >= model.t_var)
-
-        #generate instance
-        self.instance = model.create()
-        if self.__verbosity > 0:
-            print "MODEL INSTANCE"
-        #    self.instance.pprint()
-
-        self.instance.t_allele.deactivate()
-        self.instance.t_var.deactivate()
-
-        self.instance.IsAlleleCovConst.deactivate()
-        self.instance.MinAlleleCovConst.deactivate()
-        self.instance.IsAntigenCovConst.deactivate()
-        self.instance.MinAntigenCovConst.deactivate()
-
-        #variables
-        self.instance.y.deactivate()
-        self.instance.z.deactivate()
-
-    def activate_allele_coverage_const(self, minCoverage):
-        """
-            enables the allele Coverage Constraint
-
-            @param minCoverage (float): percentage of alleles which have to be covered
-            @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
-        """
-        # parameter
-        mc = self.instance.t_allele.value
-
-        try:
-            self.instance.t_allele.activate()
-            getattr(self.instance, str(self.instance.t_allele)).set_value(int(len(self.__alleleProb) * minCoverage))
-            #variables
-            self.instance.y.activate()
-
-            #constraints
-            self.instance.IsAlleleCovConst.activate()
-            self.instance.MinAlleleCovConst.activate()
-            self.__changed = True
-        except:
-            getattr(self.instance, str(self.instance.t_allele)).set_value(mc)
-            self.instance.t_allele.deactivate()
-            self.instance.y.deactivate()
-
-            self.__changed = False
-            raise Exception(
-                'activate_allele_coverage_const","An error occurred during activation of of the allele coverage constraint. ' +
-                'Please check your specified minimum coverage parameter to be in the range of 0.0 and 1.0.')
-
-    def deactivate_allele_coverage_const(self):
-        """
-            deactivates the allele coverage constraint
-        """
-
-        # parameter
-        self.__changed = True
-        self.instance.t_allele.deactivate()
-
-        #variables
-        self.instance.y.deactivate()
-
-        #constraints
-        self.instance.IsAlleleCovConst.deactivate()
-        self.instance.MinAlleleCovConst.deactivate()
-
-    def activate_antigen_coverage_const(self, t_var):
-        """
-            activates the variation coverage constraint
-            @param t_var: the number of epitopes which have to come from each variation
-            @type t_var: int
-            @exception EpitopeSelectionException: if the input variable is not in the same domain as the parameter
-
-        """
-        tmp = self.instance.t_var.value
-        try:
-            self.instance.t_var.activate()
-            getattr(self.instance, str(self.instance.t_var)).set_value(int(t_var))
-            self.instance.IsAntigenCovConst.activate()
-            self.instance.MinAntigenCovConst.activate()
-            self.instance.z.activate()
-            self.__changed = True
-        except:
-            self.instance.t_var.deactivate()
-            getattr(self.instance, str(self.instance.t_var)).set_value(int(tmp))
-            self.instance.IsAntigenCovConst.deactivate()
-            self.instance.MinAntigenCovConst.deactivate()
-            self.instance.z.deactivate()
-
-            self.__changed = False
-            raise Exception("activate_antigen_coverage_const",
-                            "An error has occurred during activation of the coverage constraint. Please make sure your input is an integer.")
-
-    def deactivate_antigen_coverage_const(self):
-        """
-            deactivates the variation coverage constraint
-        """
-        self.__changed = True
-        self.instance.IsAntigenCovConst.deactivate()
-        self.instance.MinAntigenCovConst.deactivate()
-        self.instance.z.deactivate()
-
-
-    def solve(self):
-        """
-        Solves the Epitope Assembly problem and returns an ordered list of the peptides
-
-        :return: list(Peptide) - An order list of the peptides
-        """
-        if self.__changed:
-            #try:
-                self.instance.x.reset()
-                self.instance.y.reset()
-                self.instance.preprocess()
-
-                res = self.__solver.solve(self.instance,options="threads=4,mip_cuts_all=2,mip_cuts_covers=3",tee=True)
-                self.instance.load(res)
-                if self.__verbosity > 0:
-                    res.write(num=1)
-
-                if str(res.Solution.status) != 'optimal':
-                    print "Could not solve problem - " + str(res.Solution.status) + ". Please check your settings"
-                    sys.exit(-1)
-
-                print "covered Antigens ", [q for q in self.instance.Q if self.instance.z[q]]
-                re = { i:j for i,j in self.instance.ExE if self.instance.x[i,j].value}
-                self.__changed = False
-                curr = 'start'
-                ep = []
-                while curr != "stop":
-                    curr = re[curr]
-                    if curr == "stop":
-                        break
-                    ep.append(curr)
-                    #print ep
-                st = ""
-                before = "start"
-                for e in ep:
-                    if before == "start":
-                        st = e
-                        before = e
-                    else:
-                        st += e[len(e)-self.__overl[before,e]:]
-                        before = e
-                self.__result = (ep,st)
-                return ep,st
-            #except Exception as e:
-            #    print e
-            #    raise Exception("solve",
-            #                    "An Error has occurred during solving. Please check your settings and if the solver is registered in PATH environment variable.")
+    pertuped = []
+    for e in best_sol:
+        if vdel == e[0]:
+            pertuped.append((vins,e[1]))
+        elif vdel == e[1]:
+            pertuped.append((e[0],vins))
         else:
-            return self.__result
+            pertuped.append(e)
+    return best_obj+__imm[vins]-__imm[vdel], sum(__arcCost[i][j] for i,j in pertuped), pertuped, vins
+
+
+def _vertexIns(vertex, edge,  best_obj, best_sol, __imm, __arcCost):
+    """
+        Insert a new vertex between vertex i and vertex j
+    """
+    pertuped = []
+    for e in best_sol:
+        if edge == e:
+            pertuped.append((e[0],vertex))
+            pertuped.append((vertex, e[1]))
+        else:
+            pertuped.append(e)
+    length = sum(__arcCost[i][j] for i,j in pertuped)
+    return best_obj+__imm[vertex], length, pertuped, vertex
+
+
+class MosaicVaccineTS:
+
+    def __init__(self, _results, threshold=None, k=10, solver="glpk", verbosity=0):
+
+        #check input data
+        if not isinstance(_results, EpitopePredictionResult):
+            raise ValueError("first input parameter is not of type EpitopePredictionResult")
+
+        #start constructing model
+        self.__pool = mp.Pool(mp.cpu_count())
+        self.__solver = SolverFactory(solver)#, solver_io = "python")
+        self.__verbosity = verbosity
+        self.__changed = True
+        a = _results.columns.tolist()
+        self.__alleleProb = self.__init_alleles(a)
+        self.__k = k
+        self.__result = None
+        self.__thresh = {} if threshold is None else threshold
+        self.__imm, self.__peps =  self.__init_imm(_results)
+        self.__n = len(self.__peps)
+        self.__arcCost = self.__init_arc_cost()
+        self.instance = self.__init_model()
+
+    def __init_alleles(self, _alleles, verbosity=0):
+            """
+                initializes allele objects an tests if they have probs
+                if not copys them and uniformily distributes probability within locus
+            """
+            prob = []
+            no_prob = []
+            for a in _alleles:
+                if a.prob is None:
+                    no_prob.append(copy.deepcopy(a))
+                else:
+                    prob.append(a)
+
+            if len(no_prob) > 0:
+                #group by locus
+                no_prob_grouped = {}
+                prob_grouped = {}
+                for a in no_prob:
+                    no_prob_grouped.setdefault(a.locus, []).append(a)
+                for a in prob:
+                    prob_grouped.setdefault(a.locus, []).append(a)
+
+                for g, v in no_prob_grouped.iteritems():
+                    total_loc_a = len(v)
+                    if g in prob_grouped:
+                        remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
+                        for a in v:
+                            a.prob = remaining_mass/total_loc_a
+                    else:
+                        for a in v:
+                            a.prob = 1.0/total_loc_a
+
+            if verbosity:
+                for a in _alleles:
+                    print a.name, a.prob
+            return prob+no_prob
+
+    def __init_imm(self, _results):
+            __thresh = self.__thresh
+            res_df = _results.xs(_results.index.values[0][1], level="Method")
+            #print "before",len(res_df)
+            res_df = res_df[res_df.apply(lambda x: any(x[a] > __thresh.get(a.name, -float("inf"))
+                                                       for a in res_df.columns), axis=1)]
+            pep = ["start"]
+            imm = [0]
+
+            for tup in res_df.itertuples():
+                p = tup[0]
+                pep.append(p)
+                imm.append(sum(a.prob*s for a, s in itr.izip(self.__alleleProb, tup[1:])
+                        if s > __thresh.get(a.name, -float("inf"))))
+            return imm, pep
+
+    def __init_arc_cost(self):
+
+            pool = self.__pool
+            return [pool.map(suffixPrefixMatch, ((str(i), str(j), 1) for j in self.__peps)) for i in self.__peps]
+
+    def __init_model(self):
+            """
+                initializes MIP model for OR with MTZ sub tour elimination
+            """
+            model = ConcreteModel()
+
+            #Sets
+            model.Nodes = RangeSet(0,len(self.__peps)-1)
+            def arc_init(model):
+                return ((i,j) for j in model.Nodes for i in model.Nodes if i != j)
+            model.Arcs = Set(dimen=2,initialize=arc_init)
+            def NodesOut_init(model, node):
+                return [ j for (i,j) in model.Arcs if i == node]
+            model.NodesOut = Set(model.Nodes, initialize=NodesOut_init)
+            def NodesIn_init(model, node):
+                return [ i for (i,j) in model.Arcs if j == node]
+            model.NodesIn = Set(model.Nodes, initialize=NodesIn_init)
+
+            #Params
+            def i_init(model, i):
+                return self.__imm[i]
+            model.i = Param(model.Nodes, initialize= i_init)
+            def d_init(model, i, j ):
+                return self.__arcCost[i][j]
+            model.d = Param(model.Arcs, initialize=d_init)
+            model.TMAX = Param(initialize=self.__k, within=PositiveIntegers, mutable=True)
+
+            #Variables
+            model.x = Var(model.Arcs, domain=Binary, bounds=(0,1), initialize=0)
+            model.u = Var(model.Nodes - set([0]), bounds=(1.0,len(self.__peps)-1))
+
+            model.Obj = Objective(rule=lambda model:sum( model.x[i,j]*model.i[i] for i,j in model.Arcs),
+                sense=maximize)
+
+            #conecitfity constraint
+            def Conn1_rule(model, node):
+                return sum( model.x[node,j] for j in model.NodesOut[node]) <= 1.0
+            model.Conn1 = Constraint(model.Nodes,rule=Conn1_rule)
+            def Conn2_rule(model, node):
+                return sum( model.x[i,node] for  i in model.NodesIn[node]) <= 1.0
+            model.Conn2 = Constraint(model.Nodes,rule=Conn1_rule)
+            #Equality constraint
+            def Equal_rule(model, node):
+                return sum( model.x[node,j] for j in model.NodesOut[node]) == sum( model.x[i,node] for  i in model.NodesIn[node])
+            model.Equal = Constraint(model.Nodes, rule=Equal_rule)
+            #Knapsack Constriant
+            def Knapsack_rule(model):
+                return sum( model.d[i,j]*model.x[i,j] for i,j in model.Arcs) <= self.__k
+            model.Knapsack = Constraint(rule=Knapsack_rule)
+            #Subout Elimination MTZ
+            def Subtour_rule(model, i,j):
+                return model.u[i]-model.u[j]+(len(self.__peps)-1)*model.x[i,j] <= len(self.__peps)-2
+            model.SubTour = Constraint(((i,j) for i in xrange(1,len(self.__peps))
+                    for j in  xrange(1,len(self.__peps)) if i != j), rule=Subtour_rule)
+            model.c = ConstraintList()
+            model.tabu = ConstraintList()
+
+            return model.create()
+
+    def solve(self, options=""):
+            """
+                solves the model optimally
+            """
+            instance = self.instance
+            instance.x.reset()
+            instance.u.reset()
+            instance.preprocess()
+
+            res = self.__solver.solve(instance, options=options, tee=False)
+            instance.load(res)
+            if self.__verbosity > 0:
+                res.write(num=1)
+            sol = []
+            unsorted = dict([(i, j) for i, j in instance.Arcs if instance.x[i, j].value > 0])
+            i=0
+            while unsorted:
+                j = unsorted[i]
+                sol.append((i, j))
+                del unsorted[i]
+                i = j
+            return instance.Obj(), sol
+
+    def approximate(self, phi=0.05, options="", _greedyLP=True, _tabu=True, _intensify=True, _jump=True,
+                    max_iter=10000, delta_change=1e-4, max_delta=101, seed=23478234):
+            """
+                Matheueristic using Tabu Search
+            """
+
+            def __greedy_init():
+                __imm = self.__imm
+                __arcCost = self.__arcCost
+                __k = self.__k
+                normalized_gain = np.divide(np.array(__imm),np.array(__arcCost))
+                imm = 0
+                length = 0
+                possible = set(xrange(1,self.__n))
+                i = 0
+                result = []
+                while length < __k:
+                    if length == 0:
+                        j = _,j = max([ (normalized_gain[0,j],j)  for j in possible])
+                        result.append((0,j))
+                        length += __arcCost[0][j]
+                        i = j
+                    else:
+                        possible.discard(i)
+                        _,j = max([ (normalized_gain[i,j],j)  for j in possible])
+                        length += __arcCost[i][j]
+                        imm += __imm[i]
+                        if length > __k:
+                            result.append((i,0))
+                            return imm, result
+                        result.append((i,j))
+                        i = j
+                imm += __imm[j]
+                result.append((j,0))
+                return imm,result
+
+            def __lp_init():
+                """
+                initializes first construction based on LP relaxation of the global problem with rounding
+                allows for complete constraints not only the capasity an stuff
+                see TABU SEARCH FOR MIXED INTEGER PROGRAMMING Joao Pedro Pedroso
+                """
+                #set variables to non negativ real to obtain relaxation
+
+                #copy is supoptimal for large instances
+                #but it seams as if the change of domain can only be done once??
+                #at least an error occures when solving the MIP after solving its relaxation
+                instance = copy.deepcopy(self.instance)
+                solver = self.__solver
+                __n = self.__n
+                __k = self.__k
+                __imm = self.__imm
+                __arcCost = self.__arcCost
+
+                instance.x.domain = NonNegativeReals
+                instance.preprocess()
+                result = []
+                imm = 0
+                length = 0
+                possible = set(xrange(1,__n))
+                i = 0
+                while length < __k:
+                    lp_result = solver.solve(instance, options=options)
+                    instance.load(lp_result)
+                    if length == 0:
+                        _,j = max([ (instance.x[0,j].value,j)  for j in possible])
+                        instance.x[0,j].setlb(1)
+                        instance.x[0,j].setub(1)
+                        result.append((0,j))
+                        length += __arcCost[0][j]
+                        i = j
+                    else:
+                        possible.discard(i)
+                        _,j = max([ (instance.x[i,j].value,j)  for j in possible  ])
+                        length += __arcCost[i][j]
+                        imm += __imm[i]
+                        if length > __k:
+                            result.append((i,0))
+                            return imm, result
+                        #possible = remove_j(possible,i)
+                        result.append((i,j))
+                        instance.x[i,j].setlb(1)
+                        instance.x[i,j].setub(1)
+                        i = j
+                imm += __imm[j]
+                result.append((j,0))
+                del instance
+                return imm, result
+
+            def __tabu_search(best_obj, best_sol):
+                """
+                    performe Tabu Search according to Liang et al. IEEE 2002
+                    some moves are missing -> arc swap for example. dont know if
+                    needed.
+                """
+                __k = self.__k
+                __imm = self.__imm
+                __arcCost = self.__arcCost
+                #generates tasks
+                best_vertices = set(sum(best_sol, ()))
+                remaining_vertices = set(xrange(self.__n)) - best_vertices
+                tasks = []
+                for v in remaining_vertices:
+                    for e in best_sol:
+                        if tenure.get(e[0],0) < curr_iter and tenure.get(e[1],0) < curr_iter:
+                            tasks.append((_vertexIns,(v, e, best_obj, best_sol, __imm, __arcCost)))
+                for r in remaining_vertices:
+                    for v in best_vertices:
+                        if tenure.get(v,0) < curr_iter:
+                            tasks.append((_vertexDel,(r, v, best_obj, best_sol, __imm, __arcCost)))
+                #make neighborhood
+                neighbor = self.__pool.map(_start, tasks)
+                changed_vertex = None
+                best_length = 0
+                b_obj = -float('inf')
+                b_sol = None
+                #filter neighbour with tabu list and best_obj
+                for obj, length, sol, v in neighbor:
+                    if sol not in tabu_list and  obj > b_obj and length <= __k:
+                        b_sol = sol
+                        b_obj = obj
+                        best_length = length
+                        changed_vertex = v
+                if b_sol is None:
+                    return best_obj, best_sol
+                tabu_list.add(b_sol)
+                #iteration dependent? the earlier the iteration the longer tabu?
+                tenure[changed_vertex] = curr_iter + math.ceil(math.sqrt((len(best_vertices)+len(remaining_vertices))/curr_iter)) \
+                            + math.floor((len(best_vertices)/(self.__k/9.))*best_length)
+                return b_obj, b_sol
+
+            def __mip_intensification(phi, curr_sol):
+                """
+                    refine solution by allowing at most phi new variables
+                """
+                #set warmstart
+                instance = self.instance
+                instance.x.reset()
+                instance.u.reset()
+                self.instance.x.domain = Binary
+                selected_vars = set(curr_sol)
+                sorted_nodes = [ i for (i,j) in curr_sol]
+                for i,j in instance.Arcs:
+                    instance.x[i,j] = 1 if (i,j) in selected_vars else 0
+                    if i != 0:
+                        try:
+                            k = sorted_nodes.index(i)
+                            instance.u[i] = k+1
+                        except ValueError:
+                            instance.u[i] = 1
+                    if j != 0:
+                        try:
+                            k = sorted_nodes.index(j)
+                            instance.u[j] = k+1
+                        except ValueError:
+                            instance.u[j] = 1
+                #clear possible contained constraint in constraint list and add new constraint
+                instance.c.clear()
+                instance.tabu.clear()
+                instance.c.add(sum(1-instance.x[i,j] for i,j in curr_sol) <= max(math.ceil(phi*len(curr_sol)),2))
+                instance.preprocess()
+                result = self.__solver.solve(instance, options=options+",timelimit=10" if options else "timelimit=10",warmstart=True)# tee=True)
+                instance.load(result)
+                sol = []
+                unsorted = dict([(i,j) for i,j in instance.Arcs if instance.x[i,j].value > 0])
+                i=0
+                while unsorted:
+                    j = unsorted[i]
+                    sol.append((i,j))
+                    del unsorted[i]
+                    i=j
+                return instance.Obj(), sol
+
+            def __jump(best_sol):
+                """
+                    change 50% of the current solution with new nodes
+                    use __lp_init with a initial starting set of vertices
+                    (in random order)
+                """
+                #set variables to non negativ real to obtain relaxation
+                instance = copy.deepcopy(self.instance)
+                solver = self.__solver
+                rand = np.random.rand
+                __n = self.__n
+                __k = self.__k
+                __imm = self.__imm
+                __arcCost = self.__arcCost
+
+                instance.x.domain = NonNegativeReals
+                instance.c.clear()
+                instance.tabu.clear()
+                for sol in tabu_list:
+                    instance.tabu.add(sum(1 - instance.x[i,j] for i,j in sol) >= 1)
+                #best_vertices = set(sum(best_sol, ()))
+                #selected = []
+                for k, (i,j) in enumerate(best_sol):
+                    if rand() >= 0.5:
+                        instance.x[i,j].setlb(1)
+                        instance.x[i,j].setub(1)
+                        #selected.append((k,i,j))
+                        #if i > 0:
+                        #    instance.u[i].setlb(k+1)
+                        #    instance.u[i].setub(k+1)
+                        #if j > 0:
+                        #    instance.u[j].setlb(k+2)
+                        #    instance.u[j].setub(k+2)
+                instance.preprocess()
+                result = []
+                imm = 0
+                length = 0
+                possible = set(xrange(1,__n))
+                i = 0
+                while length < __k:
+                    lp_result = solver.solve(instance, options=options+",timelimit=20" if options else "timelimit=20")
+                    instance.load(lp_result)
+                    if length == 0:
+                        _,j = max([ (instance.x[0,j].value,j)  for j in possible])
+                        instance.x[0,j].setlb(1)
+                        instance.x[0,j].setub(1)
+                        result.append((0,j))
+                        length += __arcCost[0][j]
+                        i = j
+                    else:
+                        possible.discard(i)
+                        _,j = max([ (instance.x[i,j].value,j)  for j in possible  ])
+                        length += __arcCost[i][j]
+                        imm += __imm[i]
+                        if length > __k:
+                            result.append((i,0))
+                            return imm, result
+                        #possible = remove_j(possible,i)
+                        result.append((i,j))
+                        instance.x[i,j].setlb(1)
+                        instance.x[i,j].setub(1)
+                        i = j
+                imm += __imm[j]
+                result.append((j,0))
+                return imm, result
+            ##########################################
+
+            np.random.seed(seed)
+
+            if _greedyLP:
+                best_obj, best_sol = __lp_init()
+            else:
+                best_obj, best_sol = __greedy_init()
+            curr_obj, curr_sol = best_obj, best_sol
+
+            if not _tabu:
+                return best_obj, best_sol
+            print "Start solution: ", best_obj, best_sol
+            curr_iter = 1
+            delta = 1
+            tabu_list = TabuList(size=self.__k)
+            tabu_list.add(best_sol)
+            tenure = {0:max_iter}
+            while (curr_iter < max_iter) and (delta < max_delta):
+                curr_obj, curr_sol = __tabu_search(curr_obj, curr_sol)
+
+                if curr_obj > best_obj:
+                    best_obj = curr_obj
+                    best_sol = curr_sol
+
+                if abs(best_obj - curr_obj) <= delta_change or curr_obj < best_obj:
+                    delta += 1
+
+                if _intensify:
+                    #sould not be done every time
+                    #TODO: find good rule when to apply intensification
+                    if not curr_iter % 50:
+                        curr_obj, curr_sol = __mip_intensification(phi, curr_sol)
+                        if curr_obj > best_obj:
+                            best_obj = curr_obj
+                            best_sol = curr_sol
+                            delta = 0
+                            #if _jump:
+                                #diversification should be performed after each
+                                #increase of objective (?)
+                             #   curr_obj, curr_sol = __jump(curr_sol)
+                if delta % max(math.floor(max_delta/5),10) == 0 and _jump:
+                    curr_obj, curr_sol = __jump(curr_sol)
+                curr_iter += 1
+
+            self.__pool.close()
+            return best_obj, sum(self.__arcCost[i][j] for i,j in best_sol), best_sol
+
+
+

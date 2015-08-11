@@ -1,7 +1,11 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer'
+"""
+.. module:: IO.RefSeqAdapter
+   :synopsis: DB-Adapter class for RefSeq
+.. moduleauthor:: walzer
+"""
 
 import logging
 

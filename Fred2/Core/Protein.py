@@ -2,19 +2,19 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Protein
+.. module:: Core.Protein
    :synopsis: Contains the Protein Class.
-.. moduleauthor:: brachvogel
+.. moduleauthor:: schubert, brachvogel
 
 """
 __author__ = 'brachvogel'
+
+import itertools
 
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
 from Fred2.Core.Base import MetadataLogger
-
-
 
 
 class Protein(MetadataLogger, Seq):
@@ -34,9 +34,9 @@ class Protein(MetadataLogger, Seq):
                                           key=position within protein, 
                                           value=list of variants at that pos
     """
+    newid = itertools.count().next
 
-    def __init__(self, _seq, _gene_id, _transcript_id, _orig_transcript=None, 
-                 _vars=None):
+    def __init__(self, _seq, _gene_id="unknown", _transcript_id=None, _orig_transcript=None, _vars=None):
         """
         :param str _seq: String of an IUPACProtein alphabet, representing the
                          protein
@@ -59,7 +59,7 @@ class Protein(MetadataLogger, Seq):
         else:
             self.vars = _vars  # {prot-position: list(variant)}
         self.orig_transcript = _orig_transcript
-        self.transcript_id = _transcript_id
+        self.transcript_id = "Protein_%i"%Protein.newid() if _transcript_id is None else _transcript_id
         self.gene_id = _gene_id
 
 

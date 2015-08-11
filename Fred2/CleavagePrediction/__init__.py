@@ -1,11 +1,23 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert'
+"""
+.. module:: CleavagePrediction
+   :synopsis: Factory classes for cleavage site and fragment prediction.
+              This is the entry point to all cleavage prediction methods.
+.. moduleauthor:: schubert
+
+"""
 
 from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *
 from Fred2.CleavagePrediction.ANN import *
+
+try:
+    from fred_plugin import *
+except ImportError:
+    pass
+
 
 class CleavageSitePredictorFactory(object):
     class __metaclass__(type):
@@ -16,28 +28,25 @@ class CleavageSitePredictorFactory(object):
             '''
             just as I think it works.....
 
-            If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
+            If a third person wants to write a new Cleavage Site Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
             '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
 
             try:
                 return ACleavageSitePrediction.registry[_predictor](*args)
             except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                raise ValueError("Predictor %s is not known. Please verify that such an predictor is "%_predictor +
                                  "supported by FRED2 and inherits ACleavageSitePrediction.")
 
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a list of available cleavage site predictors
 
-        :return: list of epitope predictors represented as string
+        :return: list of cleavage site predictor represented as string
         """
-        return ACleavageSitePrediction.registry.keys()
+        return sorted([k for k in ACleavageSitePrediction.registry.iterkeys()
+                       if k not in ["APSSMCleavageSitePredictor", "ACleavageSitePrediction"]])
 
 
 class CleavageFragmentPredictorFactory(object):
@@ -49,25 +58,22 @@ class CleavageFragmentPredictorFactory(object):
             '''
             just as I think it works.....
 
-            If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
+            If a third person wants to write a new Cleavage Fragment Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
             '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
 
             try:
                 return ACleavageFragmentPrediction.registry[_predictor](*args)
             except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                raise ValueError("Predictor %s is not known. Please verify that such an predictor is "%_predictor +
                                  "supported by FRED2 and inherits ACleavageFragmentPrediction.")
 
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a list of available cleavage fragment predictors
 
-        :return: list of epitope predictors represented as string
+        :return: list of cleavage fragment represented as string
         """
-        return ACleavageFragmentPrediction.registry.keys()
+        return sorted([k for k in ACleavageFragmentPrediction.registry.iterkeys()
+                if k not in ["APSSMCleavageFragmentPredictor", "ACleavageFragmentPrediction"]])

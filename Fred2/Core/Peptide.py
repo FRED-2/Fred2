@@ -2,7 +2,7 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Peptide
+.. module:: Core.Peptide
    :synopsis: Contains the Peptide Class.
 .. moduleauthor:: brachvogel
 

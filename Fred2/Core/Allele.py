@@ -2,12 +2,12 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Allele
+.. module:: Core.Allele
    :synopsis: Allele class.
-.. moduleauthor:: brachvogel, szolek, walzer
+.. moduleauthor:: schubert, brachvogel, szolek, walzer
 
 """
-__author__ = 'schubert', 'walzer'
+
 
 from Fred2.Core.Base import MetadataLogger
 
@@ -39,7 +39,7 @@ class Allele(MetadataLogger):
         return self.name
 
     def __eq__(self, other):
-        return self.name == other.name
+        return str(self.name) == str(other)
 
     def __cmp__(self, other):
-        return cmp(self.name, other.name)
+        return cmp(self.name, str(other))

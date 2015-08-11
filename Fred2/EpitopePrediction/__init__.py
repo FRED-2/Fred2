@@ -1,12 +1,22 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert'
+"""
+.. module:: EpitopePrediction
+   :synopsis: Factory classes for cleavage site and fragment prediction.
+              This is the entry point to all cleavage prediction methods.
+.. moduleauthor:: schubert
+
+"""
 
 from Fred2.Core.Base import AEpitopePrediction
-from Fred2.EpitopePrediction.ANN import *
+from Fred2.EpitopePrediction.External import *
 from Fred2.EpitopePrediction.PSSM import *
 from Fred2.EpitopePrediction.SVM import *
+try:
+    from fred_plugin import *
+except ImportError:
+    pass
 
 class EpitopePredictorFactory(object):
     class __metaclass__(type):
@@ -20,10 +30,6 @@ class EpitopePredictorFactory(object):
             If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
             inherit from AEpitopePrediction. That's it nothing more.
             '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
 
             try:
                 return AEpitopePrediction.registry[_predictor](*args)
@@ -38,5 +44,6 @@ class EpitopePredictorFactory(object):
 
         :return: list of epitope predictors represented as string
         """
-        return [k for k in AEpitopePrediction.registry.iterkeys() if
-                k not in ["ANetMHC", "APSSMEpitopePredictor", "ASVMEpitopePrediction", "AEpitopePrediction"]]
+        return sorted([k for k in AEpitopePrediction.registry.iterkeys() if
+                k not in ["AExternalEpitopePrediction", "APSSMEpitopePrediction",
+                          "ASVMEpitopePrediction", "AEpitopePrediction"]])
