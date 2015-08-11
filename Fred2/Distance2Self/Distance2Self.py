@@ -7,12 +7,13 @@ __author__ = 'mohr'
 
 import os
 import subprocess
-import time
+import datetime
 import warnings
 
 
 from Fred2.Core.Result import Distance2SelfResult
 from Fred2.Data import DistanceMatrices
+from Fred2.Core.Base import AExternal
 from Fred2.Distance2Self.DistanceMatrix import DistanceMatrix
 
 
@@ -26,8 +27,9 @@ class Distance2Self(object):
     """
 
 
-    def __init__(self, _matrix, trie=None):
+    def __init__(self, _matrix, trie=None, saveTrieFile=False):
 
+        self.__saveTrieFile = saveTrieFile
         self.__matrix = _matrix
         self.__trie = trie
 
@@ -36,19 +38,35 @@ class Distance2Self(object):
         self.__externalPathTrieGenerator = '/path/to/get_TrieArray'
 
 
-    def generate_trie(self, peptidesFile, outfile='peptideTrie', peptideLength=9):
+    def __del__(self):
+        if not self.__saveTrieFile:
+            os.remove(self.__trie)
+
+    def generate_trie(self, peptides, outfile='peptideTrie', peptideLength=9):
 
         cmd = self.__externalPathTrieGenerator + " %s %s %s %s"
 
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-        pathToTrie = os.path.abspath("../Data/tries/%s_%s.trie"% (outfile, timestr))
+        timestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S.%f")
+        current = os.path.join(os.path.dirname(__file__))
+        pathToTrie = os.path.join(current,'..',"Data/tmp/%s_%s.trie" % (outfile, timestr))
 
         self.__trie = pathToTrie
-        subprocess.check_output(cmd%(peptidesFile, self.__matrix.path_to_matrix_file, peptideLength, pathToTrie), shell=True)
+
+        # create temporary file with peptides for distance computation
+        tmpFile = NamedTemporaryFile(delete=False)
+
+        with open(tmpFile.name, "w") as peptidesFile:
+            for index, pep in enumerate(peptides):
+                peptidesFile.write('>%s\n%s\n' % (index, pep))
+
+        subprocess.check_output(cmd%(tmpFile.name, self.__matrix.path_to_matrix_file, peptideLength, pathToTrie), shell=True)
+        os.remove(tmpFile.name)
 
     def calculate_distances(self, peptides, pathToTrie=None, n=10):
 
-        if pathToTrie is None:
+        if self.__trie is None:
+            raise ValueError("Distance calculation could not be made for given input. Given trie must not be null.")
+        elif pathToTrie is None:
             trie = self.__trie
         else:
             trie = pathToTrie
