@@ -39,9 +39,9 @@ class DistanceMatrix(object):
         return self.__pathToMatrixFile
 
     def to_file(self):
-
         timestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S.%f")
-        pathToMatrix = os.path.abspath("../Data/tmp/%s.mat"% timestr)
+        current = os.path.join(os.path.dirname(__file__))
+        pathToMatrix = os.path.join(current,'..',"Data/tmp/%s.mat" % timestr)
 
         with open(pathToMatrix,'w') as newMatrixFile:
             for k in self.__matrix.keys():
