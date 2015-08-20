@@ -88,11 +88,7 @@ setup(
 
     # Specify  packages via find_packages() and exclude the tests and 
     # documentation:
-<<<<<<< HEAD
     packages=find_packages(exclude=['test', 'doc', 'tutorials', 'svms', 'examples']),
-=======
-    packages=find_packages(exclude=['test', 'doc', 'tutorials']),
->>>>>>> 148e93792c403b7a5203ee5bb42b1637684df6b2
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
@@ -117,12 +113,9 @@ setup(
         ],
     },
 
-<<<<<<< HEAD
     #ext_modules=[helloworld_module],
     ext_modules=[d2s_module],
 
-=======
->>>>>>> 148e93792c403b7a5203ee5bb42b1637684df6b2
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
     install_requires=['pandas', 'pyomo>=4.0', 'biopython', 'svmlight', 'MySQL-python >= 1.2.4'],
 
