@@ -5,5 +5,6 @@ Fred2/.idea/*
 Fred2.egg-info
 build/*
 dist/*
+.pythoscope
 .idea
 *.pyc
