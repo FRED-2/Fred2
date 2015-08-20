@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages  # Always prefer setuptools over distutils
+from distutils.core import Extension
 from codecs import open  # To use a consistent encoding
 from os import path
 import glob
@@ -19,6 +20,28 @@ for directory in directories:
     files = glob.glob(directory + '*')
     data_files.append((directory, files))
 
+d2s_dir = 'Fred2/Distance2Self/'
+# helloworld_module = Extension('helloworld',
+#                     define_macros = [('MAJOR_VERSION', '1'),
+#                                      ('MINOR_VERSION', '0')],
+#                     include_dirs = [d2s_dir],
+#                     libraries = ['boost_python'],
+#                     #library_dirs = ['/usr/local/lib'],
+#                     sources = [d2s_dir + 'hw.cpp'])
+d2s_module = Extension('d2s',
+                    define_macros = [('MAJOR_VERSION', '1'),
+                                     ('MINOR_VERSION', '0')],
+                    include_dirs = [d2s_dir + "src/"],
+                    libraries = ['boost_serialization','boost_python'],
+                    #library_dirs = ['/usr/local/lib'],
+                    depends = [d2s_dir + "src/" +'distance2self.hpp'],
+                    sources = [d2s_dir + "src/" + 'distance2self.cpp'])
+
+d2s_files = glob.glob(d2s_dir + "src/" + '*')
+data_files.append((d2s_dir + "src/", d2s_files))
+
+#for sdist inclusion MANIFEST.in is still required
+#installation is don via data_files etc (build and egg install?)
 
 setup(
     name='Fred2',
@@ -65,7 +88,7 @@ setup(
 
     # Specify  packages via find_packages() and exclude the tests and 
     # documentation:
-    packages=find_packages(exclude=['test', 'doc', 'tutorials']),
+    packages=find_packages(exclude=['test', 'doc', 'tutorials', 'svms', 'examples']),
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
@@ -89,6 +112,9 @@ setup(
             'epitopeprediction=Fred2.Apps.EpitopePrediction:main',
         ],
     },
+
+    #ext_modules=[helloworld_module],
+    ext_modules=[d2s_module],
 
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
     install_requires=['pandas', 'pyomo>=4.0', 'biopython', 'svmlight', 'MySQL-python >= 1.2.4'],
