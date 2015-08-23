@@ -1,51 +1,79 @@
-# This code is part of the Fred2 distribution and governed by its
-# license.  Please see the LICENSE file that should have been included
-# as part of this package.
-__author__ = 'schubert'
+from unittest import TestCase
+from Bio.Seq import Seq
 
-'''
-Unit Test for Transcript Generator
-'''
-import unittest
+__author__ = 'schubert,walzer'
 
-from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
-from Fred2.Core.Generator import generate_transcripts_from_variants
-from Fred2.IO.MartsAdapter import MartsAdapter
-from Fred2.IO.FileReader import read_annovar_exonic
-
+from Fred2.Core import Variant
+from Fred2.Core import VariationType
+from Fred2.Core import MutationSyntax
+from Fred2.IO import MartsAdapter
 from Fred2.test.DummyAdapter import DummyAdapter
 from Fred2.test.VariantsForTesting import *
+from Fred2.Core import Generator
 
 
-class TranskriptGeneratorTestCase(unittest.TestCase):
-
+class GeneratorTest(TestCase):
     def setUp(self):
-        self.trid = "NM_001114377" #FOXP3
-        #self, id, type, chrom, genomePos, ref, obs, coding, isHomozygous, 
+        self.trid = "NM_001114377"  # FOXP3
+        # self, id, type, chrom, genomePos, ref, obs, coding, isHomozygous,
         # isSynonymous, metadata=None)
-        self.non_syn_hetero_snp = Variant("COSM1122493",VariationType.SNP,"X",
+        self.non_syn_hetero_snp = Variant("COSM1122493", VariationType.SNP, "X",
                                           49111949, "G", "T",
-                                          {"NM_001114377":MutationSyntax( \
-                                            "NM_001114377", 757, 218, "", "")
+                                          {"NM_001114377": MutationSyntax( \
+                                              "NM_001114377", 757, 218, "", "")
                                           }, False, False)
 
-        self.non_frame_shift_del = Variant("COSM1122495",VariationType.DEL,"X", 
+        self.non_frame_shift_del = Variant("COSM1122495", VariationType.DEL, "X",
                                            49113232, "CTT", "",
-                                           {"NM_001114377":MutationSyntax( \
-                                            "NM_001114377", 616, 206, "", "")
+                                           {"NM_001114377": MutationSyntax( \
+                                               "NM_001114377", 616, 206, "", "")
                                            }, True, False)
 
-        self.syn_homo_snp = Variant("COSM1122494",VariationType.SNP,"X",
+        self.syn_homo_snp = Variant("COSM1122494", VariationType.SNP, "X",
                                     49112257, "G", "A",
-                                    {"NM_001114377":MutationSyntax( \
-                                     "NM_001114377", 654, 218, "", "")
+                                    {"NM_001114377": MutationSyntax( \
+                                        "NM_001114377", 654, 218, "", "")
                                     }, False, True)
 
         self.db_adapter = MartsAdapter()
 
+    def test__update_var_offset(self):
+        tmp1, tmp2 = var_1, var_2
+        tmp1.offsets["tsc_1"] = 3
+        tmp2.offsets["tsc_1"] = 0
+        Generator._update_var_offset([tmp2], "tsc_1", "tsc_666")
+        self.assertEqual(tmp1.offsets, tmp2.offsets)
+
+    def test__incorp_snp(self):
+        ts = list("TESTSEQUENCE")
+        self.assertEqual(Generator._incorp_snp(ts, var_2, "tsc_1", 6), (list("TESTSEQUENTE"), 6))
+
+    def test__incorp_insertion(self):
+        ts = list("TESTSEQUENCE")
+        self.assertEqual(Generator._incorp_insertion(ts, var_3, "tsc_1", 0), (list("TESTSEQTTUENCE"), 2))
+        #TODO _incorp_insertion undocumented (and unwanted) sideeffect is it is altering the input! this goes for all _incorp. either assign and return or no return and doc - https://docs.python.org/2.4/lib/typesseq-mutable.html
+        self.assertEqual(Generator._incorp_insertion(ts, var_5, "tsc_1", 0), (list("TESTSEQUENCE"), 3))
+
+    def test__incorp_deletion(self):
+        ts = list("TESTSEQUEASDFGNCES")
+        #TODO incorp_deletion just deletes something @ pos
+        self.assertEqual(Generator._incorp_deletion(ts, var_4, "tsc_1", 0), (list("TESTSEQUENCES"), -5))
+        self.assertEqual(Generator._incorp_deletion(ts, var_6, "tsc_1", 0), (list("TESTSEQUENS"), -2))
+
+    def test__check_for_problematic_variants(self):
+        self.assertTrue(Generator._check_for_problematic_variants([var_1,var_2]))
+        self.assertFalse(Generator._check_for_problematic_variants([var_5,var_6]))
+
+    def test_generate_transcripts_from_variants(self):
+        # tested in :
+        # test_non_syn_hetero_snp_trans_number
+        # test_heterozygous_variants
+        # test_simple_incorporation
+        # test_offset_single
+        pass
 
     # def test_non_syn_hetero_snp_trans_number(self):
-    #     """
+    # """
     #     tests if the number of generated transcripts for a heterozygous
     #     transcript is correct
     #
@@ -115,8 +143,7 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
     #     dummy_vars = [ var_9, var_4, var_8]
     #     trans = generate_transcripts_from_variants(dummy_vars, dummy_db).next()
     #     self.assertEqual(str(trans), "AATTAAACCCCGTTT")
-    #
-    #
+
     def test_heterozygous_variants(self):
         """
         Create multiple transcript variants for a transcript, given a set
@@ -144,7 +171,7 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
 
         # 1) INS, SNP, DEL
         dummy_vars = [var_10, var_11, var_12]
-        trans_gener = generate_transcripts_from_variants(dummy_vars, dummy_db)
+        trans_gener = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db)
         trans = [t for t in trans_gener]
 
         print trans
@@ -163,17 +190,13 @@ class TranskriptGeneratorTestCase(unittest.TestCase):
         self.assertTrue("GGGTTTCCCCCAAAAA" in trans)
         self.assertTrue("GGGGGTTTCCCCCAAAAA" in trans)
 
-    # def test_varinat_reader(self):
-    #     vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
-    #     print vars, len(vars)
-    #     trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
-    #     print trans
-    #     transToVar = {}
-    #     for v in vars:
-    #         for trans_id in v.coding.iterkeys():
-    #             transToVar.setdefault(trans_id, []).append(v)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        # def test_varinat_reader(self):
+        #     vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
+        #     print vars, len(vars)
+        #     trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
+        #     print trans
+        #     transToVar = {}
+        #     for v in vars:
+        #         for trans_id in v.coding.iterkeys():
+        #             transToVar.setdefault(trans_id, []).append(v)
 

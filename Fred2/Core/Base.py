@@ -108,8 +108,7 @@ class ACleavageSitePrediction(object):
 
         :return: list(int) - Supported peptide length
         """
-        raise  NotImplementedError
-
+        raise NotImplementedError
 
     @abc.abstractproperty
     def cleavagePos(self):
@@ -123,7 +122,7 @@ class ACleavageSitePrediction(object):
 
 
     @abc.abstractmethod
-    def predict(self, _aa_seq,  **kwargs):
+    def predict(self, _aa_seq, **kwargs):
         """
         Predicts the proteom cleavage site of the given sequences
 
@@ -165,7 +164,7 @@ class ACleavageFragmentPrediction(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def predict(self, _aa_seq,  **kwargs):
+    def predict(self, _aa_seq, **kwargs):
         """
         Predicts the probability that the fragment can be produced by the proteasom
 
@@ -296,7 +295,7 @@ class ATAPPrediction(object):
 
 
     @abc.abstractmethod
-    def predict(self, peptides,  **kwargs):
+    def predict(self, peptides, **kwargs):
         """
         Predicts the TAP affinity for the given sequences
 

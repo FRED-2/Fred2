@@ -30,28 +30,25 @@ class Transcript(MetadataLogger, Seq):
     :param dict(int,Variant) vars: Dict of Variants for specific positions in
                                    the transcript. key=position, value=Variant
     """
-    newid = itertools.count().next
+    newid = itertools.count().next #this is evil
 
     def __init__(self, _seq, _gene_id="unknown", _transcript_id=None, _vars=None):
         """
         :param str _gene_id: input genome ID
         :param str _transcript_id: input transcript RefSeqID
         :param str _seq: Transcript RefSeq sequence
-        :param dict(int,Variant) _vars: Dict of Variants for specific positions 
-                                        in the transcript. key=position, 
-                                        value=Variant
+        :param list(Variant) _vars: a list of Variants which internal positions are specific to the transcript.
         """
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq, generic_rna)
         self.gene_id = _gene_id
         self.transcript_id = Transcript.newid() if _transcript_id is None else _transcript_id
+        #TODO: this is not what the doc string says:
         if _vars is not None:
-            self.vars = {v.get_transcript_position(_transcript_id): v \
-                         for v in _vars}
+            self.vars = {v.get_transcript_position(_transcript_id): v for v in _vars}
 
         else:
             self.vars = dict()
-
 
     def __getitem__(self, index):
         """
@@ -64,20 +61,16 @@ class Transcript(MetadataLogger, Seq):
         item = str(self)[index]
         return Transcript(self.vars, self.transcript_id, item)
 
-
     def __repr__(self):
-        lines = []
-        lines += ["TRANSCRIPT: %s " % self.transcript_id]
-        
+        lines = ["TRANSCRIPT: %s" % self.transcript_id]
         # get all variants:
         lines += ["VARIANTS:"]
         for vpos, var in self.vars.iteritems():
-            lines.append('\t pos %i: %s'%(vpos, var))
+            lines.append('\tpos %i: %s'%(vpos, var))
 
         lines += ["SEQUENCE: %s (mRNA)"%str(self)]
 
-        return '\n\t'.join(lines) + '\n'
-
+        return '\n\t'.join(lines)
 
     def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
                   cds=False):
@@ -89,10 +82,10 @@ class Transcript(MetadataLogger, Seq):
                         transcript
         """
         # translate to a protein sequence
-        if len(str(self)) % 3 != 0:
-            raise ValueError('ERROR while translating: lenght of transcript %s \
-is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
+        #if len(str(self)) % 3 != 0:
+        #    raise ValueError('ERROR while translating: lenght of transcript %s is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
 
+        #TODO warn if intrasequence stops - biopython warns if  % 3 != 0
         prot_seq = str(Seq.translate(self))
 
         # only transfer the non-synonymous variants to the protein as an

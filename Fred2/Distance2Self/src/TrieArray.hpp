@@ -22,7 +22,7 @@ class TrieArray
     PackedTrie data;
 	TrieArray();
     TrieArray(string ta);
-	TrieArray(const Trie& t, size_t size);
+    TrieArray(const Trie& t);
  	void add(string s);
 	
 	template<class Archive>
@@ -54,7 +54,7 @@ TrieArray::TrieArray(string ta)
 }
 
 
-TrieArray::TrieArray(const Trie& t, size_t size)
+TrieArray::TrieArray(const Trie& t)
 {
     vector<Trie::TrieGraph::vertex_descriptor> nodes;
     nodes.push_back(t.root);

@@ -18,5 +18,5 @@ Installation
 use the following commands:
 
     $ python setup.py sdist
-    $ cd dist
-    $ pip install Fred2-2.0.0a1.tar.gz
+    #replace [x] with current version
+    $ pip install dist/Fred2-2.[x].tar.gz
