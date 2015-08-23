@@ -43,8 +43,6 @@ data_files.append((d2s_dir + "src/", d2s_files))
 
 #for sdist inclusion MANIFEST.in is still required for C/C++ src
 
-print data_files
-
 setup(
     name='Fred2',
 
