@@ -30,10 +30,14 @@ def _update_var_offset(vars, transId_old, transId_new):
     :param transId_old:
     :param transId_new:
     """
+    #TODO as this is an manipulator doing an assignment a clearer signature nomenclature would be left- and righthand_side
+    #TODO doc for intended use case
     for v in vars:
         offset = v.offsets[transId_old]
         v.offsets[transId_new] = offset
 
+
+#TODO for _incorp... : shouldnt the offset be determined by the variant and _NOT_ be given as argument - otherwise the argument name should be renamed to something like offset_from_previous or transcript_current_offset
 
 def _incorp_snp(seq, var, transId, offset):
     """
@@ -117,7 +121,7 @@ def _check_for_problematic_variants(vars):
     Filters problematic variants, e.g. variants that coincide.
 
     :param list(Variant) vars: initial list of variants
-    :return: boole -- ture if now intersecting variants were found
+    :return: bool -- true if no intersecting variants were found
     :invariant: list(Variant) vars: List is sorted based on genome position
     """
     v_tmp = vars[:]
@@ -534,14 +538,14 @@ def generate_peptides_from_protein(proteins, window_size):
 
     for prot in proteins:
         # generate all peptide sequences per protein:
-        for (seq, _vars) in gen_peptide_info(prot):
+        for (seq, _variants) in gen_peptide_info(prot):
 
             t_id = prot.transcript_id
             if seq not in final_peptides:
                 final_peptides[seq] = Peptide(seq)
 
             final_peptides[seq].proteins[t_id] = prot
-            final_peptides[seq].vars[t_id] = _vars
+            final_peptides[seq].variants[t_id] = _variants
             final_peptides[seq].transcripts[t_id] = prot.orig_transcript
 
     return final_peptides.values()

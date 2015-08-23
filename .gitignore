@@ -2,5 +2,9 @@
 *.DS_Store
 Fred2/doc/build/*
 Fred2/.idea/*
+Fred2.egg-info
+build/*
+dist/*
+.pythoscope
 .idea
 *.pyc

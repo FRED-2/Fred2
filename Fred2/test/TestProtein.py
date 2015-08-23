@@ -16,9 +16,10 @@ from Fred2.Core.Generator import generate_peptides_from_protein, generate_transc
 
 class TestProteinClass(unittest.TestCase):
     def setUp(self):
-        # generate a Protein to test it
+        # generate a Protein for use in the tests of this class
         self.single_protein = Protein("ASDERWQTGHKILPMNVFCY", 'gene 1', 'someID')
 
+        # generate a set of Proteins for use in the tests of this class
         self.prot_set = list()
         self.prot_set.append(Protein("IIIVRC", 'gene 1', 'set entry 1'))
         self.prot_set.append(Protein("VRCVR", 'gene 1', 'set entry 2'))
@@ -27,32 +28,20 @@ class TestProteinClass(unittest.TestCase):
 
     def test1_protein_construction_novariants(self):
         """
-        Test if a single protein is correctly constructed from a given sequence
-        and gene ID.
-        (single_protein generation in 'setUp' method)
+        Test if a single protein is correctly constructed from a given sequence and gene ID.
         """
         self.assertEqual(self.single_protein.gene_id, "gene 1", 'incorrect Id')
-        self.assertEqual(self.single_protein.transcript_id, "someID",
-                         'incorrect transcript id')
-        self.assertEqual(str(self.single_protein), "ASDERWQTGHKILPMNVFCY",
-                         'incorrect sequence')
+        self.assertEqual(self.single_protein.transcript_id, "someID", 'incorrect transcript id')
+        self.assertEqual(str(self.single_protein), "ASDERWQTGHKILPMNVFCY", 'incorrect sequence')
         self.assertIsNone(self.single_protein.orig_transcript)
         self.assertEqual(self.single_protein.vars, {})
-
 
     def test2_generate_peptides_novariants(self):
         """
         Test if a list of proteins is correctly broken into peptide fragments.
-        Here the proteins are constructed from their sequence, having no
+        Here the proteins are constructed just from their sequence, having no
         transcript or variant information.
-        (prot_set generation in 'setUp' method)
         """
-        def get_total_peps(pep_set):
-            _sum = 0
-            for pep in pep_set:
-                _sum += len(pep.proteins.keys())
-            return _sum
-
         pep_set = generate_peptides_from_protein(self.prot_set, 3)
 
         # # Print peptide generator results:
@@ -61,21 +50,25 @@ class TestProteinClass(unittest.TestCase):
         #     print pep, pep.vars.items()
         #     print pep, pep.transcripts.items()
 
-        # The total number of fragments should be 14
-        # which is the sum over the individual originating proteins
-        self.assertEqual(get_total_peps(pep_set), 14)
+        # get the number of peptides generated for each protein in self.prot_set and sum up
+        number_of_peps = sum(len(pep.proteins.keys()) for pep in pep_set)
+        # The total number of peptides of length 3 from all proteins in self.pro_set should be 14
+        self.assertEqual(number_of_peps, 14)
 
-        # pep_set consists only of unique entries
-        pep_unique_seq = set([str(pep) for pep in pep_set])
-        self.assertEqual(len(pep_set), len(pep_unique_seq))
+        # generated pep_set should consist only of unique-sequence entries
+        unique_test_prot_set = list()
+        unique_test_prot_set.extend(self.prot_set)
+        unique_test_prot_set.extend(self.prot_set)
 
+        unique_test_pep_set = generate_peptides_from_protein(unique_test_prot_set, 3)
+        unique_test_pep_seqs = set([str(pep) for pep in unique_test_pep_set])
+        self.assertEqual(len(unique_test_pep_set), len(unique_test_pep_seqs))
 
-
-    # Using a protein made from variants:
     def test3_protein_from_variants(self):
         """
         Generate some transcripts from the 3 input variants
         (should give 8 transcripts, check also if all fields are complete)
+        Using a protein made from variants:
 
         Translate to proteins (check if all fields are there/filled)
 
@@ -87,9 +80,7 @@ class TestProteinClass(unittest.TestCase):
         dummy_vars = [var_10, var_11, var_12]
 
         proteins = []
-        print "Test 3"
         t = list(generate_transcripts_from_variants(dummy_vars, dummy_db))
-        print t
         for trans in t:
             # check gene id field:
             print trans
@@ -179,7 +170,7 @@ class TestProteinClass(unittest.TestCase):
         PEPTIDE: NPRG
             TRANSCRIPT: tsc_1:FRED2_0
         """
-
+        #TODO Somewhere here a print statement is called
         peps_trans1 = ["KNPR", "NPRG"]
         peps_trans2 = ["PPGA", "KPPG", "TKPP"]
         expected_vars = ["Variant(1C)", "Variant(15CC)"]

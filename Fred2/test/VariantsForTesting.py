@@ -63,7 +63,7 @@ var_2 = Variant(
     5,                    # Genomic Position 
     "C", "T",             # reference , observed
     {"tsc_1":mut_syn1_2}, # dict of (transcrip_id : mutSnytaxes)
-    True, False,  experimentalDesign="normal")         # isHomozygous?, isSynonymous?
+    True, False, experimentalDesign="normal")         # isHomozygous?, isSynonymous?
 
 # +F-SHIFT, HOMOZYGOUS
 var_3 = Variant(
@@ -84,7 +84,7 @@ var_4 = Variant(
 # INSERTION, HOMOZYGOUS
 var_5 = Variant(
     "var_5", VariationType.INS, "chr1",
-    10,                   # Genomic Position 
+    10,                   # Genomic Position
     "", "TTT",            # reference , observed
     {"tsc_1":mut_syn1_5}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?

@@ -1,13 +1,8 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-"""
-.. module:: Core.Protein
-   :synopsis: Contains the Protein Class.
-.. moduleauthor:: schubert, brachvogel
 
-"""
-__author__ = 'brachvogel'
+__author__ = 'schubert,brachvogel,walzer,szolek'
 
 import itertools
 
@@ -34,7 +29,7 @@ class Protein(MetadataLogger, Seq):
                                           key=position within protein, 
                                           value=list of variants at that pos
     """
-    newid = itertools.count().next
+    newid = itertools.count().next #this is evil and has no other purpose? it does not help that there may be more than one protein from one transcript - due to variants
 
     def __init__(self, _seq, _gene_id="unknown", _transcript_id=None, _orig_transcript=None, _vars=None):
         """
@@ -81,7 +76,6 @@ class Protein(MetadataLogger, Seq):
         lines += ["\t  %s (orig transcript)"%self.transcript_id]
 
         # Variants:
-
         lines += ["\t VARIANTS:"]
         for vpos, vset in self.vars.iteritems():
             for v in vset:

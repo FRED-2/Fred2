@@ -95,9 +95,8 @@ class Variant(MetadataLogger):
                 self.log_metadata(meta, metadata[meta])
 
     def __repr__(self):
-        return "Variant(%s%i%s):%s" % (self.ref, self.genomePos, self.obs,
-                                       self.experimentalDesign) if self.experimentalDesign else "Variant(%s%i%s)" % (
-        self.ref, self.genomePos, self.obs)
+        return "Variant(g.%i%s>%s):%s" % (self.genomePos, self.ref, self.obs, self.experimentalDesign) \
+            if self.experimentalDesign else "Variant(g.%i%s>%s)" % (self.genomePos, self.ref, self.obs)
 
     def get_transcript_offset(self):
         return len(self.obs) - len(self.ref)
@@ -107,11 +106,9 @@ class Variant(MetadataLogger):
 
     def get_transcript_position(self, trans_variant_id):
         """
-        .. note::
-
-            May only be used for transcript variants that were created from
-            this variant via 
-            :func:`Generator.generate_transcripts_from_variants`.
+        .. note:: May only be used for transcript variants that were created from this variant via :func:
+        `Generator.generate_transcripts_from_variants`.
+        ..TODO:: what? that should not be encoded in transcript id but in separate member
 
         returns the specific transcript position of a given transcript_id. 
         If variant is not associated with the given transcript id the function 
@@ -131,11 +128,9 @@ class Variant(MetadataLogger):
 
     def get_protein_position(self, trans_variant_id):
         """
-        .. note::
-
-            May only be used for transcript variants that were created from
-            this variant via 
-            :func:`Generator.generate_transcripts_from_variants`.
+        .. note:: May only be used for transcript variants that were created from this variant via :func:
+        `Generator.generate_transcripts_from_variants`.
+        ..TODO:: what? that should not be encoded in transcript id but in separate member
 
         returns the specific protein position of a given transcript_id. If 
         variant is not associated with the given transcript id the function 
@@ -152,5 +147,5 @@ class Variant(MetadataLogger):
                    self.offsets.get(trans_variant_id, 0)
         except KeyError:
             raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (str(trans_variant_id), self.__str__()))
+                           (str(trans_variant_id), self.__str__))
         return int(math.ceil(tpos/3.0)) # generate protein pos from transcript pos

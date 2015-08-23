@@ -18,7 +18,7 @@ class AResult(pandas.DataFrame):
     """
         A AResult object is a DataFrame with with multi-indexing.
 
-        This class is used as interface and cann be extended with custom short-cuts for the sometimes often tedious
+        This class is used as interface and can be extended with custom short-cuts for the sometimes often tedious
         calls in pandas
     """
     __metaclass__ = abc.ABCMeta
@@ -66,8 +66,8 @@ class EpitopePredictionResult(AResult):
             expressions = [expressions]
 
         #builde logical expression
-        masks = map(list,[comp(self.loc[(slice(None), method), :], thr).any(axis=1)
-                                             for method, comp, thr in expressions])
+        masks = map(list, [comp(self.loc[(slice(None), method), :], thr).any(axis=1)
+                    for method, comp, thr in expressions])
         if len(masks) > 1:
             masks = numpy.logical_and(*masks)
         else:
@@ -75,7 +75,7 @@ class EpitopePredictionResult(AResult):
 
         #apply to all rows
         idx = [f for f in masks
-                    for _ in xrange(len(self.index.levels[1]))]
+               for _ in xrange(len(self.index.levels[1]))]
         return EpitopePredictionResult(self.loc[idx, :])
 
     def merge_results(self, others):
@@ -98,6 +98,7 @@ class EpitopePredictionResult(AResult):
             df[zero] = 0
             df[nans] = numpy.NaN
         return EpitopePredictionResult(df)
+
 
 class Distance2SelfResult(AResult):
     """
@@ -155,7 +156,7 @@ class CleavageSitePredictionResult(AResult):
                 df2a.loc[d_diff,"Seq"] = ""
                 df1a.loc[o_diff, "Seq"] = ""
             elif len(o_diff):
-                df2a.loc[df.index.intersection(o.index),"Seq"] = ""
+                df2a.loc[df.index.intersection(o.index), "Seq"] = ""
                 df1a.loc[o_diff, "Seq"] = ""
             elif len(d_diff):
                 df2a.loc[d_diff,"Seq"] = ""
