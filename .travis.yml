@@ -13,8 +13,8 @@ language: python
 python:
   - "2.7"
 before_install:
-	- sudo apt-get update -qq
-	- sudo apt-get install -qq libboost-all-dev
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq libboost-all-dev
 # command to package and install
 install:
  - python setup.py sdist --formats=zip -k
