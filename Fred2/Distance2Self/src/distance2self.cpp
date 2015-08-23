@@ -45,15 +45,15 @@ boost::python::dict Distance2Self::getDistance2Self(boost::python::list sequence
     return peptides;
 }
 
-template <class K, class V>
-dict map2BoostPythonDict(std::map<K, V> map) {
-    typename map<K, V>::iterator it;
-    dict bpd;
-    for (it = map.begin(); it != map.end(); ++it) {
-        bpd[it->first] = it->second;
-    }
-    return bpd;
-}
+//~ template <class K, class V>
+//~ dict map2BoostPythonDict(std::map<K, V> map) {
+    //~ typename map<K, V>::iterator it;
+    //~ dict bpd;
+    //~ for (it = map.begin(); it != map.end(); ++it) {
+        //~ bpd[it->first] = it->second;
+    //~ }
+    //~ return bpd;
+//~ }
 
 void Distance2Self::setTrieArray(string f_ta)
 {
