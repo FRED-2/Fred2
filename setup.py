@@ -10,16 +10,6 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     readme = f.read()
 
-data_files = list()
-directories = glob.glob('Fred2/Data/svms/*/')
-for directory in directories:
-    files = glob.glob(directory + '*')
-    data_files.append((directory, files))
-directories = glob.glob('Fred2/Data/examples/')
-for directory in directories:
-    files = glob.glob(directory + '*')
-    data_files.append((directory, files))
-
 d2s_dir = 'Fred2/Distance2Self/'
 # helloworld_module = Extension('helloworld',
 #                     define_macros = [('MAJOR_VERSION', '1'),
@@ -37,17 +27,29 @@ d2s_module = Extension('d2s',
                     depends = [d2s_dir + "src/" +'distance2self.hpp'],
                     sources = [d2s_dir + "src/" + 'distance2self.cpp'])
 
+
+data_files = list()
+directories = glob.glob('Fred2/Data/svms/*/')
+for directory in directories:
+    files = glob.glob(directory + '*')
+    data_files.append((directory, files))
+directories = glob.glob('Fred2/Data/examples/')
+for directory in directories:
+    files = glob.glob(directory + '*')
+    data_files.append((directory, files))
+
 d2s_files = glob.glob(d2s_dir + "src/" + '*')
 data_files.append((d2s_dir + "src/", d2s_files))
 
-#for sdist inclusion MANIFEST.in is still required
-#installation is don via data_files etc (build and egg install?)
+#for sdist inclusion MANIFEST.in is still required for C/C++ src
+
+print data_files
 
 setup(
     name='Fred2',
 
     # Version:
-    version='2.0.0a1',
+    version='2.0.0b1',
 
     description='A Framework for Epitope Detection and Vaccine Design',
     long_description=readme,
@@ -98,10 +100,10 @@ setup(
     #},
     #package_data is a lie: http://stackoverflow.com/questions/7522250/how-to-include-package-data-with-setuptools-distribute
 
-    # 'package_data' is used to als install non package data files
+    # 'package_data' is used to also install non package data files
     # see http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files
     # example:
-    data_files=data_files,
+    #data_files=data_files,
 
     # Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.

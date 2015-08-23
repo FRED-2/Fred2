@@ -2,7 +2,7 @@ include README.rst
 include README.md
 graft Fred2/Distance2Self/src
 graft Fred2/Data/examples
-graft Fred2/svms
-graft Fred2/svms/svmhc
-graft Fred2/svms/svmtap
-graft Fred2/svms/unitope
+graft Fred2/Data/svms
+graft Fred2/Data/svms/svmhc
+graft Fred2/Data/svms/svmtap
+graft Fred2/Data/svms/unitope
