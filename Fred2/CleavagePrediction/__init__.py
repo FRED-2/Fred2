@@ -11,7 +11,7 @@
 
 from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *
-from Fred2.CleavagePrediction.ANN import *
+from Fred2.CleavagePrediction.External import *
 
 try:
     from fred_plugin import *
