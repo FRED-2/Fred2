@@ -739,9 +739,14 @@ class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
                 result[a][pep_seq] = float(row[ic_pos+i*3])
         return result
 
-class PickPocket(ANetMHC):
+
+class PickPocket(AExternalEpitopePrediction):
     """
-    Implementation of PickPocket
+    Implementation of PickPocket adapter
+
+    Zhang, H., Lund, O., & Nielsen, M. (2009). The PickPocket method for predicting binding specificities
+    for receptors based on receptor pocket similarities: application to MHC-peptide binding.
+    Bioinformatics, 25(10), 1293-1299.
 
     """
     __name = "pickpocket"
