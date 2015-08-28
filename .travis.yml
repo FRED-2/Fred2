@@ -13,6 +13,7 @@ language: python
 python:
   - "2.7"
 before_install:
+ - pip install nose-exclude
  - sudo apt-get update -qq
  - sudo apt-get install -qq python-dev libboost-python-dev libboost-serialization-dev
 # command to package and install
