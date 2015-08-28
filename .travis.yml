@@ -20,4 +20,4 @@ install:
  - python setup.py sdist --formats=zip -k
  - find ./dist -iname "*.zip" -print0 | xargs -0 pip install
 # command to run tests
-script: nosetests Fred2
+script: nosetests --exclude-dir=Fred2/test/external Fred2
