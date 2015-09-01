@@ -7,8 +7,7 @@ from Fred2.TAPPrediction import TAPPredictorFactory
 class TAPPredictionTestCaste(unittest.TestCase):
 
     def setUp(self):
-        self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
-
+        self.peptides = [Peptide("SYFPEITHI"), Peptide("IHTIEPFYS")]
 
     def test_tap_multiple_peptide_input(self):
         """
