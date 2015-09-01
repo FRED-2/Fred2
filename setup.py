@@ -11,37 +11,33 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     readme = f.read()
 
 d2s_dir = 'Fred2/Distance2Self/'
-# helloworld_module = Extension('helloworld',
-#                     define_macros = [('MAJOR_VERSION', '1'),
-#                                      ('MINOR_VERSION', '0')],
-#                     include_dirs = [d2s_dir],
-#                     libraries = ['boost_python'],
-#                     #library_dirs = ['/usr/local/lib'],
-#                     sources = [d2s_dir + 'hw.cpp'])
 d2s_module = Extension('d2s',
-                    define_macros = [('MAJOR_VERSION', '1'),
-                                     ('MINOR_VERSION', '0')],
-                    include_dirs = [d2s_dir + "src/"],
-                    libraries = ['boost_serialization','boost_python'],
-                    #library_dirs = ['/usr/local/lib'],
-                    depends = [d2s_dir + "src/" +'distance2self.hpp'],
-                    sources = [d2s_dir + "src/" + 'distance2self.cpp'])
+                       define_macros=[('MAJOR_VERSION', '1'),
+                                      ('MINOR_VERSION', '0')],
+                       include_dirs=[d2s_dir + "src/"],
+                       libraries=['boost_serialization', 'boost_python'],
+                       #library_dirs = ['/usr/local/lib'],
+                       depends=[d2s_dir + "src/" + 'distance2self.hpp'],
+                       sources=[d2s_dir + "src/" + 'distance2self.cpp'])
 
 
-data_files = list()
-directories = glob.glob('Fred2/Data/svms/*/')
-for directory in directories:
-    files = glob.glob(directory + '*')
-    data_files.append((directory, files))
-directories = glob.glob('Fred2/Data/examples/')
-for directory in directories:
-    files = glob.glob(directory + '*')
-    data_files.append((directory, files))
+#data_files = list()
+# directories = glob.glob('Fred2/Data/svms/*/')
+# for directory in directories:
+#     files = glob.glob(directory + '*')
+#     data_files.append((directory, files))
+#directories = glob.glob('Fred2/Data/examples/')
+#for directory in directories:
+#    files = glob.glob(directory + '*')
+#    data_files.append((directory, files))
+#
+# d2s_files = glob.glob(d2s_dir + "src/" + '*')
+#data_files.append((d2s_dir + "src/", d2s_files))
 
-d2s_files = glob.glob(d2s_dir + "src/" + '*')
-data_files.append((d2s_dir + "src/", d2s_files))
-
-#for sdist inclusion MANIFEST.in is still required for C/C++ src
+#for packaging files must be in a package (with init) and listed in package_data
+# package-externals can be included with data_files,
+# and there is a bug in patternmatching http://bugs.python.org/issue19286
+# install unclear for data_files
 
 setup(
     name='Fred2',
@@ -88,14 +84,21 @@ setup(
 
     # Specify  packages via find_packages() and exclude the tests and 
     # documentation:
-    packages=find_packages(exclude=['test', 'doc', 'tutorials', 'svms', 'examples']),
+    packages=find_packages(),
+    #packages=find_packages(exclude=['Fred2.test', 'Fred2.doc', 'Fred2.tutorials']),
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    #package_data={
-    #    '': ['Data/*'],
-    #},
+    #include_package_data=True,
+    package_data={
+        'Fred2.Data.examples': ['*.*'],
+        'Fred2.Data.svms.svmtap': ['*'],
+        'Fred2.Data.svms.svmhc': ['*'],
+        'Fred2.Data.svms.unitope': ['*'],
+        #'Distance2Self': ['src/*'],  #does not get installed, because the src folder is no package folder - compiles ok
+    },
+
     #package_data is a lie: http://stackoverflow.com/questions/7522250/how-to-include-package-data-with-setuptools-distribute
 
     # 'package_data' is used to also install non package data files
