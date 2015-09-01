@@ -43,7 +43,7 @@ setup(
     name='Fred2',
 
     # Version:
-    version='2.0.0b1',
+    version='2.0.0b2',
 
     description='A Framework for Epitope Detection and Vaccine Design',
     long_description=readme,
