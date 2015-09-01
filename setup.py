@@ -10,15 +10,15 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     readme = f.read()
 
-d2s_dir = 'Fred2/Distance2Self/'
-d2s_module = Extension('d2s',
+d2s_src_dir = path.join(path.join('Fred2', 'Distance2Self'), 'src')
+d2s_module = Extension('Fred2.d2s',
                        define_macros=[('MAJOR_VERSION', '1'),
                                       ('MINOR_VERSION', '0')],
-                       include_dirs=[d2s_dir + "src/"],
+                       include_dirs=[d2s_src_dir],
                        libraries=['boost_serialization', 'boost_python'],
                        #library_dirs = ['/usr/local/lib'],
-                       depends=[d2s_dir + "src/" + 'distance2self.hpp'],
-                       sources=[d2s_dir + "src/" + 'distance2self.cpp'])
+                       depends=[path.join(d2s_src_dir, 'distance2self.hpp')],
+                       sources=[path.join(d2s_src_dir, 'distance2self.cpp')])
 
 
 #data_files = list()

@@ -8,8 +8,7 @@ from tempfile import NamedTemporaryFile
 
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Result import Distance2SelfResult
-
-import d2s
+from Fred2 import d2s
 
 
 def p2s(peptides):
