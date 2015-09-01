@@ -96,7 +96,7 @@ setup(
         'Fred2.Data.svms.svmtap': ['*'],
         'Fred2.Data.svms.svmhc': ['*'],
         'Fred2.Data.svms.unitope': ['*'],
-        #'Distance2Self': ['src/*'],  #does not get installed, because the src folder is no package folder - compiles ok
+        'Fred2.Distance2Self': ['src/*'],  #does not get installed, because the src folder is no package folder - compiles ok
     },
 
     #package_data is a lie: http://stackoverflow.com/questions/7522250/how-to-include-package-data-with-setuptools-distribute
