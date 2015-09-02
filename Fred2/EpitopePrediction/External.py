@@ -38,7 +38,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         else:
             if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {str(p): p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-" + a) for a in self.supportedAlleles]
@@ -90,18 +90,22 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
 
             #generate cmd command
             for allele_group in allele_groups:
-                #print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
                 try:
-                    r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
-
-                except OSError as e:
-                    if e.errno == os.errno.ENOENT:
-                        raise RuntimeError("%s is not installed or globally executable."%self.name)
-                    else:
-                        warnings.warn("An unknown error occurred for method %s."%self.name)
-                        continue
+                    stdo = None
+                    stde = None
+                    cmd = self.command.format(peptides=tmp_file.name, alleles=",".join(allele_group), out=tmp_out.name)
+                    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    p.wait() #block the rest
+                    stdo, stde = p.communicate()
+                    stdr = p.returncode
+                    print stdr, stdo, stde
+                    if stdr > 0:
+                        raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
+                except Exception as e:
+                    raise RuntimeError(e)
 
                 res_tmp = self.parse_external_result(tmp_out.name)
+                #print res_tmp
                 for al, ep_dict in res_tmp.iteritems():
                     for p, v in ep_dict.iteritems():
                         result[allales_string[al]][pep_seqs[p]] = v
@@ -114,7 +118,6 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
-
         return df_result
 
 
@@ -136,10 +139,14 @@ class NetMHC(AExternalEpitopePrediction):
                            'C*07:02', 'C*08:02', 'C*12:03', 'C*14:02', 'C*15:02', 'E*01:01'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhc"
-    __command = "netMHC -p %s -a %s -x %s >/dev/null"
+    __command = None
+    __version = None
 
     def convert_alleles(self, alleles):
-        return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+        if self.__version.startswith('3.0'): #either 3.0a or following
+            return ["%s%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+        else: #assumed 3.4 unless we add others
+            return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     @property
     def supportedAlleles(self):
@@ -159,11 +166,11 @@ class NetMHC(AExternalEpitopePrediction):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        #print "reading ", _file
         f = csv.reader(open(_file, "r"), delimiter='\t')
         f.next()
         f.next()
         alleles = map(lambda x: x.split()[0], f.next()[3:])
+        print alleles
         for l in f:
             if not l:
                 continue
@@ -173,7 +180,34 @@ class NetMHC(AExternalEpitopePrediction):
                 result[a][pep_seq] = sc if sc > 0.0 else 0.0
         return dict(result)
 
+    def which_netMHC(self):
+        def scan_path(alternatives):
+            for try_path in os.environ["PATH"].split(os.pathsep):
+                try_path = try_path.strip('"')
+                for alt in alternatives:
+                    exe_try = os.path.join(try_path, alt)
+                    if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
+                        return exe_try
+
+        alt_names = ['netMHC', 'netMHC-3.4', 'netMHC-3.0'] #also defines precedence of versions! However primary precedence is position in $PATH!!!
+        exe = scan_path(alt_names)
+        if not exe:
+            raise RuntimeError("Could not find any version of netMHC!")
+        try:
+            p = subprocess.Popen(exe + ' --version', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.wait() #block the rest
+            stdo, stde = p.communicate()
+            stdr = p.returncode
+            if stdr > 0:
+                raise RuntimeError("Could not check version of " + exe + " - there must be something wrong with your installation.")
+        except Exception as e:
+                raise RuntimeError(e)
+        return exe, stdo
+
     def predict(self, peptides, alleles=None, **kwargs):
+        if not self.__version or self.__command:
+            self.__command, self.__version = self.which_netMHC()
+            self.__command += " -p {peptides} -a {alleles} -x {out}"
         return super(NetMHC, self).predict(peptides, alleles=alleles, **kwargs)
 
 
@@ -555,7 +589,7 @@ class NetMHCpan(AExternalEpitopePrediction):
         return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class NetMHCII(AExternalEpitopePrediction,AExternal):
+class NetMHCII(AExternalEpitopePrediction, AExternal):
     """
     Implements a wrapper for NetMHCII
     """
@@ -602,7 +636,7 @@ class NetMHCII(AExternalEpitopePrediction,AExternal):
         return result
 
 
-class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
+class NetMHCIIpan(AExternalEpitopePrediction, AExternal):
     """
     Implements a wrapper for NetMHCIIpan
     """
