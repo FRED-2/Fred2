@@ -28,38 +28,37 @@ from tempfile import NamedTemporaryFile
 
 class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
     """
-        Abstract class representing NetMHC prediction function. These are wrapper of external binaries
-
-
+    Abstract class representing any external prediction function. Implemetations wrap prediction binaries into FRED2
     """
 
     def predict(self, peptides, alleles=None, **kwargs):
 
         if isinstance(peptides, Peptide):
-            pep_seqs = {str(peptides):peptides}
+            pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide)  for p in peptides):
+            if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
             pep_seqs = {str(p):p for p in peptides}
 
         if alleles is None:
-            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            al = [Allele("HLA-" + a) for a in self.supportedAlleles]
+            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
 
         result = defaultdict(defaultdict)
 
-        #group alleles in blocks of 80 alleles (NetMHC can't deal with more)
         allele_groups = []
+        #group alleles in blocks of _MAX_alleles (NetMHC can't deal with more than 80)
+        _MAX_alleles = 50
         c_a = 0
         allele_group = []
         for a in allales_string.iterkeys():
-            if c_a >= 50:
+            if c_a >= _MAX_alleles:
                 c_a = 0
                 allele_groups.append(allele_group)
                 if str(allales_string[a]) not in self.supportedAlleles:
@@ -78,7 +77,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                 allele_groups.append(allele_group)
         #export peptides to peptide list
 
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
             if length < min(self.supportedLength):
                 warnings.warn("Peptide length must be at least %i for %s but is %i"%(min(self.supportedLength),
                                                                                      self.name, length))
@@ -86,7 +85,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
             peps = list(peps)
             tmp_out = NamedTemporaryFile(delete=False)
             tmp_file = NamedTemporaryFile(delete=False)
-            tmp_file.write( "\n".join(">pepe_%i\n%s"%(i,p) for i,p in enumerate(peps)) if isinstance(self, NetMHCII) else "\n".join(peps))
+            tmp_file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(peps)) if isinstance(self, NetMHCII) else "\n".join(peps))
             tmp_file.close()
 
             #generate cmd command
@@ -111,19 +110,18 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
             os.remove(tmp_out.name)
 
         if not result:
-            raise ValueError("No predictions could be made with " +self.name+" for given input. Check your epitope length and HLA allele combination.")
+            raise ValueError("No predictions could be made with " + self.name + " for given input. Check your epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
-                                                        names=['Seq','Method'])
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
+                                                        names=['Seq', 'Method'])
 
         return df_result
 
 
 class NetMHC(AExternalEpitopePrediction):
     """
-        Implements the NetMHC binding (in current form for netMHC3.0)
-        Possibility could exist for function injection to support also older versions
-
+    Implements the NetMHC binding (in current form for netMHC3.0)
+    Possibility could exist for function injection to support also older versions
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16',
@@ -170,7 +168,7 @@ class NetMHC(AExternalEpitopePrediction):
             if not l:
                 continue
             pep_seq = l[2]
-            for ic_50, a in itertools.izip(l[3:],alleles):
+            for ic_50, a in itertools.izip(l[3:], alleles):
                 sc = 1.0 - math.log(float(ic_50), 50000)
                 result[a][pep_seq] = sc if sc > 0.0 else 0.0
         return dict(result)
@@ -186,7 +184,7 @@ class NetMHCpan(AExternalEpitopePrediction):
 
         Supported  MHC alleles currently only restricted to HLA alleles
     """
-    __supported_length = frozenset([8,9,10,11])
+    __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhcpan"
     __command = "netMHCpan -p %s -a %s -ic50 -xls -xlsfile %s >/dev/null"
     __alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
@@ -559,7 +557,7 @@ class NetMHCpan(AExternalEpitopePrediction):
 
 class NetMHCII(AExternalEpitopePrediction,AExternal):
     """
-        Implements a wrapper for NetMHCII
+    Implements a wrapper for NetMHCII
     """
     __supported_length = frozenset([15])
     __name = "netmhcII"
@@ -606,10 +604,10 @@ class NetMHCII(AExternalEpitopePrediction,AExternal):
 
 class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
     """
-        Implements a wrapper for NetMHCIIpan
+    Implements a wrapper for NetMHCIIpan
     """
 
-    __supported_length = frozenset([8,9,10,11,12,13,14,15,16,17,18,19,20])
+    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     __name = "netmchIIpan"
     __command = "netMHCIIpan -f %s -inptype 1 -a %s -xls -xlsfile %s >/dev/null"
     __alleles = frozenset(['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',
@@ -750,7 +748,7 @@ class PickPocket(AExternalEpitopePrediction):
 
     """
     __name = "pickpocket"
-    __supported_length = frozenset([8,9,10,11])
+    __supported_length = frozenset([8, 9, 10, 11])
     __command = 'PickPocket -p %s -a %s | grep -v "#" > %s'
     __supported_alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09',
         'A*01:10', 'A*01:12', 'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24',
@@ -1078,5 +1076,5 @@ class PickPocket(AExternalEpitopePrediction):
                     continue
                 else:
                     s = row.split()
-                    result[s[1].replace("*","")][s[2]] = float(s[4])
+                    result[s[1].replace("*", "")][s[2]] = float(s[4])
         return result
