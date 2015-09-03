@@ -13,14 +13,16 @@ from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Protein import Protein
 from Fred2.Data import DistanceMatrices
 from Bio import SeqIO
+import pkg_resources
+from os import path
 
 
 class Distance2SelfTest(unittest.TestCase):
 
     def setUp(self):
-        self.peptides = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
-
-        with open("testSequences.fasta", "rU") as handle:
+        self.peptides = [Peptide("SYFPEITHI"), Peptide("IHTIEPFYS")]
+        testsequences_file = pkg_resources.resource_filename('Fred2', path.join('Data', 'examples', 'testSequences.fasta'))
+        with open(testsequences_file, "rU") as handle:
             records = list(SeqIO.parse(handle, "fasta"))
         prot_set = [Protein(str(r.seq)) for r in records]
         unique_test_pep_set = generate_peptides_from_protein(prot_set, 9)
