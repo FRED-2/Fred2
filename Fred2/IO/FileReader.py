@@ -101,7 +101,7 @@ def read_lines(files, type=Peptide):
                 collect.add(type(line.strip().upper()))
 
 
-    return collect
+    return list(collect)
 
 
 #####################################
