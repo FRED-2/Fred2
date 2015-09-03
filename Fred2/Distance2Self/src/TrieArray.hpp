@@ -3,7 +3,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
-#include <tr1/cstdint>
+//#include <tr1/cstdint> breaks on OS X > 10.9
 #include "Trie.hpp"
 #include "Matrix.hpp"
 #include <boost/archive/text_oarchive.hpp>
