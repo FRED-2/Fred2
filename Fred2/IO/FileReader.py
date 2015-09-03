@@ -60,7 +60,7 @@ def read_fasta(files, type=Peptide, id_position=1):
                     collect.add(type(seq.strip().upper(), _transcript_id=_id))
                 except TypeError:
                     collect.add(type(seq.strip().upper()))
-    return collect
+    return list(collect)
 
 
 
@@ -101,7 +101,7 @@ def read_lines(files, type=Peptide):
                 collect.add(type(line.strip().upper()))
 
 
-    return collect
+    return list(collect)
 
 
 #####################################
