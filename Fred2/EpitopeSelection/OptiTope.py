@@ -108,8 +108,6 @@ class OptiTope(object):
         res_df = _results.xs(_results.index.values[0][1], level="Method")
         res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, -float("inf"))
                                                    for a in res_df.columns), axis=1)]
-        print "After Filtering"
-        print res_df
 
         for tup in res_df.itertuples():
             p = tup[0]
