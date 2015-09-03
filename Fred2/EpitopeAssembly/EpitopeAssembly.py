@@ -256,11 +256,10 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         seq = ei+ej
         i = len(ei)-cleav_pos
         g=len(ei)+k-cleav_pos
-        c1=sum(cl_pssm[j][seq[i+j]] for j in xrange(cn))
-        c2=sum(cl_pssm[j][seq[g+j]] for j in xrange(cn))
-        non_c = sum(cl_pssm[j][seq[k+j]] for k in xrange(len(seq)-(cn-1))
-                                                        for j in xrange(cn)
-                                                            if k != i and k != g)
+        c1=sum(cl_pssm[j][seq[i+j]] for j in xrange(cn))+cl_pssm.get(-1,{}).get("con",0)
+        c2=sum(cl_pssm[j][seq[g+j]] for j in xrange(cn))+cl_pssm.get(-1,{}).get("con",0)
+        non_c = sum(sum(cl_pssm[j][seq[k+j]] for j in xrange(cn) if k != i and k != g)+cl_pssm.get(-1,{}).get("con",0)
+                                                        for k in xrange(len(seq)-(cn-1)))
 
         imm = sum(prob*sum(max(sum(epi_pssms[j,seq[i+j],a] for j in xrange(en))+epi_pssms.get((-1,"con",a),0)-thresh[a],0)
                                                                     for i in xrange(len(seq)-en))
@@ -568,7 +567,10 @@ class EpitopeAssemblyWithSpacer(object):
                                 self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
             for j,v in pssm.iteritems():
                 for aa,score in  v.iteritems():
-                    epi_pssms[j,aa,a.name] = score
+                    if self.__epi_pred.name in ["SMM","SMMPMBEC"]:
+                        epi_pssms[j,aa,a.name] = -score
+                    else:
+                        epi_pssms[j,aa,a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
         res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
