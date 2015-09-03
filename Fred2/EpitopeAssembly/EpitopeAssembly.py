@@ -567,7 +567,10 @@ class EpitopeAssemblyWithSpacer(object):
                                 self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
             for j,v in pssm.iteritems():
                 for aa,score in  v.iteritems():
-                    epi_pssms[j,aa,a.name] = score
+                    if self.__epi_pred.name in ["SMM","SMMPMBEC"]:
+                        epi_pssms[j,aa,a.name] = -score
+                    else:
+                        epi_pssms[j,aa,a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
         res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
