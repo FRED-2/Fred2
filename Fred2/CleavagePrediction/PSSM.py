@@ -115,6 +115,11 @@ class PCM(APSSMCleavageSitePredictor):
     __supported_length = frozenset([6])
     __name = "pcm"
     __cleavage_pos = 4
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def supportedLength(self):
@@ -154,7 +159,11 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
     __supported_length = frozenset([10])
     __name = "proteasmm_c"
     __cleavage_pos = 6
+    __version = "1.0"
 
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def supportedLength(self):
@@ -194,7 +203,11 @@ class ProteaSMMImmuno(APSSMCleavageSitePredictor):
     __supported_length = frozenset([10])
     __name = "proteasmm_i"
     __cleavage_pos = 6
+    __version = "1.0"
 
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def supportedLength(self):
@@ -301,6 +314,11 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
     __name="ginodi"
     __trailingN = 1
     __trailingC = 1
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def cleavagePos(self):

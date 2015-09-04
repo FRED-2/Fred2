@@ -29,18 +29,22 @@ class TAPPredictorFactory(object):
             inherit from AEpitopePrediction. That's it nothing more.
             '''
 
+            version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
-                return ATAPPrediction.registry[_predictor](*args)
-            except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
-                                 "supported by FRED2 and inherits AEpitopePredictor.")
+                return ATAPPrediction[str(_predictor.lower()), version](*args)
+            except KeyError as e:
+                if version is None:
+                    raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                                "supported by FRED2 and inherits ATAPPrediction.")
+                else:
+                    raise ValueError("Predictor %s version %s is not known. Please verify that such an Predictor is "%(_predictor, version) +
+                                "supported by FRED2 and inherits ATAPPrediction.")
 
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a list of available TAP predictors
 
-        :return: list of epitope predictors represented as string
+        :return: list of TAP predictors represented as string
         """
-        return sorted([k for k in ATAPPrediction.registry.iterkeys()
-                       if k not in ["ATAPPrediction","APSSMTAPPrediction", "ASVMTAPPrediction"]])
+        return {k:sorted(versions.iterkeys()) for k,versions in ATAPPrediction.registry.iteritems()}

@@ -69,6 +69,11 @@ class SVMTAP(ASVMTAPPrediction):
 
     __name = "svmtap"
     __length = frozenset([9])
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
