@@ -8,6 +8,7 @@ from Fred2.Core.Peptide import Peptide
 from Fred2.EpitopePrediction import EpitopePredictorFactory
 from Fred2.EpitopeSelection.OptiTope import OptiTope
 
+
 class OptiTopeTestCase(unittest.TestCase):
     """
         Unittest for OptiTope
