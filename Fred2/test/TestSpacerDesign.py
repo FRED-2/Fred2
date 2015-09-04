@@ -31,7 +31,7 @@ class SpacerDesignTestCase(unittest.TestCase):
         cl_pred = CleavageSitePredictorFactory("PCM")
 
         sbws = EpitopeAssemblyWithSpacer(self.epis,cl_pred,epi_pred,self.alleles)
-        sol = sbws.approximate()
+        sol = sbws.solve()
         print sol
         assert all(i == str(j) for i,j in zip(["GHRMAWDMM","HH","VYEADDVIL"],sol))
 
