@@ -140,7 +140,7 @@ class BIMAS(APSSMEpitopePrediction):
                  'A*01:01', 'C*07:02', 'C*03:01', 'B*40:01', 'B*51:01', 'B*39:02',
                  'B*52:01', 'C*04:01', 'B*27:02', 'B*39:01'])
     __supported_length = frozenset([8, 9])
-    __name = "BIMAS"
+    __name = "bimas"
     __version = "1.0"
 
     @property
