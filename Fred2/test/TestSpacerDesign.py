@@ -9,7 +9,7 @@ from Fred2.EpitopePrediction import EpitopePredictorFactory
 from Fred2.CleavagePrediction import CleavageSitePredictorFactory
 from Fred2.EpitopeAssembly.EpitopeAssembly import EpitopeAssemblyWithSpacer
 
-class OptiTopeTestCase(unittest.TestCase):
+class SpacerDesignTestCase(unittest.TestCase):
     """
         Unittest for OptiTope
     """
@@ -21,7 +21,7 @@ class OptiTopeTestCase(unittest.TestCase):
         self.epis = map(lambda x: Peptide(x.strip()),epis)
         self.alleles =[Allele("HLA-A*02:01",prob=0.5)]
 
-    def testStandartFunctions(self):
+    def test_standart_functions(self):
         """
         Tests default functions
         needs GLPK installed
