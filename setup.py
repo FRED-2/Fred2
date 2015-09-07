@@ -84,7 +84,7 @@ setup(
 
     # Specify  packages via find_packages() and exclude the tests and 
     # documentation:
-    packages=find_packages()+["Fred2.d2s"],
+    packages=find_packages()+["Fred2"],
     #packages=find_packages(exclude=['Fred2.test', 'Fred2.doc', 'Fred2.tutorials']),
 
     # If there are data files included in your packages that need to be
