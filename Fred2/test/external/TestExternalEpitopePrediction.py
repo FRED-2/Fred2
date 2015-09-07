@@ -43,8 +43,8 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
 
     def test_single_allele_input(self):
         for m in EpitopePredictorFactory.available_methods():
-            if isinstance(m, AExternalEpitopePrediction):
-                mo = EpitopePredictorFactory(m)
+            mo = EpitopePredictorFactory(m)
+            if isinstance(mo, AExternalEpitopePrediction):
                 if any(a.name in mo.supportedAlleles for a in self.mhcII):
                     mo.predict(self.peptides_mhcII, alleles=self.mhcII[0])
                 else:
