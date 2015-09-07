@@ -219,7 +219,7 @@ var_13 = Variant(
     15,                    # Genomic Position 
     "", "CC",              # reference , observed
     {"tsc_1":mut_syn2_13}, # dict of (transcrip_id : mutSnytaxes)
-    False, False)          # isHomozygous?, isSynonymous?
+    False, True)          # isHomozygous?, isSynonymous?
 
 # -INS(+1), HETEROZYGOUS, pos 1
 mut_syn2_14 = MutationSyntax("tsc_1", # transcript_id

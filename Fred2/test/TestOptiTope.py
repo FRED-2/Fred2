@@ -8,6 +8,7 @@ from Fred2.Core.Peptide import Peptide
 from Fred2.EpitopePrediction import EpitopePredictorFactory
 from Fred2.EpitopeSelection.OptiTope import OptiTope
 
+
 class OptiTopeTestCase(unittest.TestCase):
     """
         Unittest for OptiTope
@@ -41,7 +42,7 @@ WPLLLLLLA
 VTYSLTGLW
 YFVIFFVAA""".split()]
         self.result= EpitopePredictorFactory("BIMAS").predict(self.peptides, self.alleles)
-        self.thresh = {"A*01:01":100,"B*07:02":100,"C*03:01":100}
+        self.thresh = {"A*01:01":10,"B*07:02":10,"C*03:01":10}
 
     def test_selection_without_constraints(self):
         """

@@ -9,9 +9,17 @@ from Fred2.Core.Allele import Allele
 from Fred2.Core.Peptide import Peptide
 
 #Preidctions
-from Fred2.EpitopePrediction import EpitopePredictorFactory
+from Fred2.EpitopePrediction import EpitopePredictorFactory,BIMAS, AEpitopePrediction
 from Fred2.TAPPrediction import TAPPredictorFactory
 from Fred2.CleavagePrediction import CleavageFragmentPredictorFactory, CleavageSitePredictorFactory
+
+
+class BIMAS2(BIMAS):
+    __version = "2.0"
+
+    @property
+    def version(self):
+        return self.__version
 
 
 class TestCaseEpitopePrediction(unittest.TestCase):
@@ -31,6 +39,10 @@ class TestCaseEpitopePrediction(unittest.TestCase):
 
     def test_epitope_prediction_available_methods(self):
         print EpitopePredictorFactory.available_methods()
+
+    def test_multiple_predictors_names_different_version(self):
+        self.assertTrue(EpitopePredictorFactory("BIMAS", version="1.0").version == "1.0")
+        self.assertTrue(EpitopePredictorFactory("BIMAS", version="2.0").version == "2.0")
 
     @unittest.expectedFailure
     def test_epitope_prediction_unsupported_version(self):
