@@ -106,7 +106,7 @@ class TestProteinClass(unittest.TestCase):
             except ValueError:
                 pass
 
-        self.assertEqual(len(proteins), 4)
+        self.assertEqual(len(proteins), 8)
 
         ## CHECK Proteins:
         for prot in proteins:
@@ -120,8 +120,7 @@ class TestProteinClass(unittest.TestCase):
 
             orig = prot.orig_transcript
             self.assertEqual(prot.transcript_id, orig.transcript_id)
-
-            self.assertEqual(len(prot.vars), len(orig.vars))
+            self.assertEqual(len(set(e for subl in prot.vars.itervalues() for e in subl)), len(orig.vars))
 
             # check sequence:
             self.assertTrue(str(prot) > 2)
@@ -180,7 +179,8 @@ class TestProteinClass(unittest.TestCase):
         dummy_vars = [var_13, var_14]
 
         proteins = []
-        for trans in generate_transcripts_from_variants(dummy_vars, dummy_db):
+        transcripts = list(generate_transcripts_from_variants(dummy_vars, dummy_db))
+        for trans in transcripts:
             ### GET PROTS:
             # IGNORE invalid sequence lengths
             try:
@@ -197,15 +197,27 @@ class TestProteinClass(unittest.TestCase):
         # no duplicates or more than the expected ones:
         self.assertEqual(len(peptides), len(expected))
 
-        vari_peps = [pep.get_all_variants() for pep in peptides \
-                     if str(pep) in peps_trans2]
+        #vari_peps = [pep.get_all_variants() for pep in peptides \
+        #             if str(pep) in peps_trans2]
 
-        vars_ = [str(var) for varlist in vari_peps for var in varlist]
+        #vars_ = [str(var) for varlist in vari_peps for var in varlist]
 
         # Check that for the peptides from the transcript containing the
         # variants, we also get all expected variants. Especally the first
         # variant needs to be present in all peptides
-        self.assertTrue(all(var in vars_ for var in expected_vars))
+        for prot in proteins:
+            for p in peptides:
+                try:
+                    vars_ = map(str, p.variants[prot.transcript_id])
+                    expected_vars = [str(v) for vars in prot.vars.itervalues() for v in vars]
+                    print "peptide vars: ", vars_
+                    print "Prot vars: ", expected_vars
+                    print repr(p)
+                    print repr(prot)
+                    self.assertTrue(all(var in vars_ for var in expected_vars))
+                except KeyError:
+
+                    pass
 
 
 if __name__ == '__main__':
