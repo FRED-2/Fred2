@@ -23,7 +23,7 @@ from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Result import CleavageSitePredictionResult
 
 
-class NetChop(ACleavageSitePrediction, AExternal):
+class NetChop_3_1(ACleavageSitePrediction, AExternal):
     """
     Implements NetChop Cleavage Site Prediction (v. 3.1)
     """
@@ -31,6 +31,11 @@ class NetChop(ACleavageSitePrediction, AExternal):
     __name = "netchop"
     __cleavage_pos = 0
     __command = "netChop %s | grep -v '#' > %s"
+    __version = "3.1"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def command(self):

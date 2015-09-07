@@ -18,6 +18,7 @@ try:
 except ImportError:
     pass
 
+
 class EpitopePredictorFactory(object):
     class __metaclass__(type):
         def __init__(cls, name, bases, nmspc):
@@ -31,11 +32,16 @@ class EpitopePredictorFactory(object):
             inherit from AEpitopePrediction. That's it nothing more.
             '''
 
+            version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
-                return AEpitopePrediction.registry[_predictor](*args)
-            except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
-                                 "supported by FRED2 and inherits AEpitopePredictor.")
+                return AEpitopePrediction[str(_predictor).lower(), version](*args)
+            except KeyError as e:
+                if version is None:
+                    raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                                "supported by FRED2 and inherits AEpitopePredictor.")
+                else:
+                    raise ValueError("Predictor %s version %s is not known. Please verify that such an Predictor is "%(_predictor, version) +
+                                "supported by FRED2 and inherits AEpitopePredictor.")
 
     @staticmethod
     def available_methods():
@@ -44,6 +50,4 @@ class EpitopePredictorFactory(object):
 
         :return: list of epitope predictors represented as string
         """
-        return sorted([k for k in AEpitopePrediction.registry.iterkeys() if
-                k not in ["AExternalEpitopePrediction", "APSSMEpitopePrediction",
-                          "ASVMEpitopePrediction", "AEpitopePrediction"]])
+        return {k:sorted(versions.iterkeys()) for k,versions in AEpitopePrediction.registry.iteritems() }

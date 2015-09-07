@@ -97,6 +97,11 @@ class SVMHC(ASVMEpitopePrediction):
                  'B*15:01', 'B*18:01', 'B*18:01', 'B*27:05', 'B*35:01', 'B*37:01',
                  'B*51:01', 'B*51:01', 'C*04:01'])
     __supported_length = frozenset([8, 9, 10])
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -375,6 +380,11 @@ class UniTope(ASVMEpitopePrediction):
                  'B*51:40', 'B*07:42', 'A*02:26', 'A*01:02', 'B*44:41', 'B*44:04',
                  'A*02:04', 'A*24:19', 'B*35:71', 'B*56:08', 'A*36:04', 'C*17:01',
                  'A*24:35', 'B*07:40', 'B*40:19', 'B*44:17'])
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):

@@ -119,9 +119,9 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         return df_result
 
 
-class NetMHC(AExternalEpitopePrediction):
+class NetMHC_3_4(AExternalEpitopePrediction):
     """
-        Implements the NetMHC binding (in current form for netMHC3.0)
+        Implements the NetMHC binding (in current form for netMHC3.4)
         Possibility could exist for function injection to support also older versions
 
     """
@@ -139,6 +139,11 @@ class NetMHC(AExternalEpitopePrediction):
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhc"
     __command = "netMHC -p %s -a %s -x %s >/dev/null"
+    __version = "3.4"
+
+    @property
+    def version(self):
+        return self.__version
 
     def convert_alleles(self, alleles):
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
@@ -176,10 +181,10 @@ class NetMHC(AExternalEpitopePrediction):
         return dict(result)
 
     def predict(self, peptides, alleles=None, **kwargs):
-        return super(NetMHC, self).predict(peptides, alleles=alleles, **kwargs)
+        return super(NetMHC_3_4, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class NetMHCpan(AExternalEpitopePrediction):
+class NetMHCpan_2_4(AExternalEpitopePrediction):
     """
         Implements the NetMHC binding (in current form for netMHCpan 2.4)
         Possibility could exist for function injection to support also older versions
@@ -521,6 +526,11 @@ class NetMHCpan(AExternalEpitopePrediction):
                  'C*16:24', 'C*16:25', 'C*16:26', 'C*17:01', 'C*17:02', 'C*17:03', 'C*17:04', 'C*17:05', 'C*17:06',
                  'C*17:07', 'C*18:01', 'C*18:02', 'C*18:03', 'E*01:01', 'G*01:01', 'G*01:02', 'G*01:03', 'G*01:04',
                  'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09'])
+    __version = "2.4"
+
+    @property
+    def version(self):
+        return self.__version
 
     def convert_alleles(self, alleles):
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
@@ -554,10 +564,10 @@ class NetMHCpan(AExternalEpitopePrediction):
         return result
 
     def predict(self, peptides, alleles=None, **kwargs):
-        return super(NetMHCpan, self).predict(peptides, alleles=alleles, **kwargs)
+        return super(NetMHCpan_2_4, self).predict(peptides, alleles=alleles, **kwargs)
 
 
-class NetMHCII(AExternalEpitopePrediction,AExternal):
+class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
     """
         Implements a wrapper for NetMHCII
     """
@@ -567,6 +577,11 @@ class NetMHCII(AExternalEpitopePrediction,AExternal):
     __alleles = frozenset(
         ['DRB1*01:01', 'DRB1*03:01', 'DRB1*04:01', 'DRB1*04:04', 'DRB1*04:05', 'DRB1*07:01', 'DRB1*08:02', 'DRB1*09:01',
          'DRB1*11:01', 'DRB1*13:02', 'DRB1*15:01', 'DRB3*01:01', 'DRB4*01:01', 'DRB5*01:01'])
+    __version = "2.2"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def command(self):
@@ -604,7 +619,7 @@ class NetMHCII(AExternalEpitopePrediction,AExternal):
         return result
 
 
-class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
+class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
     """
         Implements a wrapper for NetMHCIIpan
     """
@@ -707,6 +722,11 @@ class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
                  'DRB4*01:08', 'DRB5*01:01', 'DRB5*01:02', 'DRB5*01:03', 'DRB5*01:04', 'DRB5*01:05', 'DRB5*01:06',
                  'DRB5*01:08N', 'DRB5*01:11', 'DRB5*01:12', 'DRB5*01:13', 'DRB5*01:14', 'DRB5*02:02', 'DRB5*02:03',
                  'DRB5*02:04', 'DRB5*02:05'])
+    __version = "3.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def command(self):
@@ -740,7 +760,7 @@ class NetMHCIIpan(AExternalEpitopePrediction,AExternal):
         return result
 
 
-class PickPocket(AExternalEpitopePrediction):
+class PickPocket_1_1(AExternalEpitopePrediction):
     """
     Implementation of PickPocket adapter
 
@@ -1050,6 +1070,11 @@ class PickPocket(AExternalEpitopePrediction):
         'C*16:17', 'C*16:18', 'C*16:19', 'C*16:20', 'C*16:21', 'C*16:22', 'C*16:23', 'C*16:24', 'C*16:25', 'C*16:26',
         'C*17:01', 'C*17:02', 'C*17:03', 'C*17:04', 'C*17:05', 'C*17:06', 'C*17:07', 'C*18:01', 'C*18:02', 'C*18:03',
         'G*01:01', 'G*01:02', 'G*01:03', 'G*01:04', 'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09', 'E*01:01'])
+    __version = "1.1"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def command(self):

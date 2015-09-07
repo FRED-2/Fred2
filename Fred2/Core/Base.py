@@ -6,10 +6,14 @@
    :synopsis: This module contains base classes for all other modules.
 .. moduleauthor:: schubert, szolek, walzer
 
+
+https://docs.python.org/3/library/abc.html
+
 """
 
 
 import abc
+import inspect
 from collections import defaultdict
 from string import maketrans
 
@@ -72,13 +76,14 @@ class APluginRegister(abc.ABCMeta):
 
         if not hasattr(cls, 'registry'):
             cls.registry = dict()
-        cls.registry[name] = cls
+        if not inspect.isabstract(cls):
+            cls.registry.setdefault(str(cls().name).lower(), {}).update({str(cls().version).lower():cls})
 
-        #dont know if needed
-        #del cls.registry[bases.__name__] # Remove base classes
-
-    def __getitem__(cls, item):
-        return cls.registry[item]
+    def __getitem__(cls, args):
+        name, version = args
+        if version is None:
+            return cls.registry[name][max(cls.registry[name].keys())]
+        return cls.registry[name][version]
 
     def __iter__(cls):
         return iter(cls.registry.values())
@@ -100,6 +105,14 @@ class ACleavageSitePrediction(object):
         :return:
         """
         raise NotImplementedError
+
+    @abc.abstractproperty
+    def version(self):
+        """
+        parameter specifying the version of the prediction method
+
+        """
+        return self.__version
 
     @abc.abstractproperty
     def supportedLength(self):
@@ -145,13 +158,21 @@ class ACleavageFragmentPrediction(object):
         raise NotImplementedError
 
     @abc.abstractproperty
+    def version(self):
+        """
+        parameter specifying the version of the prediction method
+
+        """
+        raise NotImplementedError
+
+    @abc.abstractproperty
     def supportedLength(self):
         """
         Returns the supported lengths of the predictor
 
         :return: list(int) - Supported peptide length
         """
-        raise  NotImplementedError
+        raise NotImplementedError
 
 
     @abc.abstractproperty
@@ -184,6 +205,10 @@ class AEpitopePrediction(object):
 
         :return:
         """
+        raise NotImplementedError
+
+    @abc.abstractproperty
+    def version(cls):
         raise NotImplementedError
 
     @abc.abstractproperty
@@ -283,6 +308,13 @@ class ATAPPrediction(object):
         :return:
         """
         raise NotImplementedError
+
+    def version(self):
+        """
+        parameter specifying the version of the prediction method
+
+        """
+        raise "0"
 
     @abc.abstractproperty
     def supportedLength(self):

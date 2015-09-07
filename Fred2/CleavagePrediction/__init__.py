@@ -32,11 +32,16 @@ class CleavageSitePredictorFactory(object):
             inherit from ACleavagePrediction. That's it nothing more.
             '''
 
+            version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
-                return ACleavageSitePrediction.registry[_predictor](*args)
-            except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an predictor is "%_predictor +
-                                 "supported by FRED2 and inherits ACleavageSitePrediction.")
+                return ACleavageSitePrediction[str(_predictor).lower(), version](*args)
+            except KeyError as e:
+                if version is None:
+                    raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                                "supported by FRED2 and inherits ACleavageSitePrediction.")
+                else:
+                    raise ValueError("Predictor %s version %s is not known. Please verify that such an Predictor is "%(_predictor, version) +
+                                "supported by FRED2 and inherits ACleavageSitePrediction.")
 
     @staticmethod
     def available_methods():
@@ -45,8 +50,7 @@ class CleavageSitePredictorFactory(object):
 
         :return: list of cleavage site predictor represented as string
         """
-        return sorted([k for k in ACleavageSitePrediction.registry.iterkeys()
-                       if k not in ["APSSMCleavageSitePredictor", "ACleavageSitePrediction"]])
+        return {k:sorted(versions.iterkeys()) for k,versions in ACleavageSitePrediction.registry.iteritems()}
 
 
 class CleavageFragmentPredictorFactory(object):
@@ -62,18 +66,22 @@ class CleavageFragmentPredictorFactory(object):
             inherit from ACleavagePrediction. That's it nothing more.
             '''
 
+            version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
-                return ACleavageFragmentPrediction.registry[_predictor](*args)
-            except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an predictor is "%_predictor +
-                                 "supported by FRED2 and inherits ACleavageFragmentPrediction.")
+                return ACleavageFragmentPrediction[str(_predictor).lower(), version](*args)
+            except KeyError as e:
+                if version is None:
+                    raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                                "supported by FRED2 and inherits ACleavageFragmentPrediction.")
+                else:
+                    raise ValueError("Predictor %s version %s is not known. Please verify that such an Predictor is "%(_predictor, version) +
+                                "supported by FRED2 and inherits ACleavageFragmentPrediction.")
 
     @staticmethod
     def available_methods():
         """
         Returns a list of available cleavage fragment predictors
 
-        :return: list of cleavage fragment represented as string
+        :return: list of cleavage fragment predictors represented as string
         """
-        return sorted([k for k in ACleavageFragmentPrediction.registry.iterkeys()
-                if k not in ["APSSMCleavageFragmentPredictor", "ACleavageFragmentPrediction"]])
+        return {k:sorted(versions.iterkeys()) for k,versions in ACleavageFragmentPrediction.registry.iteritems()}

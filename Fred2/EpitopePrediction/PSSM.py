@@ -101,6 +101,11 @@ class Syfpeithi(APSSMEpitopePrediction):
                  'B*08:01', 'B*18:01', 'B*44:02', 'B*49:01', 'DRB1*07:01', 'B*14:02', 'A*01:01'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "syfpeithi"
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -136,6 +141,11 @@ class BIMAS(APSSMEpitopePrediction):
                  'B*52:01', 'C*04:01', 'B*27:02', 'B*39:01'])
     __supported_length = frozenset([8, 9])
     __name = "bimas"
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -166,7 +176,11 @@ class Epidemix(APSSMEpitopePrediction):
                  'B*51:01', 'B*51:01'])
     __supported_length = frozenset([9, 10, 8, 11])
     __name = "epidemix"
+    __version = "1.0"
 
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -199,7 +213,11 @@ class Hammer(APSSMEpitopePrediction):
                  'DRB1*04:10', 'DRB5*01:01'])
     __supported_length = frozenset([9])
     __name = "hammer"
+    __version = "1.0"
 
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -237,6 +255,12 @@ class SMM(APSSMEpitopePrediction):
                  'C*15:02', 'A*33:01', 'B*14:02', 'C*07:01', 'B*48:01', 'B*15:42', 'C*07:02', 'A*01:01', 'C*08:02'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "smm"
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
+
     @property
     def name(self):
         return self.__name
@@ -276,6 +300,11 @@ class SMMPMBEC(APSSMEpitopePrediction):
                  'E*01:01', 'E*01:03'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "smmpmbec"
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -313,6 +342,11 @@ class ARB(APSSMEpitopePrediction):
                  'B*57:01', 'B*58:01', 'B*73:01'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "arb"
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -354,6 +388,11 @@ class ComblibSidney2008(APSSMEpitopePrediction):
                  'A*32:01', 'B*53:01', 'A*30:01', 'B*15:03', 'B*15:01', 'B*58:01'])
     __supported_length = frozenset([9])
     __name = "comblibSidney"
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
@@ -492,6 +531,11 @@ class TEPITOPEpan(APSSMEpitopePrediction):
                  'DRB5*01:13', 'DRB5*01:14', 'DRB5*02:02', 'DRB5*02:03', 'DRB5*02:04', 'DRB5*02:05'])
     __supported_length = frozenset([9])
     __name = "tepitopepan"
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
 
     @property
     def name(self):
