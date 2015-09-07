@@ -5,13 +5,10 @@ __author__ = 'schubert'
 
 
 import unittest
-import pandas as pd
-import numpy as np
 
 # Variants and Generator
-import pandas
-from Fred2.Core.Allele import Allele
-from Fred2.Core.Peptide import Peptide
+from Fred2.Core import Allele
+from Fred2.Core import Peptide
 
 #Preidctions
 from Fred2.EpitopePrediction import EpitopePredictorFactory
@@ -55,7 +52,6 @@ class TestCaseEpitopePrediction(unittest.TestCase):
                 model = EpitopePredictorFactory(m)
                 if not isinstance(model, AExternalEpitopePrediction):
                     if any(a.name in model.supportedAlleles for a in self.mhcII[:1]):
-                        print model.name
                         res = model.predict(self.peptides_mhcII[0], alleles=self.mhcII[0])
 
 if __name__ == '__main__':
