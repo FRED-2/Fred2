@@ -2,9 +2,8 @@
 Unittest for external epitope prediction methods
 """
 
-
-
 import unittest
+import os
 
 from Fred2.Core import Allele
 from Fred2.Core import Peptide
@@ -71,7 +70,17 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
 
     def test_wrong_internal_to_external_version(self):
         with self.assertRaises(RuntimeError):
-            EpitopePredictorFactory("NetMHC", version="3.0").predict(self.mhcI, alleles=self.transcript)
+            EpitopePredictorFactory("NetMHC", version="3.0").predict(self.peptides_mhcI, alleles=self.mhcI)
+
+    def test_path_option_and_optionl_parameters(self):
+        netmhc = EpitopePredictorFactory("NetMHC")
+        exe = netmhc.command.split()[0]
+        for try_path in os.environ["PATH"].split(os.pathsep):
+            try_path = try_path.strip('"')
+            exe_try = os.path.join(try_path, exe).strip()
+            if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
+                print exe_try
+                netmhc.predict(self.peptides_mhcI, alleles=self.mhcI, path=exe_try, options="--sort")
 
 if __name__ == '__main__':
     unittest.main()
