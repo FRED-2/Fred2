@@ -465,6 +465,43 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
 
 
 ################################################################################
+#        T R A N S C R I P T    = = >    P R O T E I N
+################################################################################
+def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbol='*', to_stop=False, cds=False):
+        """
+        Enables the translation from a transcript to a protein instance
+
+        :param: list(Transcript)/Transcript - a list of transcripts to translate to proteins
+        :returns: (Protein) -- the protein that corresponds to the transcript
+        """
+
+        if isinstance(transcripts, Transcript):
+            transcripts = [transcripts]
+        else:
+            if any(not isinstance(t, Transcript) for t in transcripts):
+                raise ValueError("Specified input is not of type Transcript")
+
+        for t in transcripts:
+            # translate to a protein sequence
+            #if len(str(self)) % 3 != 0:
+            #    raise ValueError('ERROR while translating: lenght of transcript %s is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
+
+            #TODO warn if intrasequence stops - biopython warns if  % 3 != 0
+            prot_seq = str(t.translate(table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds))
+
+            # only transfer the non-synonymous variants to the protein as an
+            # ordered dict, also translate into protein positions
+            new_vars = dict()
+            for var in t.vars.values():
+                if not var.isSynonymous:
+                    pos = var.get_protein_position(t.transcript_id)
+                    new_vars.setdefault(pos, []).append(var)
+
+            gene_id = t.gene_id
+            yield Protein(prot_seq, gene_id, t.transcript_id, t, new_vars)
+
+
+################################################################################
 #        P R O T E I N    = = >    P E P T I D E
 ################################################################################
 

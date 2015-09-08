@@ -67,37 +67,8 @@ class Transcript(MetadataLogger, Seq):
         lines += ["VARIANTS:"]
         for vpos, var in self.vars.iteritems():
             lines.append('\tpos %i: %s'%(vpos, var))
-
         lines += ["SEQUENCE: %s (mRNA)"%str(self)]
-
         return '\n\t'.join(lines)
-
-    def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
-                  cds=False):
-        """
-        Overrides :meth:`Bio.Seq.Seq.translate` (from Biopython) and enables 
-        the translation from a transcript to a protein instance
-
-        :param returns: (Protein) -- the protein that corresponds to the 
-                        transcript
-        """
-        # translate to a protein sequence
-        #if len(str(self)) % 3 != 0:
-        #    raise ValueError('ERROR while translating: lenght of transcript %s is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
-
-        #TODO warn if intrasequence stops - biopython warns if  % 3 != 0
-        prot_seq = str(Seq.translate(self))
-
-        # only transfer the non-synonymous variants to the protein as an
-        # ordered dict, also translate into protein positions
-        new_vars = dict()
-        for var in self.vars.values():
-            if not var.isSynonymous:
-                pos = var.get_protein_position(self.transcript_id)
-                new_vars.setdefault(pos, []).append(var)
-
-        gene_id = self.gene_id
-        return Protein(prot_seq, gene_id, self.transcript_id, self, new_vars)
 
     def __eq__(self, other):
         return str(self) == str(other)

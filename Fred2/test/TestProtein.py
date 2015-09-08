@@ -13,6 +13,8 @@ from Fred2.test.VariantsForTesting import *
 # Protein
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Generator import generate_peptides_from_protein, generate_transcripts_from_tumor_variants
+from Fred2.Core.Generator import generate_proteins_from_transcripts
+
 
 class TestProteinClass(unittest.TestCase):
     def setUp(self):
@@ -102,7 +104,7 @@ class TestProteinClass(unittest.TestCase):
             ### GET PROTS:
             # IGNORE invalid sequence lengths
             try:
-                proteins.append(trans.translate())
+                proteins.append(generate_proteins_from_transcripts(trans).next())
             except ValueError:
                 pass
 
@@ -184,7 +186,7 @@ class TestProteinClass(unittest.TestCase):
             ### GET PROTS:
             # IGNORE invalid sequence lengths
             try:
-                proteins.append(trans.translate())
+                proteins.append(generate_proteins_from_transcripts(trans).next())
             except ValueError:
                 pass
 
