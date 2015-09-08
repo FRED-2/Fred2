@@ -16,7 +16,6 @@ class TAPPredictionTestCaste(unittest.TestCase):
             not compared yet (dont know where)
         """
         for m in TAPPredictorFactory.available_methods():
-            print m
             pred = TAPPredictorFactory(m)
             r = pred.predict(self.peptides)
             print r
@@ -28,7 +27,6 @@ class TAPPredictionTestCaste(unittest.TestCase):
             not compared yet (dont know where)
         """
         for m in TAPPredictorFactory.available_methods():
-            print m
             pred = TAPPredictorFactory(m)
             r = pred.predict(self.peptides[0])
             print r

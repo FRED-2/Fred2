@@ -79,3 +79,30 @@ class TAPDoytchinova(APSSMTAPPrediction):
 
     def predict(self, peptides, **kwargs):
         return super(TAPDoytchinova, self).predict(peptides, **kwargs)
+
+
+class SMMTAP(APSSMTAPPrediction):
+    """
+        Implementation of
+        Peters, B., Bulik, S., Tampe, R., Van Endert, P. M., & Holzhuetter, H. G. (2003). Identifying MHC class I
+        epitopes by predicting the TAP transport efficiency of epitope precursors. The Journal of Immunology,
+        171(4), 1741-1749.
+    """
+    __name = "smmtap"
+    __supported_length = frozenset([9])
+    __version = "1.0"
+
+    @property
+    def version(self):
+        return self.__version
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    def predict(self, peptides, **kwargs):
+        return super(SMMTAP, self).predict(peptides, **kwargs)
