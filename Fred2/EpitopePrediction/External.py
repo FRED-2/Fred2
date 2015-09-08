@@ -65,6 +65,14 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
 
         #group alleles in blocks of 80 alleles (NetMHC can't deal with more)
         _MAX_ALLELES = 50
+
+        #allowe customary executable specification
+        if "path" in kwargs:
+            exe = self.command.split()[0]
+            _command = self.command.replace(exe, kwargs["path"])
+        else:
+            _command = self.command
+
         allele_groups = []
         c_a = 0
         allele_group = []
@@ -105,7 +113,8 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                 try:
                     stdo = None
                     stde = None
-                    cmd = self.command.format(peptides=tmp_file.name, alleles=",".join(allele_group), out=tmp_out.name)
+                    cmd = _command.format(peptides=tmp_file.name, alleles=",".join(allele_group),
+                                          options=kwargs.get("options", ""), out=tmp_out.name)
                     p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     p.wait() #block the rest
                     stdo, stde = p.communicate()
@@ -150,7 +159,7 @@ class NetMHC_3_4(AExternalEpitopePrediction):
                            'C*07:02', 'C*08:02', 'C*12:03', 'C*14:02', 'C*15:02', 'E*01:01'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhc"
-    __command = "netMHC -p {peptides} -a {alleles} -x {out}"
+    __command = "netMHC -p {peptides} -a {alleles} -x {out} {options}"
     __version = "3.4"
 
     @property
@@ -205,9 +214,9 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
 
         Supported  MHC alleles currently only restricted to HLA alleles
     """
-    __supported_length = frozenset([8,9,10,11])
+    __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhcpan"
-    __command = "netMHCpan -p {peptides} -a {alleles} -ic50 -xls -xlsfile {out}"
+    __command = "netMHCpan -p {peptides} -a {alleles} {options} -ic50 -xls -xlsfile {out}"
     __alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
                  'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24', 'A*01:25',
                  'A*01:26', 'A*01:28', 'A*01:29', 'A*01:30', 'A*01:32', 'A*01:33', 'A*01:35', 'A*01:36', 'A*01:37',
@@ -591,7 +600,7 @@ class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
     """
     __supported_length = frozenset([15])
     __name = "netmhcII"
-    __command = 'netMHCII {peptides} -a {alleles} | grep -v "#" > {out}'
+    __command = 'netMHCII {peptides} -a {alleles} {options} | grep -v "#" > {out}'
     __alleles = frozenset(
         ['DRB1*01:01', 'DRB1*03:01', 'DRB1*04:01', 'DRB1*04:04', 'DRB1*04:05', 'DRB1*07:01', 'DRB1*08:02', 'DRB1*09:01',
          'DRB1*11:01', 'DRB1*13:02', 'DRB1*15:01', 'DRB3*01:01', 'DRB4*01:01', 'DRB5*01:01'])
@@ -646,9 +655,9 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
         Implements a wrapper for NetMHCIIpan
     """
 
-    __supported_length = frozenset([8,9,10,11,12,13,14,15,16,17,18,19,20])
+    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     __name = "netmchIIpan"
-    __command = "netMHCIIpan -f {peptides} -inptype 1 -a {alleles} -xls -xlsfile {out}"
+    __command = "netMHCIIpan -f {peptides} -inptype 1 -a {alleles} {options} -xls -xlsfile {out}"
     __alleles = frozenset(['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',
                  'DRB1*01:08', 'DRB1*01:09', 'DRB1*01:10', 'DRB1*01:11', 'DRB1*01:12', 'DRB1*01:13', 'DRB1*01:14',
                  'DRB1*01:15', 'DRB1*01:16', 'DRB1*01:17', 'DRB1*01:18', 'DRB1*01:19', 'DRB1*01:20', 'DRB1*01:21',
@@ -796,8 +805,8 @@ class PickPocket_1_1(AExternalEpitopePrediction):
 
     """
     __name = "pickpocket"
-    __supported_length = frozenset([8,9,10,11])
-    __command = 'PickPocket -p {peptides} -a {alleles} | grep -v "#" > {out}'
+    __supported_length = frozenset([8, 9, 10, 11])
+    __command = 'PickPocket -p {peptides} -a {alleles} {options} | grep -v "#" > {out}'
     __supported_alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09',
         'A*01:10', 'A*01:12', 'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24',
         'A*01:25', 'A*01:26', 'A*01:28', 'A*01:29', 'A*01:30', 'A*01:32', 'A*01:33', 'A*01:35', 'A*01:36', 'A*01:37',
@@ -1129,7 +1138,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
                     continue
                 else:
                     s = row.split()
-                    result[s[1].replace("*","")][s[2]] = float(s[4])
+                    result[s[1].replace("*", "")][s[2]] = float(s[4])
         return result
 
     def get_external_version(self):

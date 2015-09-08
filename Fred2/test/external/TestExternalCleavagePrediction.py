@@ -1,6 +1,7 @@
 __author__ = 'schubert'
 
 import unittest
+import os
 
 from Fred2.Core import Peptide
 from Fred2.Core import Protein
@@ -29,7 +30,15 @@ class TestExternalCleavagePredictonClass(unittest.TestCase):
             mo = CleavageSitePredictorFactory("NetChop")
             mo.predict(self.seqs[0])
 
-
+    def test_path_option_and_optionl_parameters(self):
+        netchop = CleavageSitePredictorFactory("NetChop")
+        exe = netchop.command.split()[0]
+        for try_path in os.environ["PATH"].split(os.pathsep):
+            try_path = try_path.strip('"')
+            exe_try = os.path.join(try_path, exe).strip()
+            if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
+                print exe_try
+                netchop.predict(self.seqs, path=exe_try, options="-v 1")
 
 if __name__ == '__main__':
     unittest.main()

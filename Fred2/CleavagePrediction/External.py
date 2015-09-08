@@ -9,6 +9,7 @@
 """
 
 import sys
+import os
 import subprocess
 import pandas
 
@@ -27,7 +28,7 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
     __supported_length = [sys.maxint]
     __name = "netchop"
     __cleavage_pos = 0
-    __command = "netChop %s | grep -v '#' > %s"
+    __command = "netChop {input} {options} | grep -v '#' > {out}"
     __version = "3.1"
 
     @property
@@ -53,25 +54,47 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
     def predict(self, _aa_seq, **kwargs):
 
         if isinstance(_aa_seq, Peptide) or isinstance(_aa_seq, Protein):
-            pep_seqs = {str(_aa_seq):_aa_seq}
+            pep_seqs = {str(_aa_seq): _aa_seq}
         else:
             if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in _aa_seq):
                 raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in _aa_seq}
+            pep_seqs = {str(p): p for p in _aa_seq}
 
         tmp_out = NamedTemporaryFile(delete=False)
         tmp_file = NamedTemporaryFile(delete=False)
         tmp_file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(pep_seqs.iterkeys())))
         tmp_file.close()
 
-        r = subprocess.call(self.command%(tmp_file.name, tmp_out.name), shell=True)
-        if r == 127:
-                raise RuntimeError("%s is not installed or globally executable."%self.name)
-        elif r != 0:
-                raise RuntimeError("An unknown error occurred for method %s. "
-                                   "Please check whether %s is globally executable."%(self.name, self.name))
+        #allowe customary executable specification
+        if "path" in kwargs:
+            exe = self.command.split()[0]
+            _command = self.command.replace(exe, kwargs["path"])
+        else:
+            _command = self.command
 
-        return self.parse_external_result(tmp_out)
+        try:
+            stdo = None
+            stde = None
+            cmd = _command.format(peptides=tmp_file.name, options=kwargs.get("options", ""), out=tmp_out.name)
+            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.wait() #block the rest
+            stdo, stde = p.communicate()
+            stdr = p.returncode
+            if stdr > 0:
+                raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
+        except Exception as e:
+            raise RuntimeError(e)
+
+        result = self.parse_external_result(tmp_out)
+
+        df_result = CleavageSitePredictionResult.from_dict(result)
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i, j in df_result.index],
+                                                        names=['ID', 'Pos'])
+        os.remove(tmp_file.name)
+        tmp_out.close()
+        os.remove(tmp_out.name)
+
+        return df_result
 
     def parse_external_result(self, _file):
         result = {"Seq": {}, self.name: {}}
@@ -96,10 +119,8 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
                 seq_id = "seq_%i"%count
                 result["Seq"][(seq_id, pos)] = aa
                 result[self.name][(seq_id, pos)] = float(s)
-        df_result = CleavageSitePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i, j in df_result.index],
-                                                        names=['ID', 'Pos'])
-        return df_result
+
+        return result
 
     def get_external_version(self):
         #cannot be determined method does not support --version or something similar
