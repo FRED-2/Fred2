@@ -14,6 +14,8 @@ https://docs.python.org/3/library/abc.html
 
 import abc
 import inspect
+import os
+import subprocess
 from collections import defaultdict
 from string import maketrans
 
@@ -112,7 +114,7 @@ class ACleavageSitePrediction(object):
         parameter specifying the version of the prediction method
 
         """
-        return self.__version
+        raise NotImplementedError
 
     @abc.abstractproperty
     def supportedLength(self):
@@ -296,6 +298,46 @@ class AExternal(object):
         """
         raise NotImplementedError
 
+    def is_in_path(self):
+        """
+        checks whether the specified execution command can be found in PATH
+
+        :return: bool - Whether or not command could be found in PATH
+        """
+        exe = self.command.split()[0]
+        for try_path in os.environ["PATH"].split(os.pathsep):
+            try_path = try_path.strip('"')
+            exe_try = os.path.join(try_path, exe).strip()
+            if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
+                return True
+        return False
+
+    @abc.abstractmethod
+    def get_external_version(self):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :return: str - The external version of the tool
+        """
+        exe = self.command.split()[0]
+        try:
+            p = subprocess.Popen(exe + ' --version', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p.wait() #block the rest
+            stdo, stde = p.communicate()
+            stdr = p.returncode
+            if stdr > 0:
+                raise RuntimeError("Could not check version of " + exe + " - Please check your installation and FRED2 "
+                                                                         "wrapper implementation.")
+        except Exception as e:
+                raise RuntimeError(e)
+        return str(stdo).strip()
+
 
 class ATAPPrediction(object):
     __metaclass__ = APluginRegister
@@ -309,12 +351,13 @@ class ATAPPrediction(object):
         """
         raise NotImplementedError
 
+    @abc.abstractproperty
     def version(self):
         """
         parameter specifying the version of the prediction method
 
         """
-        raise "0"
+        raise NotImplementedError
 
     @abc.abstractproperty
     def supportedLength(self):

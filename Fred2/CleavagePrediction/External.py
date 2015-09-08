@@ -8,13 +8,10 @@
 
 """
 
-import collections
-import warnings
 import sys
 import subprocess
 import pandas
 
-from collections import defaultdict
 from tempfile import NamedTemporaryFile
 
 from Fred2.Core.Base import ACleavageSitePrediction, AExternal
@@ -64,19 +61,20 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
 
         tmp_out = NamedTemporaryFile(delete=False)
         tmp_file = NamedTemporaryFile(delete=False)
-        tmp_file.write("\n".join(">pep_%i\n%s"%(i,str(p)) for i, p in enumerate(pep_seqs.iterkeys())))
+        tmp_file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(pep_seqs.iterkeys())))
         tmp_file.close()
 
         r = subprocess.call(self.command%(tmp_file.name, tmp_out.name), shell=True)
         if r == 127:
                 raise RuntimeError("%s is not installed or globally executable."%self.name)
         elif r != 0:
-                raise RuntimeError("An unknown error occurred for method %s. Please check whether %s is globally executable."%(self.name,self.name))
+                raise RuntimeError("An unknown error occurred for method %s. "
+                                   "Please check whether %s is globally executable."%(self.name, self.name))
 
         return self.parse_external_result(tmp_out)
 
     def parse_external_result(self, _file):
-        result = {"Seq":{}, self.name:{}}
+        result = {"Seq": {}, self.name: {}}
         count = 0
         is_new_seq = 0
 
@@ -87,18 +85,22 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
             #print l
             if not is_new_seq % 4 and is_new_seq:
                 #print "New seq starts", l
-                count +=1
+                count += 1
                 is_new_seq = 0
             elif l[0] == "-":
                 #print "in counter", l
                 is_new_seq += 1
             elif l[0].isdigit():
-                pos,aa,_,s,_ = l.split()
+                pos, aa, _, s, _ = l.split()
                 pos = int(pos) - 1
                 seq_id = "seq_%i"%count
                 result["Seq"][(seq_id, pos)] = aa
                 result[self.name][(seq_id, pos)] = float(s)
         df_result = CleavageSitePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i,j in df_result.index],
-                                                        names=['ID','Pos'])
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i, j in df_result.index],
+                                                        names=['ID', 'Pos'])
         return df_result
+
+    def get_external_version(self):
+        #cannot be determined method does not support --version or something similar
+        return None

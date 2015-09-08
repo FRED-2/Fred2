@@ -12,6 +12,17 @@ from Fred2.Core import Transcript
 
 from Fred2.EpitopePrediction import EpitopePredictorFactory
 from Fred2.EpitopePrediction import AExternalEpitopePrediction
+from Fred2.EpitopePrediction import NetMHC_3_4
+
+
+#only for internal testing (test are run with NetMHC 3.4
+class NetMHC_3_0(NetMHC_3_4):
+
+    __version = "3.0"
+
+    @property
+    def version(self):
+        return self.__version
 
 
 class TestExternalEpitopePredictionClass(unittest.TestCase):
@@ -28,18 +39,18 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
             mo = EpitopePredictorFactory(m)
             if isinstance(mo, AExternalEpitopePrediction):
                 if any(a.name in mo.supportedAlleles for a in self.mhcII):
-                    mo.predict(self.peptides_mhcII,alleles=self.mhcII)
+                    mo.predict(self.peptides_mhcII, alleles=self.mhcII)
                 else:
-                    mo.predict(self.peptides_mhcI,alleles=self.mhcI)
+                    mo.predict(self.peptides_mhcI, alleles=self.mhcI)
 
     def test_single_epitope_input(self):
         for m in EpitopePredictorFactory.available_methods():
             mo = EpitopePredictorFactory(m)
             if isinstance(mo, AExternalEpitopePrediction):
                 if any(a.name in mo.supportedAlleles for a in self.mhcII):
-                    mo.predict(self.peptides_mhcII[0],alleles=self.mhcII)
+                    mo.predict(self.peptides_mhcII[0], alleles=self.mhcII)
                 else:
-                    mo.predict(self.peptides_mhcI[0],alleles=self.mhcI)
+                    mo.predict(self.peptides_mhcI[0], alleles=self.mhcI)
 
     def test_single_allele_input(self):
         for m in EpitopePredictorFactory.available_methods():
@@ -57,3 +68,10 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
     def test_wrong_allele_input(self):
         with self.assertRaises(ValueError):
             EpitopePredictorFactory("NetMHC").predict(self.mhcI, alleles=self.transcript)
+
+    def test_wrong_internal_to_external_version(self):
+        with self.assertRaises(RuntimeError):
+            EpitopePredictorFactory("NetMHC", version="3.0").predict(self.mhcI, alleles=self.transcript)
+
+if __name__ == '__main__':
+    unittest.main()
