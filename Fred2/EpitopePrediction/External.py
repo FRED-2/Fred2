@@ -35,31 +35,41 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
 
     def predict(self, peptides, alleles=None, **kwargs):
 
+        if not self.is_in_path():
+            raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
+                                                                                    version=self.version))
+        external_version = self.get_external_version()
+        if self.version != external_version and external_version is not None:
+            raise RuntimeError("Internal version {internal_version} does "
+                               "not match external version {external_version}".format(internal_version=self.version,
+                                                                                      external_version=external_version))
+
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
             if any(not isinstance(p, Peptide)  for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {str(p): p for p in peptides}
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
 
         result = defaultdict(defaultdict)
 
         #group alleles in blocks of 80 alleles (NetMHC can't deal with more)
+        _MAX_ALLELES = 50
         allele_groups = []
         c_a = 0
         allele_group = []
         for a in allales_string.iterkeys():
-            if c_a >= 50:
+            if c_a >= _MAX_ALLELES:
                 c_a = 0
                 allele_groups.append(allele_group)
                 if str(allales_string[a]) not in self.supportedAlleles:
@@ -86,21 +96,24 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
             peps = list(peps)
             tmp_out = NamedTemporaryFile(delete=False)
             tmp_file = NamedTemporaryFile(delete=False)
-            tmp_file.write( "\n".join(">pepe_%i\n%s"%(i,p) for i,p in enumerate(peps)) if isinstance(self, NetMHCII) else "\n".join(peps))
+            tmp_file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(peps))
+                           if self.name.lower() == "netmhcii" else "\n".join(peps))
             tmp_file.close()
 
             #generate cmd command
             for allele_group in allele_groups:
-                #print self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name)
                 try:
-                    r = subprocess.call(self.command%(tmp_file.name, ",".join(allele_group), tmp_out.name), shell=True)
-
-                except OSError as e:
-                    if e.errno == os.errno.ENOENT:
-                        raise RuntimeError("%s is not installed or globally executable."%self.name)
-                    else:
-                        warnings.warn("An unknown error occurred for method %s."%self.name)
-                        continue
+                    stdo = None
+                    stde = None
+                    cmd = self.command.format(peptides=tmp_file.name, alleles=",".join(allele_group), out=tmp_out.name)
+                    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    p.wait() #block the rest
+                    stdo, stde = p.communicate()
+                    stdr = p.returncode
+                    if stdr > 0:
+                        raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
+                except Exception as e:
+                    raise RuntimeError(e)
 
                 res_tmp = self.parse_external_result(tmp_out.name)
                 for al, ep_dict in res_tmp.iteritems():
@@ -115,7 +128,6 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
                                                         names=['Seq','Method'])
-
         return df_result
 
 
@@ -138,7 +150,7 @@ class NetMHC_3_4(AExternalEpitopePrediction):
                            'C*07:02', 'C*08:02', 'C*12:03', 'C*14:02', 'C*15:02', 'E*01:01'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhc"
-    __command = "netMHC -p %s -a %s -x %s >/dev/null"
+    __command = "netMHC -p {peptides} -a {alleles} -x {out}"
     __version = "3.4"
 
     @property
@@ -166,7 +178,6 @@ class NetMHC_3_4(AExternalEpitopePrediction):
 
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
-        #print "reading ", _file
         f = csv.reader(open(_file, "r"), delimiter='\t')
         f.next()
         f.next()
@@ -175,13 +186,16 @@ class NetMHC_3_4(AExternalEpitopePrediction):
             if not l:
                 continue
             pep_seq = l[2]
-            for ic_50, a in itertools.izip(l[3:],alleles):
+            for ic_50, a in itertools.izip(l[3:], alleles):
                 sc = 1.0 - math.log(float(ic_50), 50000)
                 result[a][pep_seq] = sc if sc > 0.0 else 0.0
         return dict(result)
 
     def predict(self, peptides, alleles=None, **kwargs):
         return super(NetMHC_3_4, self).predict(peptides, alleles=alleles, **kwargs)
+
+    def get_external_version(self):
+        return super(NetMHC_3_4, self).get_external_version()
 
 
 class NetMHCpan_2_4(AExternalEpitopePrediction):
@@ -193,7 +207,7 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
     """
     __supported_length = frozenset([8,9,10,11])
     __name = "netmhcpan"
-    __command = "netMHCpan -p %s -a %s -ic50 -xls -xlsfile %s >/dev/null"
+    __command = "netMHCpan -p {peptides} -a {alleles} -ic50 -xls -xlsfile {out}"
     __alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
                  'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24', 'A*01:25',
                  'A*01:26', 'A*01:28', 'A*01:29', 'A*01:30', 'A*01:32', 'A*01:33', 'A*01:35', 'A*01:36', 'A*01:37',
@@ -566,6 +580,10 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
     def predict(self, peptides, alleles=None, **kwargs):
         return super(NetMHCpan_2_4, self).predict(peptides, alleles=alleles, **kwargs)
 
+    def get_external_version(self):
+        #can not be determined netmhcpan does not support --version or similar
+        return None
+
 
 class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
     """
@@ -573,7 +591,7 @@ class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
     """
     __supported_length = frozenset([15])
     __name = "netmhcII"
-    __command = 'netMHCII %s -a %s | grep -v "#" > %s'
+    __command = 'netMHCII {peptides} -a {alleles} | grep -v "#" > {out}'
     __alleles = frozenset(
         ['DRB1*01:01', 'DRB1*03:01', 'DRB1*04:01', 'DRB1*04:04', 'DRB1*04:05', 'DRB1*07:01', 'DRB1*08:02', 'DRB1*09:01',
          'DRB1*11:01', 'DRB1*13:02', 'DRB1*15:01', 'DRB3*01:01', 'DRB4*01:01', 'DRB5*01:01'])
@@ -618,6 +636,10 @@ class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
             result[row[0]][row[2]] = float(row[4])
         return result
 
+    def get_external_version(self):
+        #can not be determined netmhcpan does not support --version or similar
+        return None
+
 
 class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
     """
@@ -626,7 +648,7 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
 
     __supported_length = frozenset([8,9,10,11,12,13,14,15,16,17,18,19,20])
     __name = "netmchIIpan"
-    __command = "netMHCIIpan -f %s -inptype 1 -a %s -xls -xlsfile %s >/dev/null"
+    __command = "netMHCIIpan -f {peptides} -inptype 1 -a {alleles} -xls -xlsfile {out}"
     __alleles = frozenset(['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',
                  'DRB1*01:08', 'DRB1*01:09', 'DRB1*01:10', 'DRB1*01:11', 'DRB1*01:12', 'DRB1*01:13', 'DRB1*01:14',
                  'DRB1*01:15', 'DRB1*01:16', 'DRB1*01:17', 'DRB1*01:18', 'DRB1*01:19', 'DRB1*01:20', 'DRB1*01:21',
@@ -759,6 +781,10 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
                 result[a][pep_seq] = float(row[ic_pos+i*3])
         return result
 
+    def get_external_version(self):
+        #can't be determined method does not support --version or similar
+        return None
+
 
 class PickPocket_1_1(AExternalEpitopePrediction):
     """
@@ -771,7 +797,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
     """
     __name = "pickpocket"
     __supported_length = frozenset([8,9,10,11])
-    __command = 'PickPocket -p %s -a %s | grep -v "#" > %s'
+    __command = 'PickPocket -p {peptides} -a {alleles} | grep -v "#" > {out}'
     __supported_alleles = frozenset(['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09',
         'A*01:10', 'A*01:12', 'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24',
         'A*01:25', 'A*01:26', 'A*01:28', 'A*01:29', 'A*01:30', 'A*01:32', 'A*01:33', 'A*01:35', 'A*01:36', 'A*01:37',
@@ -1105,3 +1131,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
                     s = row.split()
                     result[s[1].replace("*","")][s[2]] = float(s[4])
         return result
+
+    def get_external_version(self):
+        #Undertermined pickpocket does not support --version or something similar
+        return None
