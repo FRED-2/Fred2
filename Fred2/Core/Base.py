@@ -323,7 +323,7 @@ class AExternal(object):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param: (str) path - optional specification of executable path if deviant from self.__command
+        :param (str) path: - optional specification of executable path if deviant from self.__command
         :return: str - The external version of the tool
         """
         exe = self.command.split()[0] if path is None else path
@@ -338,6 +338,19 @@ class AExternal(object):
         except Exception as e:
                 raise RuntimeError(e)
         return str(stdo).strip()
+
+    @abc.abstractmethod
+    def prepare_peptide_input(self, _peptides, _file):
+        """
+        Prepares sequence input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: (list(str)) _peptides: the peptide sequences to write into _file
+        :param (File) _file: File handler to input file for external tool
+        """
+        return NotImplementedError
 
 
 class ATAPPrediction(object):
