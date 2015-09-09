@@ -53,6 +53,15 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
 
     def predict(self, _aa_seq, **kwargs):
 
+        if not self.is_in_path() and "path" not in kwargs:
+            raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
+                                                                                    version=self.version))
+        external_version = self.get_external_version(path=kwargs.get("path", None))
+        if self.version != external_version and external_version is not None:
+            raise RuntimeError("Internal version {internal_version} does "
+                               "not match external version {external_version}".format(internal_version=self.version,
+                                                                                      external_version=external_version))
+
         if isinstance(_aa_seq, Peptide) or isinstance(_aa_seq, Protein):
             pep_seqs = {str(_aa_seq): _aa_seq}
         else:
@@ -122,6 +131,6 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
 
         return result
 
-    def get_external_version(self):
+    def get_external_version(self, path=None):
         #cannot be determined method does not support --version or something similar
         return None
