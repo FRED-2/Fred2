@@ -30,3 +30,8 @@ class TAPPredictionTestCaste(unittest.TestCase):
             pred = TAPPredictorFactory(m)
             r = pred.predict(self.peptides[0])
             print r
+
+    def test_smmtap_abitrary_peptide_length(self):
+        smmtap = TAPPredictorFactory("smmtap")
+        peptides = [Peptide("SYFPEITHI"), Peptide("IHTIEPFYSA"), Peptide("IHTIEPFYSAA")]
+        print smmtap.predict(peptides)

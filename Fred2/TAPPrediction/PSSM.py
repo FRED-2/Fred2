@@ -40,7 +40,6 @@ class APSSMTAPPrediction(ATAPPrediction):
                     warnings.warn("No model found for %s with length %i"%(self.name, length))
                     continue
 
-            result = {self.name:{}}
             for p in peps:
                 score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))+pssm.get(-1,{}).get("con", 0)
                 result[self.name][pep_seqs[p]] = score
@@ -105,4 +104,40 @@ class SMMTAP(APSSMTAPPrediction):
         return self.__supported_length
 
     def predict(self, peptides, **kwargs):
-        return super(SMMTAP, self).predict(peptides, **kwargs)
+
+        def __load_model(length):
+            model = "%s_%i"%(self.name, length)
+            return getattr(__import__("Fred2.Data.TAPPSSMMatrices", fromlist=[model]), model)
+
+
+        if isinstance(peptides, Peptide):
+            pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
+
+        result = {self.name:{}}
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+            if length < 9:
+                warnings.warn("No model found for %s with length %i"%(self.name, length))
+                continue
+
+            try:
+                pssm = __load_model(9)
+            except ImportError:
+                    warnings.warn("No model found for %s with length %i"%(self.name, length))
+                    continue
+
+            for p in peps:
+                if length <= 9:
+                    score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))
+                else:
+                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(3))+pssm[8].get(p[-1], 0.0)
+                result[self.name][pep_seqs[p]] = score
+
+        if not result[self.name]:
+            raise ValueError("No predictions could be made for given input.")
+        df_result = TAPPredictionResult.from_dict(result)
+
+        return df_result
