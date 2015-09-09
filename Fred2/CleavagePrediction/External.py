@@ -71,7 +71,7 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
 
         tmp_out = NamedTemporaryFile(delete=False)
         tmp_file = NamedTemporaryFile(delete=False)
-        tmp_file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(pep_seqs.iterkeys())))
+        self.prepare_peptide_input(pep_seqs.iterkeys(), tmp_file)
         tmp_file.close()
 
         #allowe customary executable specification
@@ -134,3 +134,6 @@ class NetChop_3_1(ACleavageSitePrediction, AExternal):
     def get_external_version(self, path=None):
         #cannot be determined method does not support --version or something similar
         return None
+
+    def prepare_peptide_input(self, _peptides, _file):
+        _file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(_peptides)))
