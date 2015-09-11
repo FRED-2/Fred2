@@ -3,4 +3,4 @@ pandas
 pyomo>=4.0, <=4.0.9682
 biopython
 svmlight
-MySQL-python >= 1.2.4
+MySQL-python>=1.2.4
