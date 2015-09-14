@@ -29,7 +29,8 @@ from __future__ import division
 import itertools as itr
 import copy
 
-from pyomo.environ import *
+from pyomo.environ import ConcreteModel, Set, Param, Var, Constraint, PositiveIntegers, \
+                          Binary, NonNegativeIntegers, Objective, maximize, NonNegativeReals
 from pyomo.opt import SolverFactory, TerminationCondition
 
 from Fred2.Core.Result import EpitopePredictionResult

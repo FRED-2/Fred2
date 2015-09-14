@@ -14,7 +14,7 @@ from Fred2.Core.Base import MetadataLogger
 
 class Allele(MetadataLogger):
     """
-    This class represents an Allele and stores additional informations as a 
+    This class represents an Allele and stores additional information as a
     dictionary
 
     :param str name: the name of the MHC allele (new nomenclature A*01:01)
