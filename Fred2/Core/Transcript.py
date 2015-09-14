@@ -58,6 +58,10 @@ class Transcript(MetadataLogger, Seq):
         :returns: (Transcript) -- A Transcript consisting of the single
         letter at position :attr:`index`.
         """
+        #TODO: Refactoring. Does not work that way
+        #how should we deal with these changes? should we generate a new ID?
+        #how do we guarantee a unique ID?
+        #Mutation Syntax of variants has to be updated as well
         item = str(self)[index]
         return Transcript(self.vars, self.transcript_id, item)
 

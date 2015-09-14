@@ -228,7 +228,7 @@ def generate_peptides_from_variants(vars, length, dbadapter):
             yield tId+":FRED2_%i"%generate_peptides_from_variants.transOff, seq, usedVs
 
     if not isinstance(dbadapter, ADBAdapter):
-        raise ValueError("The given dbadapter is not of type ADBAdapter")
+        raise TypeError("The given dbadapter is not of type ADBAdapter")
 
     transToVar = {}
     for v in vars:
@@ -258,7 +258,7 @@ def generate_peptides_from_variants(vars, length, dbadapter):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
         generate_peptides_from_variants.transOff = 0
-        prots = []
+
         vs_homo_and_fs = filter(lambda x: x.type in [VariationType.FSINS, VariationType.FSDEL] or x.isHomozygous, vs)
         vs_hetero = filter(lambda x: not x.isHomozygous, vs)
 
@@ -270,9 +270,13 @@ def generate_peptides_from_variants(vars, length, dbadapter):
                     frac_seq = varSeq[i:end]
                     frac_var = filter(lambda x: i <= x.get_transcript_position < end, vs_hetero)
                     for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
-                        prots.append(Transcript("".join(vvarSeq), geneid, ttId, _vars=vvarComb).translate())
+                        prots.append(
+                            generate_proteins_from_transcripts(
+                                Transcript("".join(vvarSeq), geneid, ttId, _vars=vvarComb)).next())
             else:
-                prots.append(Transcript("".join(varSeq), geneid, tId, _vars=varComb).translate())
+                prots.append(
+                    generate_proteins_from_transcripts(
+                        Transcript("".join(varSeq), geneid, tId, _vars=varComb)).next())
 
         return generate_peptides_from_protein(prots, length)
 
@@ -335,7 +339,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
         #C) apply variants to transcript and generate transcript object
 
     if not isinstance(dbadapter, ADBAdapter):
-        raise ValueError("The given dbadapter is not of type ADBAdapter")
+        raise TypeError("The given dbadapter is not of type ADBAdapter")
 
     transToVar = {}
     for v in vars:
@@ -425,7 +429,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
         #C) apply variants to transcript and generate transcript object
 
     if not isinstance(dbadapter, ADBAdapter):
-        raise ValueError("The given dbadapter is not of type ADBAdapter")
+        raise TypeError("The given dbadapter is not of type ADBAdapter")
 
     transToVar = {}
     for v in tumor:
@@ -490,7 +494,7 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             prot_seq = str(t.translate(table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds))
 
             # only transfer the non-synonymous variants to the protein as an
-            # ordered dict, also translate into protein positions
+            # dict, also translate into protein positions
             new_vars = dict()
             for var in t.vars.values():
                 if not var.isSynonymous:
@@ -505,42 +509,19 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 #        P R O T E I N    = = >    P E P T I D E
 ################################################################################
 
-def generate_peptides_from_protein(proteins, window_size):
+def generate_peptides_from_protein(proteins, window_size, peptides=None):
     """
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
 
-    :param Protein protein: (list of) protein(s) from which a list of unique
+    :param Protein proteins: (list of) protein(s) from which a list of unique
                             peptides should be generated
     :param int window_size: size of peptide fragments
     """
-    def frameshift_influences(tid, _vars, res, start):
-        # find variants out side the peptide frame, still influencing it via a
-        # frameshift
-        accu = [] # accumulator for relevant variants
-
-        _vars.sort(key=lambda v: v.genomePos) # necessary?
-        shift = 0
-
-        for var in _vars:
-
-            pos = var.get_protein_position(tid)
-            new_shift = var.get_shift()
-
-            if pos < start:
-                # does a variant yield a frame shift?
-                if shift + new_shift:
-                    shift += new_shift
-                    accu.append(var)
-                else:
-                    accu = {}
-            # here: var.get_protein_position >= start, we are done!
-            else:
-                res += accu
-                break
 
     def gen_peptide_info(protein):
-        # Generate peptide sequences and find the variants within each
+        # Generate peptide sequences and returns the sequence
+        # #and start position within the protein
         res = []
 
         seq = str(protein)
@@ -548,24 +529,11 @@ def generate_peptides_from_protein(proteins, window_size):
             # generate peptide fragment
             end = i+window_size
             pep_seq = seq[i:end]
-
-             # get the variants affecting the peptide:
-            if protein.vars:
-                # variants within the peptide:
-                pep_var = [var for pos, var_list in protein.vars.iteritems() \
-                           for var in var_list if i <= pos <= end]
-
-                # outside variants that affect the peptide via frameshift:
-                frameshift_influences(protein.transcript_id, 
-                                      protein.orig_transcript.vars.values(),
-                                      pep_var, i)
-            else:
-                pep_var = []
-
-            res.append((pep_seq, pep_var))
+            res.append((pep_seq, i))
         return res
 
-    final_peptides = {} # sequence : peptide-instance
+    # sequence : peptide-instance
+    final_peptides = {} if peptides is None else {str(p):p for p in peptides}
 
     if isinstance(proteins, Protein):
         proteins = [proteins]
@@ -575,14 +543,14 @@ def generate_peptides_from_protein(proteins, window_size):
 
     for prot in proteins:
         # generate all peptide sequences per protein:
-        for (seq, _variants) in gen_peptide_info(prot):
+        for (seq, _pos) in gen_peptide_info(prot):
 
             t_id = prot.transcript_id
             if seq not in final_peptides:
                 final_peptides[seq] = Peptide(seq)
 
-            final_peptides[seq].proteins[t_id] = prot
-            final_peptides[seq].variants[t_id] = _variants
-            final_peptides[seq].transcripts[t_id] = prot.orig_transcript
+            if t_id not in final_peptides[seq].proteins:
+                final_peptides[seq].proteins[t_id] = prot
+                final_peptides[seq].proteinPos[t_id].append(_pos)
 
     return final_peptides.values()

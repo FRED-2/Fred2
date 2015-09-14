@@ -29,7 +29,7 @@ from __future__ import division
 import itertools as itr
 import copy
 
-from pyomo.environ import *
+from pyomo.environ import ConcreteModel, Set, Param, Var, Constraint
 from pyomo.opt import SolverFactory
 
 from Fred2.Core.Result import EpitopePredictionResult
