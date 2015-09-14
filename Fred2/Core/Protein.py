@@ -21,9 +21,9 @@ class Protein(MetadataLogger, Seq):
         For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq`
         (from Biopython)
 
-    :param str gene_id: ID of the genome
-    :param str transcript_id: ID of the corresponding transcript 
-    :param Transcript orig_transcript: Reference to the originating transcript
+    :param str _gene_id: ID of the genome
+    :param str _transcript_id: ID of the corresponding transcript
+    :param Transcript _orig_transcript: Reference to the originating transcript
     :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
                                           assoziated with the protein. 
                                           key=position within protein, 
@@ -47,7 +47,7 @@ class Protein(MetadataLogger, Seq):
         """
         # Init parent type:
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq, IUPAC.IUPACProtein)
+        Seq.__init__(self, _seq.upper(), IUPAC.IUPACProtein)
         # Init own member:
         if _vars is None:
             self.vars = dict()
@@ -57,17 +57,34 @@ class Protein(MetadataLogger, Seq):
         self.transcript_id = "Protein_%i"%Protein.newid() if _transcript_id is None else _transcript_id
         self.gene_id = _gene_id
 
-
     def __getitem__(self, index):
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        :param int index: position within the primary sequence
-        :returns: Protein -- A protein consisting of the single letter at
-                  position :attr:`index`.
+        returns a single letter or a sliced protein (when given a slice).
+        The sliced protein does not reference to a Transcript object!
+
+        Allows only simple slicing (i.e. start < stop)
+
+        :param int/Slice index: position within the primary sequence or a slice
+        :returns: str/Protein - A single letter at position :attr:`index`
+                  or a sliced Protein with adjusted variant positions.
         """
-        item = str(self)[index]
-        return Protein(item, self.gene_id, self.orig_transcript, self.vars)
+        if isinstance(index, int):
+            #Return a single letter as a string
+            return str(self)[index]
+        else:
+            start, stop, step = index.indices(len(self))
+            if start > stop:
+                raise ValueError("start has to be greater than stop")
+            if index.step:
+                slice = set(xrange(start, step, stop))
+            else:
+                slice = set(xrange(start, stop))
+            _vars = {pos-start: v for pos, v in self.vars.iteritems() if pos in slice}
+            trans_id = self.transcript_id+":"+str(Protein.newid())
+            seq = str(self)[index]
+            return Protein(seq, _gene_id=self.gene_id, _transcript_id=trans_id, _vars=_vars)
 
     def __repr__(self):
         # Header:

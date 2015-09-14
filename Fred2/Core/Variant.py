@@ -81,12 +81,11 @@ class Variant(MetadataLogger):
         self.type = type
         self.chrom = chrom
         self.genomePos = genomePos
-        self.ref = ref
-        self.obs = obs
+        self.ref = ref.upper()
+        self.obs = obs.upper()
         self.gene = None
         self.isHomozygous = isHomozygous
         self.isSynonymous = isSynonymous
-        self.offsets = {}
         self.coding = coding  # dict transcript_id:MutationSyntax
         self.experimentalDesign = "" if experimentalDesign is None else experimentalDesign
 
@@ -104,48 +103,29 @@ class Variant(MetadataLogger):
     def get_shift(self):
         return self.get_transcript_offset() % 3
 
-    def get_transcript_position(self, trans_variant_id):
+    def get_annotated_transcript_pos(self, transID):
         """
-        .. note:: May only be used for transcript variants that were created from this variant via :func:
-        `Generator.generate_transcripts_from_variants`.
-        ..TODO:: what? that should not be encoded in transcript id but in separate member
-
-        returns the specific transcript position of a given transcript_id. 
-        If variant is not associated with the given transcript id the function 
-        throws a KeyError
-
-        :param str transcriptId: A transcript_id
-        :return: (int) -- transcript position
-        :raises: KeyError
+        returns the annotated transcript position
+        :param (str) transID: the transcript ID of interest
+        :return: int - the annotated transcript position of the given transcript ID
+        :raise KeyError: if variant is not annotated to the given transcript ID
         """
-        trans_id = trans_variant_id.split(":FRED2_")[0]
+        trID = transID.split(":FRED_")[0]
         try:
-            return self.coding[trans_id].tranPos + \
-                   self.offsets.get(trans_variant_id, 0)
+            return self.coding[trID].tranPos
         except KeyError:
-            raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (trans_variant_id, str(self)))
+            raise KeyError("Variant {var} was not annotated to Transcript {tID}".format(var=repr(self), tID=transID))
 
-    def get_protein_position(self, trans_variant_id):
+    def get_annotated_protein_pos(self, transID):
         """
-        .. note:: May only be used for transcript variants that were created from this variant via :func:
-        `Generator.generate_transcripts_from_variants`.
-        ..TODO:: what? that should not be encoded in transcript id but in separate member
-
-        returns the specific protein position of a given transcript_id. If 
-        variant is not associated with the given transcript id the function 
-        throws a KeyError
-
-        :param str transcriptId: A transcript_id
-        :return: (int) -- the protein position of the variant
-        :raises: KeyError
+        returns the annotated protein position
+        :param (str) transID: the transcript ID of interest
+        :return: int - the annotated protein position of the given transcript ID
+        :raise KeyError: if variant is not annotated to the given transcript ID
         """
-        trans_id = trans_variant_id.split(":FRED2_")[0]
-        try: 
-            # get actual transcript position
-            tpos = self.coding[trans_id].tranPos + \
-                   self.offsets.get(trans_variant_id, 0)
+        trID = transID.split(":FRED_")[0]
+        try:
+            return self.coding[trID].tranPos
         except KeyError:
-            raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (str(trans_variant_id), self.__str__))
-        return int(math.ceil(tpos/3.0)) # generate protein pos from transcript pos
+            raise KeyError("Variant {var} was not annotated to " \
+                           "Protein with transcript ID {tID}".format(var=repr(self),tID=transID))

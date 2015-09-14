@@ -27,7 +27,7 @@ class Peptide(MetadataLogger, Seq):
 
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq, IUPAC.IUPACProtein)
+        Seq.__init__(self, _seq.upper(), IUPAC.IUPACProtein)
 
         # Enforce dict storage
         if protein_pos and any(not isinstance(p, Protein) or
@@ -42,27 +42,37 @@ class Peptide(MetadataLogger, Seq):
         #TODO: does not work that way! Reimplement!
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
-        
-        :param int index: position in the peptide sequence
-        :returns: A Peptide consisting of the single letter at position :attr:`index`.
+
+        Returns a single letter or a sliced Peptide with.
+        Allows only simple slicing (i.e. start < stop)
+
+        :param int/Slice index: position in the peptide sequence
+        :returns: A single letter at position :attr:`index` or a sliced Peptide.
         :rtype: Peptide
         """
-        item = str(self)[index]
-        new_pept = Peptide(item)
-        new_pept.proteins = self.proteins
-        new_pept.proteinPos = {}
-        return new_pept
+        if isinstance(index, int):
+            #Return a single letter as a string
+            return str(self)[index]
+        else:
+            seq = str(self)[index]
+            start, stop, step = index.indices(len(self))
+            if start > stop:
+                raise ValueError("start has to be greater than stop")
+            protPos = {self.proteins[tId]: [p+(start-p) for p in pos] for tId, pos in self.proteinPos.iteritems()}
+            return Peptide(seq, protein_pos=protPos)
 
     def __repr__(self):
-        #TODO: refactoring
+
         lines = ["PEPTIDE:\n %s" % str(self)]
         #http://stackoverflow.com/questions/1436703/difference-between-str-and-repr-in-python/2626364#2626364
-        for t_id in self.get_all_transcripts():
+        for t in self.get_all_transcripts():
+            t_id = t.transcript_id
             lines.append("in TRANSCRIPT: %s" % t_id)
             lines.append("\tVARIANTS:")
-            for var in self.variants[t_id]:
+            for var in self.get_variants_by_protein(t_id):
                 lines.append("\t%s" % var)
-        for p_id in self.proteins:
+        for p in self.proteins:
+            p_id = p.transcript_id
             lines.append("in PROTEIN: %s" % p_id)
         return '\n'.join(lines)
 
@@ -77,7 +87,10 @@ class Peptide(MetadataLogger, Seq):
         return [p.orig_transcript for p in self.proteins.itervalues()]
 
     def get_transcript(self, _transcript_id):
-        return self.proteins[_transcript_id].orig_transcript
+        try:
+            return self.proteins[_transcript_id].orig_transcript
+        except KeyError:
+            return None
 
     def get_protein_positions(self, _transcript_id):
         """

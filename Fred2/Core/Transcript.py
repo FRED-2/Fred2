@@ -37,29 +37,43 @@ class Transcript(MetadataLogger, Seq):
         :param str _gene_id: input genome ID
         :param str _transcript_id: input transcript RefSeqID
         :param str _seq: Transcript RefSeq sequence
-        :param list(Variant) _vars: a list of Variants which internal positions are specific to the transcript.
+        :param dict(int,Variant) _vars: a dict of transcript position to Variant that is specific to the transcript.
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq, generic_rna)
+        Seq.__init__(self, _seq.upper(), generic_rna)
         self.gene_id = _gene_id
         self.transcript_id = Transcript.newid() if _transcript_id is None else _transcript_id
         #TODO: this is not what the doc string says:
-        if _vars is not None:
-            self.vars = {v.get_transcript_position(_transcript_id): v for v in _vars}
-
-        else:
-            self.vars = dict()
+        self.vars = dict() if _vars is None else _vars
 
     def __getitem__(self, index):
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
+         Allows only simple slicing (i.e. start < stop)
+
         :param int index: position 
         :returns: (Transcript) -- A Transcript consisting of the single
-        letter at position :attr:`index`.
+        letter at position :attr:`index` or a new sliced Transcript (following Bio.Seqs definition)
         """
-        item = str(self)[index]
-        return Transcript(self.vars, self.transcript_id, item)
+        if isinstance(index, int):
+            #Return a single letter as a string
+            return str(self)[index]
+        else:
+            start, stop, step = index.indices(len(self))
+            if start > stop:
+                raise ValueError("start has to be greater than stop")
+
+            if index.step:
+                slice = set(xrange(start, step, stop))
+            else:
+                slice = set(xrange(start, stop))
+            _vars = {pos-start: v for pos, v in self.vars.iteritems() if pos in slice}
+            trans_id = self.transcript_id+":"+str(Transcript.newid())
+            seq = str(self)[index]
+            t = Transcript(seq, _gene_id=self.gene_id, _transcript_id=trans_id)
+            t.vars = _vars
+            return t
 
     def __repr__(self):
         lines = ["TRANSCRIPT: %s" % self.transcript_id]
