@@ -20,48 +20,39 @@ class GeneratorTest(TestCase):
         self.non_syn_hetero_snp = Variant("COSM1122493", VariationType.SNP, "X",
                                           49111949, "G", "T",
                                           {"NM_001114377": MutationSyntax( \
-                                              "NM_001114377", 757, 218, "", "")
+                                              "NM_001114377", 756, 217, "", "")
                                           }, False, False)
 
         self.non_frame_shift_del = Variant("COSM1122495", VariationType.DEL, "X",
                                            49113232, "CTT", "",
                                            {"NM_001114377": MutationSyntax( \
-                                               "NM_001114377", 616, 206, "", "")
+                                               "NM_001114377", 615, 205, "", "")
                                            }, True, False)
 
         self.syn_homo_snp = Variant("COSM1122494", VariationType.SNP, "X",
-                                    49112257, "G", "A",
+                                    49112257, "C", "T",
                                     {"NM_001114377": MutationSyntax( \
-                                        "NM_001114377", 654, 218, "", "")
+                                        "NM_001114377", 653, 217, "", "")
                                     }, False, True)
 
         self.db_adapter = MartsAdapter()
 
-    def test__update_var_offset(self):
-        tmp1 = var_1
-        tmp1.offsets["tsc_1"] = 3
-        Generator._update_var_offset([tmp1], "tsc_1", "tsc_666")
-        self.assertEqual(tmp1.offsets, {"tsc_1":3, "tsc_666":3})
-
     def test__incorp_snp(self):
         ts = list("TESTSEQUENCE")
-        print self.assertEqual(Generator._incorp_snp(ts, var_2, "tsc_1", 6), (list("TESTSEQUENTE"), 6))
+        print self.assertEqual(Generator._incorp_snp(ts, var_2, "tsc_1", 6, 6), 6)
 
     def test__incorp_insertion(self):
         ts = list("TESTSEQUENCE")
-        self.assertEqual(Generator._incorp_insertion(ts, var_3, "tsc_1", 0), (list("TESTSEQTTUENCE"), 2))
-        ##TODO _incorp_insertion undocumented (and unwanted) sideeffect is it is altering the input! this goes for all _incorp. either assign and return or no return and doc - https://docs.python.org/2.4/lib/typesseq-mutable.html
-        #self.assertEqual(Generator._incorp_insertion(ts, var_5, "tsc_1", 0), (list("TESTSEQUENCE"), 3))
+        self.assertEqual(Generator._incorp_insertion(ts, var_3, "tsc_1", 0, 0),  2)
 
     def test__incorp_deletion(self):
         ts = list("TESTSEQUEASDFGNCES")
-        ##TODO incorp_deletion just deletes something @ pos <- that is what it supposed to do!
-        self.assertEqual(Generator._incorp_deletion(ts, var_4, "tsc_1", 0), (list("TESTSEQUENCES"), -5))
-        self.assertEqual(Generator._incorp_deletion(ts, var_6, "tsc_1", 0), (list("TESTSEQUENS"), -2))
+        self.assertEqual(Generator._incorp_deletion(ts, var_4, "tsc_1", 0, 0),  -5)
+        self.assertEqual(Generator._incorp_deletion(ts, var_6, "tsc_1",0, 0),  -2)
 
     def test__check_for_problematic_variants(self):
-        self.assertTrue(Generator._check_for_problematic_variants([var_1,var_2]))
-        self.assertFalse(Generator._check_for_problematic_variants([var_5,var_6]))
+        self.assertTrue(Generator._check_for_problematic_variants([var_2, var_1]))
+        self.assertFalse(Generator._check_for_problematic_variants([var_5, var_6]))
 
     def test_non_syn_hetero_snp_trans_number(self):
         """
@@ -72,10 +63,10 @@ class GeneratorTest(TestCase):
         :return:
         """
         vars_ = \
-        [self.non_syn_hetero_snp, self.non_frame_shift_del,self.syn_homo_snp]
+            [self.non_syn_hetero_snp, self.non_frame_shift_del,self.syn_homo_snp]
 
         trans = \
-        [t for t in Generator.generate_transcripts_from_variants(vars_, self.db_adapter)]
+            [t for t in Generator.generate_transcripts_from_variants(vars_, self.db_adapter)]
 
         self.assertTrue(len(trans) == 2**sum(not v.isHomozygous for v in vars_))
 
@@ -93,23 +84,19 @@ class GeneratorTest(TestCase):
         dummy_db = DummyAdapter()
 
         # INSERTIONS:
-        dummy_vars = [ var_3]
+        dummy_vars = [var_3]
         trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-
         self.assertEqual(str(trans), "AAAAACCTTCCCGGGGG")
 
         # SNPs:
-        dummy_vars = [ var_1]
+        dummy_vars = [var_1]
         trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
         self.assertEqual(str(trans), "ATAAACCCCCGGGGG")
 
-
         # DELETIONS:
-        dummy_vars = [ var_4]
+        dummy_vars = [var_4]
         trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-        self.assertEqual(str(trans), "AAAAACCCCG")
-
-
+        self.assertEqual(str(trans), "AAAAAGGGGG")
 
     def test_offset_single(self):
         """
@@ -124,15 +111,15 @@ class GeneratorTest(TestCase):
         dummy_db = DummyAdapter()
 
         # 1) INS, SNP, DEL
-        dummy_vars = [ var_3, var_7, var_6]
+        dummy_vars = [var_3, var_7, var_6]
         trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
 
-        self.assertEqual(str(trans), "AAAAACCTTCTCGGG")
+        self.assertEqual(str(trans), "AAAAACCTTCTGGGG")
 
         # 2.) INS, DEL, INS
-        dummy_vars = [ var_9, var_4, var_8]
+        dummy_vars = [var_9, var_4, var_8]
         trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
-        self.assertEqual(str(trans), "AATTAAACCCCGTTT")
+        self.assertEqual(str(trans), "AATTAAAGGGGGTTT")
 
     def test_heterozygous_variants(self):
         """
@@ -164,28 +151,26 @@ class GeneratorTest(TestCase):
         trans_gener = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db)
         trans = [t for t in trans_gener]
 
-        print trans
-
         trans = map(str, trans)
 
         self.assertEqual(len(trans), 8)
 
-        self.assertTrue("AAATTTCCGGGG" in trans)
+        self.assertTrue("AAATTTGGGGG" in trans)
+        self.assertTrue("AAAAATTTGGGGG" in trans)
         self.assertTrue("AAATTTCCCCCGGGGG" in trans)
-        self.assertTrue("AAAAATTTCCGGGG" in trans)
         self.assertTrue("AAAAATTTCCCCCGGGGG" in trans)
 
-        self.assertTrue("GGGTTTCCAAAA" in trans)
-        self.assertTrue("GGGTTTCCAAAA" in trans)
+        self.assertTrue("GGGTTTAAAAA" in trans)
+        self.assertTrue("GGGGGTTTAAAAA" in trans)
         self.assertTrue("GGGTTTCCCCCAAAAA" in trans)
         self.assertTrue("GGGGGTTTCCCCCAAAAA" in trans)
 
-        # def test_varinat_reader(self):
-        #     vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
-        #     print vars, len(vars)
-        #     trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
-        #     print trans
-        #     transToVar = {}
-        #     for v in vars:
-        #         for trans_id in v.coding.iterkeys():
-        #             transToVar.setdefault(trans_id, []).append(v)
+    #     # def test_varinat_reader(self):
+    #     #     vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
+    #     #     print vars, len(vars)
+    #     #     trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
+    #     #     print trans
+    #     #     transToVar = {}
+    #     #     for v in vars:
+    #     #         for trans_id in v.coding.iterkeys():
+    #     #             transToVar.setdefault(trans_id, []).append(v)

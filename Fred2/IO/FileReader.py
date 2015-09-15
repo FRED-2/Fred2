@@ -161,8 +161,8 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                 #print "Debug ",nm_id_pos
 
                 nm_id = nm_id.upper()
-                _,_,trans_coding,prot_coding = mutation_string.split(":")
-                coding[nm_id] = MutationSyntax(nm_id,int(trans_pos),int(prot_start),trans_coding,prot_coding)
+                _, _, trans_coding, prot_coding = mutation_string.split(":")
+                coding[nm_id] = MutationSyntax(nm_id, int(trans_pos)-1, int(prot_start)-1, trans_coding, prot_coding)
 
             ty = tuple(type.split())
 
