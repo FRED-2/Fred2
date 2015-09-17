@@ -291,7 +291,7 @@ class AExternal(object):
     @abc.abstractmethod
     def parse_external_result(self, _file):
         """
-        Parses external NetMHC results and returns a AResult object
+        Parses external results and returns the result
 
         :param str _file: The file path or the external prediction results
         :return: AResult - Returns a AResult object
@@ -339,18 +339,6 @@ class AExternal(object):
                 raise RuntimeError(e)
         return str(stdo).strip()
 
-    @abc.abstractmethod
-    def prepare_peptide_input(self, _peptides, _file):
-        """
-        Prepares sequence input for external tools
-        and writes them to _file in the specific format
-
-        NO return value!
-
-        :param: (list(str)) _peptides: the peptide sequences to write into _file
-        :param (File) _file: File handler to input file for external tool
-        """
-        return NotImplementedError
 
 
 class ATAPPrediction(object):
@@ -390,5 +378,38 @@ class ATAPPrediction(object):
 
         :param list(Peptide)/Peptide: Peptides for which TAP affinity should be predicted
         :return: Returns a TAPResult object
+        """
+        raise NotImplementedError
+
+
+class AHLATyping(object):
+    __metaclass__ = APluginRegister
+
+    @abc.abstractproperty
+    def name(self):
+        """
+        Returns the name of the predictor
+
+        :return:
+        """
+        raise NotImplementedError
+
+    @abc.abstractproperty
+    def version(self):
+        """
+        parameter specifying the version of the prediction method
+
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def predict(self, ngsFile, output, **kwargs):
+        """
+        Prediction method calling the HLA typing algorithm
+
+        :param str ngsFile: The path to the input file containing the NGS reads
+        :param str output: The path to the output file or directory
+        :param kwargs: optional parameters directly handed over to the algorithm without checking
+        :return: list(Allele) - A list of HLA alleles representing the genotype predicted by the algorithm
         """
         raise NotImplementedError
