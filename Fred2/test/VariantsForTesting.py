@@ -7,8 +7,8 @@ from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 # DATA:     M U T A T I O N   S Y N T A X
 # ======================================================================
 mut_syn1_1 = MutationSyntax("tsc_1", # transcript_id
-                            2,       # pos in transc
-                            1,       # pos in protein
+                            1,       # pos in transc
+                            0,       # pos in protein
                             "",      # cdsMutationSyntax - irrelevant
                             "")      # aaMutationSyntax - irrelevant
 
@@ -25,20 +25,20 @@ mut_syn1_3 = MutationSyntax("tsc_1", # transcript_id
                             "")      # aaMutationSyntax - irrelevant
 
 mut_syn1_4 = MutationSyntax("tsc_1", # transcript_id
-                            9,      # pos in transc
+                            5,       # pos in transc
                             3,       # pos in protein
                             "",      # cdsMutationSyntax - irrelevant
                             "")      # aaMutationSyntax - irrelevant
 
 mut_syn1_5 = MutationSyntax("tsc_1", # transcript_id
-                            10,      # pos in transc
-                            4,       # pos in protein
+                            8,      # pos in transc
+                            2,       # pos in protein
                             "",      # cdsMutationSyntax - irrelevant
                             "")      # aaMutationSyntax - irrelevant
 
 mut_syn1_6 = MutationSyntax("tsc_1", # transcript_id
-                            10,      # pos in transc
-                            7,       # pos in protein
+                            8,      # pos in transc
+                            2,       # pos in protein
                             "",      # cdsMutationSyntax - irrelevant
                             "")      # aaMutationSyntax - irrelevant
 
@@ -52,8 +52,8 @@ mut_syn1_6 = MutationSyntax("tsc_1", # transcript_id
 # SNP, HOMOZYGOUS
 var_1 = Variant(
     "var_1", VariationType.SNP, "chr1",
-    20,                    # Genomic Position 
-    "C", "T",             # reference , observed
+    1,                    # Genomic Position
+    "A", "T",             # reference , observed
     {"tsc_1":mut_syn1_1}, # dict of (transcrip_id : mutSnytaxes)
     True, False, experimentalDesign="tumor")          # isHomozygous?, isSynonymous?
 
@@ -76,7 +76,7 @@ var_3 = Variant(
 # -F-SHIFT, HOMOZYGOUS
 var_4 = Variant(
     "var_4", VariationType.FSDEL, "chr1",
-    9,                    # Genomic Position 
+    5,                    # Genomic Position
     "CCCCC", "",          # reference , observed
     {"tsc_1":mut_syn1_4}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -84,7 +84,7 @@ var_4 = Variant(
 # INSERTION, HOMOZYGOUS
 var_5 = Variant(
     "var_5", VariationType.INS, "chr1",
-    10,                   # Genomic Position
+    8,                   # Genomic Position
     "", "TTT",            # reference , observed
     {"tsc_1":mut_syn1_5}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -92,7 +92,7 @@ var_5 = Variant(
 # -F-SHIFT, HOMOZYGOUS, INVALID
 var_6 = Variant(
     "var_6", VariationType.FSDEL, "chr1",
-    10,                   # Genomic Position 
+    8,                   # Genomic Position
     "CC", "",             # reference , observed
     {"tsc_1":mut_syn1_6}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -100,15 +100,15 @@ var_6 = Variant(
 
 # SNP, HOMOZYGOUS
 mut_syn1_7 = MutationSyntax("tsc_1", # transcript_id
-                            9,      # pos in transc
+                            10,      # pos in transc
                             3,       # pos in protein
                             "",      # cdsMutationSyntax - irrelevant
                             "")      # aaMutationSyntax - irrelevant
 
 var_7 = Variant(
     "var_7", VariationType.SNP, "chr1",
-    9,                    # Genomic Position 
-    "C", "T",             # reference , observed
+    10,                    # Genomic Position
+    "G", "T",             # reference , observed
     {"tsc_1":mut_syn1_7}, # dict of (transcrip_id : mutSnytaxes)
     True, False)         # isHomozygous?, isSynonymous?
 
@@ -122,7 +122,7 @@ mut_syn1_8 = MutationSyntax("tsc_1", # transcript_id
 
 var_8 = Variant(
     "var_8", VariationType.INS, "chr1",
-    15,                   # Genomic Position 
+    15,                   # Genomic Position
     "", "TTT",            # reference , observed
     {"tsc_1":mut_syn1_8}, # dict of (transcrip_id : mutSnytaxes)
     True, False)          # isHomozygous?, isSynonymous?
@@ -149,20 +149,20 @@ var_9 = Variant(
 
 # 3-DEL(-2), HETEROZYGOUS, pos 3
 mut_syn1_10 = MutationSyntax("tsc_1", # transcript_id
-                             1,       # pos in transc
-                             1,       # pos in protein
+                             0,       # pos in transc
+                             0,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 mut_syn2_10 = MutationSyntax("tsc_2", # transcript_id
-                             1,       # pos in transc
-                             1,       # pos in protein
+                             0,       # pos in transc
+                             0,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 
 var_10 = Variant(
     "var_10", VariationType.DEL, "chr1",
-    1,                     # Genomic Position
-    "GG", "",              # reference , observed
+    0,                     # Genomic Position
+    "AA", "",              # reference , observed
     {"tsc_1":mut_syn1_10,
      "tsc_2":mut_syn2_10}, # dict of (transcrip_id : mutSnytaxes)
     False, False)          # isHomozygous?, isSynonymous?
@@ -171,17 +171,17 @@ var_10 = Variant(
 # 5-INS(+3), HOMOZYGOUS, pos 5
 mut_syn1_11 = MutationSyntax("tsc_1", # transcript_id
                              5,       # pos in transc
-                             2,       # pos in protein
+                             1,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 mut_syn2_11 = MutationSyntax("tsc_2", # transcript_id
                              5,       # pos in transc
-                             2,       # pos in protein
+                             1,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 var_11 = Variant(
     "var_11", VariationType.INS, "chr1",
-    5,                     # Genomic Position 
+    5,                     # Genomic Position
     "", "TTT",             # reference , observed
     {"tsc_1":mut_syn1_11,
      "tsc_2":mut_syn2_11}, # dict of (transcrip_id : mutSnytaxes)
@@ -190,19 +190,19 @@ var_11 = Variant(
 
 # 7-DEL(-4), HETEROZYGOUS, pos 7
 mut_syn1_12 = MutationSyntax("tsc_1", # transcript_id
-                             7,       # pos in transc
-                             3,       # pos in protein
+                             5,       # pos in transc
+                             1,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 mut_syn2_12 = MutationSyntax("tsc_2", # transcript_id
-                             7,       # pos in transc
-                             3,       # pos in protein
+                             5,       # pos in transc
+                             1,       # pos in protein
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 var_12 = Variant(
     "var_12", VariationType.DEL, "chr1",
-    7,                     # Genomic Position 
-    "CCCC", "",            # reference , observed
+    5,                     # Genomic Position
+    "CCCCC", "",            # reference , observed
     {"tsc_1":mut_syn1_12,
      "tsc_2":mut_syn2_12}, # dict of (transcrip_id : mutSnytaxes)
     False, False, experimentalDesign="normal")          # isHomozygous?, isSynonymous?

@@ -4,14 +4,16 @@
 """
 .. module:: Core.Generator
    :synopsis: Contains functions to transform variants to transcripts and 
-              proteins to peptides. Transition of transcripts to proteins
-              is done via :meth:`~Fred2.Core.Transcript.translate`
+              proteins to peptides.
+
+   :Note: All internal indices start at 0!
+
 .. moduleauthor:: schubert
 
 """
 
 import warnings
-import collections
+import math
 
 from Fred2.Core.Base import COMPLEMENT
 from Fred2.Core.Protein import Protein
@@ -23,49 +25,37 @@ from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 ################################################################################
 #Private module functions. It should not be possible to import these!
 
-
-def _update_var_offset(vars, transId_old, transId_new):
-    """
-    :param var:
-    :param transId_old:
-    :param transId_new:
-    """
-    #TODO as this is an manipulator doing an assignment a clearer signature nomenclature would be left- and righthand_side
-    #TODO doc for intended use case
-    for v in vars:
-        offset = v.offsets[transId_old]
-        v.offsets[transId_new] = offset
+#symbol for reverse complement
+REVERS = "-"
 
 
-#TODO for _incorp... : shouldnt the offset be determined by the variant and _NOT_ be given as argument - otherwise the argument name should be renamed to something like offset_from_previous or transcript_current_offset
-
-def _incorp_snp(seq, var, transId, offset):
+def _incorp_snp(seq, var, transId, pos, offset):
     """
     incorporates a snp into the given transcript sequence
 
     :param list(char) seq: transcript sequence as a list
     :param Variant var: the snp variant to incorporate
     :param str transId: the transcript ID of seq
+    :param int pos: the position of the variant
     :param int offset: the offset which has to be added onto the transcript
                        position of the variant
-    :return: (list,int) the modified seq, the modified offset
+    :return: int - the the modified offset
     """
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
-    var.offsets[transId] = offset
 
     #print transId, len(seq), var.get_transcript_position(transId)-1
-    if seq[var.get_transcript_position(transId)-1] != var.ref:
-        warnings.warn("For %s bp dos not mmatch ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
-        transId, str(var), var.get_transcript_position(transId) - 1, var.ref,
-        seq[var.get_transcript_position(transId) - 1]))
+    if seq[pos] != var.ref:
+        warnings.warn("For %s bp does not match ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
+        transId, str(var), pos, var.ref,
+        seq[pos]))
 
-    seq[var.get_transcript_position(transId)-1] = var.obs
+    seq[pos] = var.obs
 
-    return seq, offset
+    return offset
 
 
-def _incorp_insertion(seq, var, transId, offset):
+def _incorp_insertion(seq, var, transId, pos, offset):
     """
     incorporates an insertion into the given transcript sequence
 
@@ -74,25 +64,23 @@ def _incorp_insertion(seq, var, transId, offset):
     :param str transId: the transcript ID of seq
     :param int offset: the offset which has to be added onto the transcript
                        position of the variant
-    :return: (list,int) modified sequence, the modified offset
+    :return: int - the modified offset
     """
     if var.type not in [VariationType.INS, VariationType.FSINS]:
         raise TypeError("%s is not a insertion"%str(var))
 
-    var.offsets[transId] = offset
-    pos = var.get_transcript_position(transId)
-
     seq[pos:pos] = var.obs
-    return seq, offset + len(var.obs)
+    return offset + len(var.obs)
 
 
-def _incorp_deletion(seq, var, transId, offset):
+def _incorp_deletion(seq, var, transId, pos, offset):
     """
     incorporates a deletion into the given transcript sequence
 
     :param list(char) seq: transcript sequence as a list
     :param Variant var: the snp variant to incorporate
     :param str transId: the transcript ID of seq
+    :param int pos: the starting position of the deletion
     :param int offset: the offset which has to be added onto the transcript 
                        position of the variant
     :return: (list,int) -- modified sequence, the modified offset
@@ -100,11 +88,9 @@ def _incorp_deletion(seq, var, transId, offset):
     if var.type not in [VariationType.DEL, VariationType.FSDEL]:
         raise TypeError("%s is not a deletion"%str(var))
 
-    var.offsets[transId] = offset
-    pos = var.get_transcript_position(transId)
     s = slice(pos, pos+len(var.ref))
     del seq[s]
-    return seq, offset - len(var.ref)
+    return offset - len(var.ref)
 
 
 _incorp = {
@@ -122,22 +108,30 @@ def _check_for_problematic_variants(vars):
 
     :param list(Variant) vars: initial list of variants
     :return: bool -- true if no intersecting variants were found
-    :invariant: list(Variant) vars: List is sorted based on genome position
+    :invariant: list(Variant) vars: List is sorted based on genome position in descending order
     """
+    def get_range(var):
+        current_range = [0,0]
+        if var.type in [VariationType.FSDEL, VariationType.DEL]:
+            current_range[0] = var.genomePos
+            current_range[1] = var.genomePos+len(v.ref)-1
+        elif var.type in [VariationType.FSINS, VariationType.INS]:
+            current_range[0] = var.genomePos-1
+            current_range[1] = var.genomePos-1
+        else:
+            current_range[0] = var.genomePos
+            current_range[1] = var.genomePos
+        return current_range
     v_tmp = vars[:]
     v = v_tmp.pop()
-    current_range = (v.genomePos, v.genomePos
-                                      +len(v.ref)-1 if v.type in [VariationType.FSDEL, VariationType.DEL] else
-                                      v.genomePos)
+
+    current_range = get_range(v)
     for v in reversed(v_tmp):
-        if v.genomePos <= current_range[1]:
-            #print "crash",current_range, v
+        genome_pos = v.genomePos-1 if v.type in [VariationType.FSINS, VariationType.INS] else v.genomePos
+        if genome_pos <= current_range[1]:
             return False
         else:
-            current_range = (v.genomePos, v.genomePos
-                                      +len(v.ref)-1 if v.type in [VariationType.FSDEL, VariationType.DEL] else
-                                      v.genomePos)
-            #print "new block",v, current_range
+            current_range = get_range(v)
     return True
 
 
@@ -147,13 +141,15 @@ def _check_for_problematic_variants(vars):
 ################################################################################
 #        V A R I A N T S     = = >    P E P T I D E S
 ################################################################################
-def generate_peptides_from_variants(vars, length, dbadapter):
+def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
     """
     generates polymorphic peptides based on given variants
 
     :param list(Variant) vars: list of Variants
     :param int length: length of peptides
     :param dbadapter: DBAdapter to fetch the transcript sequences
+    :param list(Peptide) peptides: a list of existing peptides. These will be updated with new variant information
+                                   if a sequence contained in the list is generated by the new variants
     :return: List(Peptide) -- A list of polymorphic peptides
     """
     def _generate_combinations(tId, vs, seq, usedVs, offset):
@@ -165,27 +161,28 @@ def generate_peptides_from_variants(vars, length, dbadapter):
         if vs:
             v = vs.pop()
             if v.isHomozygous:
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
-                usedVs.append(v)
+                pos = v.coding[tId].tranPos + offset
+                usedVs[pos] = v
+                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
             else:
                 vs_tmp = vs[:]
                 tmp_seq = seq[:]
-                tmp_usedVs = usedVs[:]
+                tmp_usedVs = usedVs.copy()
 
+                #generate transcript without the current variant
                 for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset):
                     yield s
 
+                #and one transcript with current variant as we can't resolve haplotypes
                 # update the transcript variant id
-                old_trans = generate_peptides_from_variants.transOff
                 generate_peptides_from_variants.transOff += 1
                 transOff = generate_peptides_from_variants.transOff
-                _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(transOff))
+                pos = vs.coding[tId].tranPos + offset
+                usedVs[pos] = v
+                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
 
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
-
-                usedVs.append(v)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
         else:
@@ -209,19 +206,16 @@ def generate_peptides_from_variants(vars, length, dbadapter):
             #generate combinatorial branches:
             vs_tmp = vs[:]
             tmp_seq = seq[:]
-            tmp_usedVs = usedVs[:]
+            tmp_usedVs = usedVs.copy()
 
             for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset=offset):
                     yield s
 
-            old_trans = generate_peptides_from_variants.transOff
             generate_peptides_from_variants.transOff += 1
-            transOff = generate_peptides_from_variants.transOff
-            _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(transOff))
+            pos = v.coding[tId].tranPos + offset
+            usedVs[pos] = v
+            offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
 
-            seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
-
-            usedVs.append(v)
             for s in _generate_combinations(tId, vs, seq, usedVs, offset=offset):
                 yield s
         else:
@@ -246,35 +240,41 @@ def generate_peptides_from_variants(vars, length, dbadapter):
         geneid = query[EAdapterFields.GENE]
         strand = query[EAdapterFields.STRAND]
 
-
         #if its a reverse transcript form the complement of the variants
-        if strand == "-":
+        if strand == REVERS:
             for v in transToVar[tId]:
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
 
-        vs.sort(key=lambda v: v.genomePos, reverse=True)
+        vs.sort(key=lambda v: v.genomePos-1
+                if v.type in [VariationType.FSINS, VariationType.INS]
+                else v.genomePos, reverse=True)
         if not _check_for_problematic_variants(vs):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
         generate_peptides_from_variants.transOff = 0
-        prots = []
         vs_homo_and_fs = filter(lambda x: x.type in [VariationType.FSINS, VariationType.FSDEL] or x.isHomozygous, vs)
-        vs_hetero = filter(lambda x: not x.isHomozygous, vs)
+        vs_hetero = filter(lambda x: not x.isHomozygous
+                           and x.type not in [VariationType.FSINS, VariationType.FSDEL], vs)
 
         prots = []
-        for tId, varSeq, varComb in _generate_combinations(tId, vs_homo_and_fs, list(tSeq), [], 0):
+        for tId, varSeq, varComb in _generate_combinations(tId, vs_homo_and_fs, list(tSeq), {}, 0):
             if vs_hetero:
                 for i in xrange(len(varSeq)+1-3*length):
                     end = i+3*length
                     frac_seq = varSeq[i:end]
-                    frac_var = filter(lambda x: i <= x.get_transcript_position < end, vs_hetero)
+                    trans_id = tId.split(":FRED2_")[0]
+                    offset = sum(v.get_transcript_offset() for pos, v in varComb.iteritems() if i <= pos <= end)
+                    frac_var = filter(lambda x: i <= x.coding[trans_id].transPos+offset < end, vs_hetero)
                     for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
-                        prots.append(Transcript("".join(vvarSeq), geneid, ttId, _vars=vvarComb).translate())
+                        prots.append(
+                            generate_proteins_from_transcripts(Transcript("".join(vvarSeq),
+                                                                          geneid, ttId, _vars=vvarComb)))
             else:
-                prots.append(Transcript("".join(varSeq), geneid, tId, _vars=varComb).translate())
+                prots.append(generate_proteins_from_transcripts(
+                    Transcript("".join(varSeq), geneid, tId, _vars=varComb)))
 
-        return generate_peptides_from_protein(prots, length)
+        return generate_peptides_from_protein(prots, length, peptides=peptides)
 
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S
@@ -301,27 +301,26 @@ def generate_transcripts_from_variants(vars, dbadapter):
         if vs:
             v = vs.pop()
             if v.isHomozygous:
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
-                usedVs.append(v)
+                pos = v.coding[tId].tranPos + offset
+                usedVs[pos] = v
+                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
             else:
                 vs_tmp = vs[:]
                 tmp_seq = seq[:]
-                tmp_usedVs = usedVs[:]
+                tmp_usedVs = usedVs.copy()
 
                 for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset):
                     yield s
 
                 # update the transcript variant id
-                old_trans = generate_transcripts_from_variants.transOff
                 generate_transcripts_from_variants.transOff += 1
-                transOff = generate_transcripts_from_variants.transOff
-                _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(transOff))
+                pos = v.coding[tId].tranPos + offset
+                usedVs[pos] = v
 
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
+                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
 
-                usedVs.append(v)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
         else:
@@ -353,19 +352,20 @@ def generate_transcripts_from_variants(vars, dbadapter):
         geneid = query[EAdapterFields.GENE]
         strand = query[EAdapterFields.STRAND]
 
-
         #if its a reverse transcript form the complement of the variants
-        if strand == "-":
+        if strand == REVERS:
             for v in transToVar[tId]:
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
 
-        vs.sort(key=lambda v: v.genomePos, reverse=True)
+        vs.sort(key=lambda v: v.genomePos-1
+                if v.type in [VariationType.FSINS, VariationType.INS]
+                else v.genomePos, reverse=True)
         if not _check_for_problematic_variants(vs):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
         generate_transcripts_from_variants.transOff = 0
-        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
+        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), {}, 0):
             yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
 
 
@@ -390,28 +390,27 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
             flag, v = vs.pop()
 
             if v.isHomozygous:
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
-                usedVs.append(v)
+                pos = v.coding[tId].tranPos + offset
+                usedVs[pos] = v
+                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
             else:
                 vs_tmp = vs[:]
                 tmp_seq = seq[:]
-                tmp_usedVs = usedVs[:]
+                tmp_usedVs = usedVs.copy()
 
                 if flag:
                     for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset):
                         yield s
 
                 # update the transcript variant id
-                old_trans = generate_transcripts_from_tumor_variants.transOff
                 generate_transcripts_from_tumor_variants.transOff += 1
-                transOff = generate_transcripts_from_tumor_variants.transOff
-                _update_var_offset(usedVs, tId+":FRED2_%i"%old_trans, tId+":FRED2_%i"%(transOff))
+                pos = v.coding[tId].tranPos + offset
+                usedVs[pos] = v
 
-                seq, offset = _incorp.get(v.type, lambda a, b, c, d: (a, d))(seq, v, tId+":FRED2_%i"%transOff, offset)
+                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
 
-                usedVs.append(v)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
         else:
@@ -447,20 +446,21 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
         geneid = query[EAdapterFields.GENE]
         strand = query[EAdapterFields.STRAND]
 
-
         #if its a reverse transcript form the complement of the variants
-        if strand == "-":
+        if strand == REVERS:
             for flag, v in transToVar[tId]:
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
 
-        vs.sort(key=lambda v: v[1].genomePos, reverse=True)
+        vs.sort(key=lambda (isTumor, v): v.genomePos-1
+                if v.type in [VariationType.FSINS, VariationType.INS]
+                else v.genomePos, reverse=True)
         if not _check_for_problematic_variants(map(lambda x: x[1],vs)):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
 
         generate_transcripts_from_tumor_variants.transOff = 0
-        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), [], 0):
+        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), {}, 0):
             yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
 
 
@@ -492,9 +492,9 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             # only transfer the non-synonymous variants to the protein as an
             # ordered dict, also translate into protein positions
             new_vars = dict()
-            for var in t.vars.values():
+            for pos, var in t.vars.iteritems():
                 if not var.isSynonymous:
-                    pos = var.get_protein_position(t.transcript_id)
+                    prot_pos = int(math.ceil(pos/3.0))
                     new_vars.setdefault(pos, []).append(var)
 
             gene_id = t.gene_id
@@ -505,7 +505,7 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 #        P R O T E I N    = = >    P E P T I D E
 ################################################################################
 
-def generate_peptides_from_protein(proteins, window_size):
+def generate_peptides_from_protein(proteins, window_size, peptides=None):
     """
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
@@ -513,31 +513,9 @@ def generate_peptides_from_protein(proteins, window_size):
     :param Protein protein: (list of) protein(s) from which a list of unique
                             peptides should be generated
     :param int window_size: size of peptide fragments
+    :param list(Peptide) peptides: a list of peptides to update during peptide generation
+                                (usa case: Adding and updating Peptides of newly generated Proteins)
     """
-    def frameshift_influences(tid, _vars, res, start):
-        # find variants out side the peptide frame, still influencing it via a
-        # frameshift
-        accu = [] # accumulator for relevant variants
-
-        _vars.sort(key=lambda v: v.genomePos) # necessary?
-        shift = 0
-
-        for var in _vars:
-
-            pos = var.get_protein_position(tid)
-            new_shift = var.get_shift()
-
-            if pos < start:
-                # does a variant yield a frame shift?
-                if shift + new_shift:
-                    shift += new_shift
-                    accu.append(var)
-                else:
-                    accu = {}
-            # here: var.get_protein_position >= start, we are done!
-            else:
-                res += accu
-                break
 
     def gen_peptide_info(protein):
         # Generate peptide sequences and find the variants within each
@@ -549,23 +527,16 @@ def generate_peptides_from_protein(proteins, window_size):
             end = i+window_size
             pep_seq = seq[i:end]
 
-             # get the variants affecting the peptide:
-            if protein.vars:
-                # variants within the peptide:
-                pep_var = [var for pos, var_list in protein.vars.iteritems() \
-                           for var in var_list if i <= pos <= end]
-
-                # outside variants that affect the peptide via frameshift:
-                frameshift_influences(protein.transcript_id, 
-                                      protein.orig_transcript.vars.values(),
-                                      pep_var, i)
-            else:
-                pep_var = []
-
-            res.append((pep_seq, pep_var))
+            res.append((pep_seq, i))
         return res
 
-    final_peptides = {} # sequence : peptide-instance
+    if isinstance(peptides, Peptide):
+        peptides = [peptides]
+
+    if peptides and any(not isinstance(p, Peptide) for p in peptides):
+        raise ValueError("Specified list of Peptides contain non peptide objects")
+
+    final_peptides = {} if peptides is None else {str(p):p for p in peptides}
 
     if isinstance(proteins, Protein):
         proteins = [proteins]
@@ -575,14 +546,13 @@ def generate_peptides_from_protein(proteins, window_size):
 
     for prot in proteins:
         # generate all peptide sequences per protein:
-        for (seq, _variants) in gen_peptide_info(prot):
+        for (seq, pos) in gen_peptide_info(prot):
 
             t_id = prot.transcript_id
             if seq not in final_peptides:
                 final_peptides[seq] = Peptide(seq)
 
             final_peptides[seq].proteins[t_id] = prot
-            final_peptides[seq].variants[t_id] = _variants
-            final_peptides[seq].transcripts[t_id] = prot.orig_transcript
+            final_peptides[seq].proteinPos[t_id].append(pos)
 
     return final_peptides.values()

@@ -2,13 +2,15 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 
-__author__ = 'brachvogel,walzer'
+__author__ = 'schubert,walzer'
+import collections
 
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
-import Fred2
-from Fred2.Core.Base import MetadataLogger
+from Fred2.Core import MetadataLogger
+from Fred2.Core.Protein import Protein
+from Fred2.Core.Variant import VariationType
 
 
 class Peptide(MetadataLogger, Seq):
@@ -18,94 +20,154 @@ class Peptide(MetadataLogger, Seq):
     .. note:: For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq` (from Biopython)
     """
 
-    def __init__(self, _seq, proteins=None, variants=None, transcripts=None):
+    def __init__(self, _seq, protein_pos=None):
         """
         :param str _seq: sequence of the peptide in one letter amino acid code
-        :param dict(str,Protein) proteins: dict of transcript_IDs to protein
-                                       instances that could generate that
-                                       peptide
-        :param dict(str,list(Variant)) variants: dict of transcript_IDs to a list of
-                                         variants that affected the peptide,
-                                         (including frame shifts that started not
-                                         directly within the peptide)
-        :param dict(str,Transcript) transcripts: dict of transcript_IDs to
-                                             transcript instances that could
-                                             have generated the peptide
+        :param dict(Protein,list(int)) protein_pos: dict of transcript_IDs to position of origin in protein
+
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq, IUPAC.IUPACProtein)
+        Seq.__init__(self, _seq.upper(), IUPAC.IUPACProtein)
 
-        self.proteins = dict() if proteins is None else proteins
         # Enforce dict storage
-        if proteins and not isinstance(proteins, dict):
-            raise TypeError("The proteins given to a Peptide object should be dict(str,Protein)")
-        if proteins and not all(isinstance(v, Fred2.Core.Protein) and isinstance(k, str) for k,v in proteins.iteritems()):
-            raise TypeError("The proteins given to a Peptide object should be dict(str,Protein)")
-
-        self.transcripts = dict() if transcripts is None else transcripts
-        # Enforce dict storage
-        if transcripts and not isinstance(transcripts, dict):
-            raise TypeError("The transcripts given to a Peptide object should be dict(str,Transcript)")
-        if transcripts and not all(isinstance(v, Fred2.Core.Transcript) and isinstance(k, str) for k,v in transcripts.iteritems()):
-            raise TypeError("The proteins given to a Peptide object should be dict(str,Transcript)")
-
-        self.variants = dict() if variants is None else variants
-        # Enforce dict list storage
-        if variants and not isinstance(variants, dict):
-            raise TypeError("The variants given to a Peptide object should be dict(str,list(Variant))")
-        if variants and not all(isinstance(v, list) and isinstance(k, str) for k,v in variants.iteritems()):
-            raise TypeError("The variants given to a Peptide object should be dict(str,list(Variant))")
-        if variants and not all(isinstance(var, Fred2.Core.Variant) for var_list in variants.values() for var in var_list):
-            raise TypeError("The variants given to a Peptide object should be dict(str,list(Variant))")
-        #TODO necessary to sanity check if all variants are registered with transcripts?
-        #TODO move transcripts in front of variants in __init__ signature? make clear: transcripts before variants
-        #TODO do we actually need variants in __init__ if variants are supposed to be registered in the transcripts?
-        #TODO in the end OOP is about encapsulating data in a intelligible way - variant is good, keep transcript and protein 'loose' and drop most of the dict stuff??
-
-        #TODO register dummy transcripts of the Variants if any not registered yet - otherwise repr() will break!!!
-        for t_id in self.variants:
-            if t_id not in self.transcripts:
-                self.transcripts[t_id] = Fred2.Core.Transcript(_seq="", _transcript_id=t_id)
-
+        if protein_pos and \
+                any(not isinstance(p, Protein) or any(not isinstance(i, (int, long)) for i in pos) for p, pos in
+                    protein_pos.iteritems()):
+            raise TypeError("The proteins_pos given to a Peptide object should be dict(Protein,list(int))")
+        self.proteins = dict() if protein_pos is None else {p.transcript_id:p for p in protein_pos.iterkeys()}
+        self.proteinPos = collections.defaultdict(list) if protein_pos is None else {p.transcript_id: pos for p, pos in
+                                                                                     protein_pos.iteritems()}
 
     def __getitem__(self, index):
+        #TODO: does not work that way! Reimplement!
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
-        
-        :param int index: position in the peptide sequence
-        :returns: A Peptide consisting of the single letter at position :attr:`index`.
+
+        Returns a single letter or a sliced Peptide with.
+        Allows only simple slicing (i.e. start < stop)
+
+        :param int/Slice index: position in the peptide sequence
+        :returns: A single letter at position :attr:`index` or a sliced Peptide.
         :rtype: Peptide
         """
-        item = str(self)[index]
-        new_pept = Peptide(item)
-        new_pept.proteins = self.proteins
-        new_pept.variants = self.variants
-        new_pept.transcripts = self.transcripts
-        return new_pept
+        if isinstance(index, int):
+            #Return a single letter as a string
+            return str(self)[index]
+        else:
+            seq = str(self)[index]
+            start, stop, step = index.indices(len(self))
+            if start > stop:
+                raise ValueError("start has to be greater than stop")
+            protPos = {self.proteins[tId]: [p+(start-p) for p in pos] for tId, pos in self.proteinPos.iteritems()}
+            return Peptide(seq, protein_pos=protPos)
 
     def __repr__(self):
+
         lines = ["PEPTIDE:\n %s" % str(self)]
         #http://stackoverflow.com/questions/1436703/difference-between-str-and-repr-in-python/2626364#2626364
-        for t_id in self.transcripts:
-            lines.append("in TRANSCRIPT: %s" % t_id)
-            lines.append("\tVARIANTS:")
-            for var in self.variants[t_id]:
-                lines.append("\t%s" % var)
-        for p_id in self.proteins:
+        for t in self.get_all_transcripts():
+            if t is not None:
+                t_id = t.transcript_id if t is not None else ""
+                lines.append("in TRANSCRIPT: %s" % t_id)
+                lines.append("\tVARIANTS:")
+                for var in self.get_variants_by_protein(t_id):
+                    lines.append("\t%s" % var)
+        for p in self.proteins.itervalues():
+            p_id = p.transcript_id
             lines.append("in PROTEIN: %s" % p_id)
         return '\n'.join(lines)
-
-    def get_all_variants(self):
-        """
-        :return: a concatenated list of all contained variants
-        """
-        return [var for var_list in self.variants.values() for var in var_list]
 
     def get_all_proteins(self):
         return self.proteins.values()
 
+    def get_protein(self, _transcript_id):
+        #Default return value None if peptide does not origin from protein?
+        return self.proteins.get(_transcript_id, None)
+
     def get_all_transcripts(self):
-        return self.transcripts.values()
+        return [p.orig_transcript for p in self.proteins.itervalues()]
+
+    def get_transcript(self, _transcript_id):
+        try:
+            return self.proteins[_transcript_id].orig_transcript
+        except KeyError:
+            return None
+
+    def get_protein_positions(self, _transcript_id):
+        """
+        returns all positions of origin for a given protein
+        identified by its transcript_id
+
+        :param (str) _transcript_id: The unique transcript ID of the protein in question
+        :return: list(int) - a list of positions within the protein from which the peptide originated (starts at 0)
+        """
+        return self.proteinPos.get(_transcript_id, [])
+
+    def get_variants_by_protein(self, _transcript_id):
+        """
+        returns all variants of a protein that have influenced the peptide sequence
+
+        :param _transcript_id: Transcript ID of the specific protein in question
+        :return: list(Variant) - A list variants that influenced the peptide sequence
+        """
+        try:
+            p = self.proteins[_transcript_id]
+            var = []
+            fs = []
+            shift = 0
+            for start_pos in self.proteinPos[_transcript_id]:
+                for i in xrange(start_pos):
+                    for v in p.vars.get(i, []):
+                        if v.type in [VariationType.FSDEL, VariationType.FSINS]:
+                            shift = (v.get_shift()+shift) % 3
+                            if shift:
+                                fs.append(v)
+                            else:
+                                fs = []
+                for j in xrange(start_pos, start_pos+len(self)):
+                    for v in p.vars.get(j, []):
+                        var.append(v)
+            fs.extend(var)
+            return fs
+        except KeyError:
+            raise ValueError("Peptide does not origin from protein with "
+                             "transcript ID {transcript}".format(transcript=_transcript_id))
+
+    def get_variants_by_protein_position(self, _transcript_id, _protein_pos):
+        """
+        returns all variants and their relative position to the peptide sequence of a given protein
+        and protein protein position
+
+        :param _transcript_id:
+        :param _protein_pos:
+        :return: dict(int,list(Vars)) - dictionary of relative position of variants in peptide (starts at 0)
+                                        and associated variants that influenced the peptide sequence
+        """
+        try:
+            p = self.proteins[_transcript_id]
+            if _protein_pos not in self.proteinPos[_transcript_id]:
+                    raise ValueError("Peptide does not start a "
+                                     "{pos} in protein with transcript ID {transcript}".format(pos=_protein_pos,
+                                                                                               transcript=_protein_pos))
+            var = dict()
+            fs = dict()
+            shift = 0
+            for i in xrange(_protein_pos):
+                for v in p.vars.get(i, []):
+                    if v.type in [VariationType.FSDEL, VariationType.FSINS]:
+                        shift = (v.get_shift()+shift) % 3
+                        if shift:
+                            fs.setdefault(i-_protein_pos, []).append(v)
+                        else:
+                            fs.clear()
+            for j in xrange(_protein_pos, _protein_pos+len(self)):
+                for v in p.vars.get(j, []):
+                    var.setdefault(j, []).append(v)
+            fs.update(var)
+            return fs
+        except KeyError:
+            raise ValueError("Peptide does not origin from protein with "
+                             "transcript ID {transcript}".format(transcript=_transcript_id))
 
     def __eq__(self, other):
         return str(self) == str(other)

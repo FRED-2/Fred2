@@ -4,10 +4,11 @@
 """
 .. module:: DummyAdaper
    :synopsis: Contains a pseudo data base adapter for testing purposes.
-.. moduleauthor:: brachvogel
+.. moduleauthor:: schubert, brachvogel
 """
-
+import copy
 from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
+
 
 class DummyAdapter(ADBAdapter):
 
@@ -45,5 +46,5 @@ class DummyAdapter(ADBAdapter):
             "tsc_1": tsc_1,
             "tsc_2": tsc_2
         }
-        return res[transcript_refseq]
+        return copy.deepcopy(res[transcript_refseq])
 
