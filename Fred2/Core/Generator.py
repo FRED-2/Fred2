@@ -405,7 +405,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
                         yield s
 
                 # update the transcript variant id
-                generate_transcripts_from_variants.transOff += 1
+                generate_transcripts_from_tumor_variants.transOff += 1
                 pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
 
@@ -452,7 +452,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
 
-        vs.sort(key=lambda v: v.genomePos-1
+        vs.sort(key=lambda (isTumor, v): v.genomePos-1
                 if v.type in [VariationType.FSINS, VariationType.INS]
                 else v.genomePos, reverse=True)
         if not _check_for_problematic_variants(map(lambda x: x[1],vs)):
@@ -533,7 +533,7 @@ def generate_peptides_from_protein(proteins, window_size, peptides=None):
     if isinstance(peptides, Peptide):
         peptides = [peptides]
 
-    if any(not isinstance(p, Peptide) for p in peptides):
+    if peptides and any(not isinstance(p, Peptide) for p in peptides):
         raise ValueError("Specified list of Peptides contain non peptide objects")
 
     final_peptides = {} if peptides is None else {str(p):p for p in peptides}

@@ -9,7 +9,7 @@ from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
 from Fred2.Core import MetadataLogger
-from Fred2.Core import Protein
+from Fred2.Core.Protein import Protein
 from Fred2.Core.Variant import VariationType
 
 
@@ -30,9 +30,9 @@ class Peptide(MetadataLogger, Seq):
         Seq.__init__(self, _seq.upper(), IUPAC.IUPACProtein)
 
         # Enforce dict storage
-        if protein_pos and any(not isinstance(p, Protein) or
-                                any(not isinstance(i, int) for i in pos)
-                               for p, pos in protein_pos.iteritems()):
+        if protein_pos and \
+                any(not isinstance(p, Protein) or any(not isinstance(i, (int, long)) for i in pos) for p, pos in
+                    protein_pos.iteritems()):
             raise TypeError("The proteins_pos given to a Peptide object should be dict(Protein,list(int))")
         self.proteins = dict() if protein_pos is None else {p.transcript_id:p for p in protein_pos.iterkeys()}
         self.proteinPos = collections.defaultdict(list) if protein_pos is None else {p.transcript_id: pos for p, pos in
@@ -66,12 +66,13 @@ class Peptide(MetadataLogger, Seq):
         lines = ["PEPTIDE:\n %s" % str(self)]
         #http://stackoverflow.com/questions/1436703/difference-between-str-and-repr-in-python/2626364#2626364
         for t in self.get_all_transcripts():
-            t_id = t.transcript_id
-            lines.append("in TRANSCRIPT: %s" % t_id)
-            lines.append("\tVARIANTS:")
-            for var in self.get_variants_by_protein(t_id):
-                lines.append("\t%s" % var)
-        for p in self.proteins:
+            if t is not None:
+                t_id = t.transcript_id if t is not None else ""
+                lines.append("in TRANSCRIPT: %s" % t_id)
+                lines.append("\tVARIANTS:")
+                for var in self.get_variants_by_protein(t_id):
+                    lines.append("\t%s" % var)
+        for p in self.proteins.itervalues():
             p_id = p.transcript_id
             lines.append("in PROTEIN: %s" % p_id)
         return '\n'.join(lines)
@@ -126,7 +127,8 @@ class Peptide(MetadataLogger, Seq):
                 for j in xrange(start_pos, start_pos+len(self)):
                     for v in p.vars.get(j, []):
                         var.append(v)
-            return fs.extend(var)
+            fs.extend(var)
+            return fs
         except KeyError:
             raise ValueError("Peptide does not origin from protein with "
                              "transcript ID {transcript}".format(transcript=_transcript_id))
@@ -157,11 +159,12 @@ class Peptide(MetadataLogger, Seq):
                         if shift:
                             fs.setdefault(i-_protein_pos, []).append(v)
                         else:
-                            fs = dict()
+                            fs.clear()
             for j in xrange(_protein_pos, _protein_pos+len(self)):
                 for v in p.vars.get(j, []):
                     var.setdefault(j, []).append(v)
-            return fs.update(var)
+            fs.update(var)
+            return fs
         except KeyError:
             raise ValueError("Peptide does not origin from protein with "
                              "transcript ID {transcript}".format(transcript=_transcript_id))

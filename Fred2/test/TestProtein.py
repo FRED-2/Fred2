@@ -19,14 +19,14 @@ from Fred2.Core.Generator import generate_proteins_from_transcripts
 class TestProteinClass(unittest.TestCase):
     def setUp(self):
         # generate a Protein for use in the tests of this class
-        self.single_protein = Protein("ASDERWQTGHKILPMNVFCY", 'gene 1', 'someID')
+        self.single_protein = Protein("ASDERWQTGHKILPMNVFCY", _gene_id='gene 1', _transcript_id='someID')
 
         # generate a set of Proteins for use in the tests of this class
         self.prot_set = list()
-        self.prot_set.append(Protein("IIIVRC", 'gene 1', 'set entry 1'))
-        self.prot_set.append(Protein("VRCVR", 'gene 1', 'set entry 2'))
-        self.prot_set.append(Protein("IIVRCIT", 'gene 1', 'set entry 3'))
-        self.prot_set.append(Protein("IVRC", 'gene 1', 'set entry 4'))
+        self.prot_set.append(Protein("IIIVRC", _gene_id='gene 1', _transcript_id='set entry 1'))
+        self.prot_set.append(Protein("VRCVR", _gene_id='gene 1', _transcript_id='set entry 2'))
+        self.prot_set.append(Protein("IIVRCIT", _gene_id='gene 1', _transcript_id='set entry 3'))
+        self.prot_set.append(Protein("IVRC", _gene_id='gene 1', _transcript_id='set entry 4'))
 
     def test1_protein_construction_novariants(self):
         """
@@ -210,14 +210,14 @@ class TestProteinClass(unittest.TestCase):
         for prot in proteins:
             for p in peptides:
                 try:
-                    vars_ = map(str, p.variants[prot.transcript_id])
+                    vars_ = map(str, p.get_variants_by_protein(prot.transcript_id))
                     expected_vars = [str(v) for vars in prot.vars.itervalues() for v in vars]
                     print "peptide vars: ", vars_
                     print "Prot vars: ", expected_vars
                     print repr(p)
                     print repr(prot)
-                    self.assertTrue(all(var in vars_ for var in expected_vars))
-                except KeyError:
+                    self.assertTrue(all(var in expected_vars for var in vars_))
+                except ValueError:
 
                     pass
 
