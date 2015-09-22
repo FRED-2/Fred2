@@ -10,6 +10,7 @@ from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC
 
 from Fred2.Core.Base import MetadataLogger
+from Fred2.Core.Variant import VariationType
 
 
 class Protein(MetadataLogger, Seq):
@@ -81,7 +82,23 @@ class Protein(MetadataLogger, Seq):
                 slice = set(xrange(start, step, stop))
             else:
                 slice = set(xrange(start, stop))
-            _vars = {pos-start: v for pos, v in self.vars.iteritems() if pos in slice}
+
+            _vars = {}
+            _fs = {}
+            shift = 0
+            #collect also all frame shift variants that are not canceled out
+            for pos, vs in sorted(self.vars.iteritems()):
+                if pos < start:
+                    for v in vs:
+                        if v.type in [VariationType.FSINS, VariationType.FSDEL]:
+                            shift = (v.get_shift()+shift) % 3
+                            if shift:
+                                _fs.setdefault(pos-start, []).append(v)
+                            else:
+                                _fs.clear()
+                    if pos in slice:
+                        _vars[pos-start] = vs
+            _vars.update(_fs)
             trans_id = self.transcript_id+":"+str(Protein.newid())
             seq = str(self)[index]
             return Protein(seq, _gene_id=self.gene_id, _transcript_id=trans_id, _vars=_vars)

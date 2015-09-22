@@ -13,8 +13,8 @@ import itertools
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_rna
 
-from Fred2.Core.Protein import Protein
 from Fred2.Core.Base import MetadataLogger
+from Fred2.Core.Variant import VariationType
 
 
 class Transcript(MetadataLogger, Seq):
@@ -68,11 +68,25 @@ class Transcript(MetadataLogger, Seq):
                 slice = set(xrange(start, step, stop))
             else:
                 slice = set(xrange(start, stop))
-            _vars = {pos-start: v for pos, v in self.vars.iteritems() if pos in slice}
+
+            _vars = {}
+            _fs = {}
+            shift = 0
+            #collect also all frame shift variants that are not canceled out
+            for pos, v in sorted(self.vars.iteritems()):
+                if pos < start:
+                    if v.type in [VariationType.FSINS, VariationType.FSDEL]:
+                        shift = (v.get_shift()+shift) % 3
+                        if shift:
+                            _fs.setdefault[pos-start] = v
+                        else:
+                            _fs.clear()
+                if pos in slice:
+                    _vars[pos-start] = v
+            _vars.update(_fs)
             trans_id = self.transcript_id+":"+str(Transcript.newid())
             seq = str(self)[index]
-            t = Transcript(seq, _gene_id=self.gene_id, _transcript_id=trans_id)
-            t.vars = _vars
+            t = Transcript(seq, _gene_id=self.gene_id, _transcript_id=trans_id, _vars=_vars)
             return t
 
     def __repr__(self):
