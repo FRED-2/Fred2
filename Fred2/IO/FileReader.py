@@ -10,13 +10,11 @@
 
 import warnings
 import os
+import re
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
-from Fred2.Core.Allele import Allele
 from Fred2.Core.Peptide import Peptide
-from Fred2.Core.Protein import Protein
-from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 
 ####################################
@@ -89,8 +87,7 @@ def read_lines(files, type=Peptide):
             files = [files]
     else:
             if any(not os.path.exists(f) for f in files):
-                raise ValueError("Specified Files do not exist")
-
+                raise IOError("Specified Files do not exist")
 
     collect = set()
     for name in files:
@@ -99,7 +96,6 @@ def read_lines(files, type=Peptide):
             for line in handle:
                 # generate element:
                 collect.add(type(line.strip().upper()))
-
 
     return list(collect)
 
@@ -117,12 +113,9 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                                   with these genes are generated)
     :return: list(AVariant) -- List of variants fully annotated
     """
-    import re
 
     vars = []
     gene_filter = gene_filter if gene_filter is not None else []
-    nm_var_dict = {}
-    nm_gene_name = {}
 
     #fgd3:nm_001083536:exon6:c.g823a:p.v275i,fgd3:nm_001286993:exon6:c.g823a:p.v275i,fgd3:nm_033086:exon6:c.g823a:p.v275i
     #RE = re.compile("\w+:(\w+):exon\d+:c.(\D*)(\d+)_*(\d*)(\D\w*):p.\w+:\D*->\D*:(\D).*?,")
@@ -138,8 +131,8 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                    ('frameshift', 'insertion'): VariationType.FSINS}
     with open(annovar_file, "r") as f:
         for line in f:
-            id, type, line, chrom, genome_start, genome_stop, ref, alt, zygos=map(lambda x: x.strip().lower(),
-                                                                              line.split("\t")[:9])
+            id, type, line, chrom, genome_start, genome_stop, ref, alt, zygos = map(lambda x: x.strip().lower(),
+                                                                                    line.split("\t")[:9])
             #print ref, alt
 
             #test if its a intersting snp
@@ -162,6 +155,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
 
                 nm_id = nm_id.upper()
                 _, _, trans_coding, prot_coding = mutation_string.split(":")
+                #internal transcript and protein position start at 0!
                 coding[nm_id] = MutationSyntax(nm_id, int(trans_pos)-1, int(prot_start)-1, trans_coding, prot_coding)
 
             ty = tuple(type.split())
