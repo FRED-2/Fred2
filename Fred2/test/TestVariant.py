@@ -26,7 +26,7 @@ class TestVariant(TestCase):
         self.assertTrue(self.simple.get_transcript_offset() == 0)
 
     def test_get_transcript_position(self):
-        self.assertTrue(self.simple.get_transcript_position("NM_002054.4") == 344)
+        self.assertTrue(self.simple.get_annotated_transcript_pos("NM_002054.4") == 344)
 
     def test_get_protein_position(self):
-        self.assertTrue(self.simple.get_protein_position("NM_002054.4") == 115)
+        self.assertTrue(self.simple.get_annotated_protein_pos("NM_002054.4") == 115)
