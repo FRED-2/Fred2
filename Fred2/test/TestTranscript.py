@@ -21,9 +21,8 @@ class TestTranscript(TestCase):
         self.gcg_v1 = Variant("rs5650", VariationType.SNP, 2, 162145588, 'G', 'T',
                          {"NM_002054.4": MutationSyntax("NM_002054.4", 343, 114, "c.344C>A", "p.A115D")}, False, False)
 
-        self.gcg_v1.offsets["NM_002054.4"] = 0
         self.gcg_ts = "gcatagaatgcagatgagcaaagtgagtgggagagggaagtcatttgtaacaaaaactcattatttacagatgagaaatttatattgtcagcgtaatatctgtgaggctaaacagagctggagagtatataaaagcagtgcgccttggtgcagaagtacagagcttaggacacagagcacatcaaaagttcccaaagagggcttgctctctcttcacctgctctgttctacagcacactaccagaagacagcagaaatgaaaagcatttactttgtggctggattatttgtaatgctggtacaaggcagctggcaacgttcccttcaagacacagaggagaaatccagatcattctcagcttcccaggcagacccactcagtgatcctgatcagatgaacgaggacaagcgccattcacagggcacattcaccagtgactacagcaagtatctggactccaggcgtgcccaagattttgtgcagtggttgatgaataccaagaggaacaggaataacattgccaaacgtcacgatgaatttgagagacatgctgaagggacctttaccagtgatgtaagttcttatttggaaggccaagctgccaaggaattcattgcttggctggtgaaaggccgaggaaggcgagatttcccagaagaggtcgccattgttgaagaacttggccgcagacatgctgatggttctttctctgatgagatgaacaccattcttgataatcttgccgccagggactttataaactggttgattcagaccaaaatcactgacaggaaataactatatcactattcaagatcatcttcacaacatcacctgctagccacgtgggatgtttgaaatgttaagtcctgtaaatttaagaggtgtattctgaggccacattgctttgcatgccaataaataaattttcttttagtgttgtgtagccaaaaattacaaatggaataaagttttatcaaaatattgctaaaatatcagctttaaaatatgaaagtgctagattctgttattttcttcttattttggatgaagtaccccaacctgtttacatttagcgataaaattatttttctatgatataatttgtaaatgtaaattattccgatctgacatatctgcattataataataggagaatagaagaactggtagccacagtggtgaaattggaaagagaactttcttcctgaaacctttgtcttaaaaatactcagctttcaatgtatcaaagatacaattaaataaaattttcaagcttctttaccattgtct"
-        self.w_v = Transcript(self.gcg_ts, 'GLUC_HUMAN', "NM_002054.4", [self.gcg_v1])
+        self.w_v = Transcript(self.gcg_ts, 'GLUC_HUMAN', "NM_002054.4", {343:self.gcg_v1})
 
     def test_consistency(self):
         self.assertTrue(repr(self.simple) == "TRANSCRIPT: 0\n\tVARIANTS:\n\tSEQUENCE:  (mRNA)")
@@ -44,5 +43,5 @@ class TestTranscript(TestCase):
 
     def test_transcript_slicing(self):
         new_t = self.w_v[343:]
-        self.assertTrue(self.gcg_v1.get_transcript_position(new_t.transcript_id) == 0)
+        self.assertTrue(new_t.vars.keys()[0] == 0)
 

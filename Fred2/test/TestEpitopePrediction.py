@@ -44,7 +44,6 @@ class TestCaseEpitopePrediction(unittest.TestCase):
                     if all(a.name in model.supportedAlleles for a in self.mhcII) and m != "MHCIIMulti":
                         res = model.predict(self.peptides_mhcII, alleles=self.mhcII)
 
-
     def test_single_peptide_input_mhcII(self):
             for m in EpitopePredictorFactory.available_methods():
                 model = EpitopePredictorFactory(m)
