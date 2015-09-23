@@ -63,10 +63,13 @@ class AExternalHLATyping(AHLATyping, AExternal):
             stdo = None
             stde = None
             cmd = _command.format(file=ngsFile, options="" if options is None else options, out=output)
+            print cmd
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             p.wait() #block the rest
             stdo, stde = p.communicate()
             stdr = p.returncode
+            print stdo
+            print stde
             if stdr > 0:
                 raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
         except Exception as e:
@@ -98,7 +101,7 @@ class OptiType_1_0(AExternalHLATyping):
     """
     __name = "OptiType"
     __version = "1.0"
-    __command = "OptiTypePipeline.py -i {file} {pairedFile} {options} -o {out}"
+    __command = "OptiTypePipeline.py -i {file} {options} -o {out}"
 
     @property
     def version(self):
