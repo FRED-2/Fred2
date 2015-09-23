@@ -125,7 +125,7 @@ class Variant(MetadataLogger):
         """
         trID = transID.split(":FRED_")[0]
         try:
-            return self.coding[trID].tranPos
+            return self.coding[trID].protPos
         except KeyError:
             raise KeyError("Variant {var} was not annotated to " \
                            "Protein with transcript ID {tID}".format(var=repr(self),tID=transID))

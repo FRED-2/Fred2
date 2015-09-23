@@ -75,7 +75,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
                 if p.transcript_id:
                     seq_id = p.transcript_id
             else:
-                for t in p.transcripts.iterkeys():
+                for t in p.proteins.iterkeys():
                     if t:
                         seq_id = t
                         break

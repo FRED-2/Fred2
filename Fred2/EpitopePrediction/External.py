@@ -7,7 +7,7 @@
 .. moduleauthor:: schubert,  walzer
 
 """
-
+import abc
 
 import itertools
 import warnings
@@ -33,21 +33,45 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
 
     """
 
-    def predict(self, peptides, alleles=None, **kwargs):
+    @abc.abstractmethod
+    def prepare_input(self, _input, _file):
+        """
+        Prepares  input for external tools
+        and writes them to _file in the specific format
 
-        if not self.is_in_path() and "path" not in kwargs:
+        NO return value!
+
+        :param: (list(str)) _input: the peptide sequences to write into _file
+        :param (File) _file: File handler to input file for external tool
+        """
+        return NotImplementedError
+
+    def predict(self, peptides, alleles=None, command=None, options=None, **kwargs):
+        """
+        Overwrites AEpitopePrediction.predict
+
+        :param list(Peptide)/Peptide peptides: A list of or a single Peptide object
+        :param list(Allele)/Allele alleles: A list of or a single Allele object. If no alleles are provided,
+                                            predictions are made for all alleles supported by the prediction method
+        :param str command: The path to a alternative binary (can be used if binary is not globally executable)
+        :param str options: A string of additional options directly past to the external tool.
+        :return: EpitopePredictionResult - A EpitopePredictionResult object
+        """
+
+
+        if not self.is_in_path() and command is None:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
                                                                                     version=self.version))
-        external_version = self.get_external_version(path=kwargs.get("path", None))
+        external_version = self.get_external_version(path=command)
         if self.version != external_version and external_version is not None:
             raise RuntimeError("Internal version {internal_version} does "
                                "not match external version {external_version}".format(internal_version=self.version,
                                                                                       external_version=external_version))
 
         if isinstance(peptides, Peptide):
-            pep_seqs = {str(peptides):peptides}
+            pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide)  for p in peptides):
+            if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
             pep_seqs = {str(p): p for p in peptides}
 
@@ -67,9 +91,9 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         _MAX_ALLELES = 50
 
         #allowe customary executable specification
-        if "path" in kwargs:
+        if command is not None:
             exe = self.command.split()[0]
-            _command = self.command.replace(exe, kwargs["path"])
+            _command = self.command.replace(exe, command)
         else:
             _command = self.command
 
@@ -96,7 +120,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                 allele_groups.append(allele_group)
         #export peptides to peptide list
 
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
             if length < min(self.supportedLength):
                 warnings.warn("Peptide length must be at least %i for %s but is %i"%(min(self.supportedLength),
                                                                                      self.name, length))
@@ -104,7 +128,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
             peps = list(peps)
             tmp_out = NamedTemporaryFile(delete=False)
             tmp_file = NamedTemporaryFile(delete=False)
-            self.prepare_peptide_input(peps, tmp_file)
+            self.prepare_input(peps, tmp_file)
 #            tmp_file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(peps))
 #                           if self.name.lower() in ["netmhcii","netctlpan"] else "\n".join(peps))
             tmp_file.close()
@@ -115,7 +139,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                     stdo = None
                     stde = None
                     cmd = _command.format(peptides=tmp_file.name, alleles=",".join(allele_group),
-                                          options=kwargs.get("options", ""), out=tmp_out.name)
+                                          options="" if options is None else options, out=tmp_out.name)
                     p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     p.wait() #block the rest
                     stdo, stde = p.communicate()
@@ -201,14 +225,8 @@ class NetMHC_3_4(AExternalEpitopePrediction):
                 result[a][pep_seq] = sc if sc > 0.0 else 0.0
         return dict(result)
 
-    def predict(self, peptides, alleles=None, **kwargs):
-        return super(NetMHC_3_4, self).predict(peptides, alleles=alleles, **kwargs)
-
-    def get_external_version(self, path=None):
-        return super(NetMHC_3_4, self).get_external_version(path)
-
-    def prepare_peptide_input(self, _peptides, _file):
-        _file.write("\n".join(_peptides))
+    def prepare_input(self, _input, _file):
+        _file.write("\n".join(_input))
 
 
 class NetMHCpan_2_4(AExternalEpitopePrediction):
@@ -590,15 +608,12 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
                 result[a][pep_seq] = float(row[ic_pos+i*3])
         return result
 
-    def predict(self, peptides, alleles=None, **kwargs):
-        return super(NetMHCpan_2_4, self).predict(peptides, alleles=alleles, **kwargs)
-
     def get_external_version(self, path=None):
         #can not be determined netmhcpan does not support --version or similar
         return None
 
-    def prepare_peptide_input(self, _peptides, _file):
-        _file.write("\n".join(_peptides))
+    def prepare_input(self, _input, _file):
+        _file.write("\n".join(_input))
 
 
 class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
@@ -656,8 +671,8 @@ class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
         #can not be determined netmhcpan does not support --version or similar
         return None
 
-    def prepare_peptide_input(self, _peptides, _file):
-        _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_peptides)))
+    def prepare_input(self, _input, _file):
+        _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_input)))
 
 
 class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
@@ -804,8 +819,8 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
         #can't be determined method does not support --version or similar
         return None
 
-    def prepare_peptide_input(self, _peptides, _file):
-        _file.write("\n".join(_peptides))
+    def prepare_input(self, _input, _file):
+        _file.write("\n".join(_input))
 
 
 class PickPocket_1_1(AExternalEpitopePrediction):
@@ -1158,8 +1173,8 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         #Undertermined pickpocket does not support --version or something similar
         return None
 
-    def prepare_peptide_input(self, _peptides, _file):
-        _file.write("\n".join(_peptides))
+    def prepare_input(self, _input, _file):
+        _file.write("\n".join(_input))
 
 
 class NetCTLpan_1_1(AExternalEpitopePrediction, AExternal):
@@ -1548,5 +1563,5 @@ class NetCTLpan_1_1(AExternalEpitopePrediction, AExternal):
         #Undertermined pickpocket does not support --version or something similar
         return None
 
-    def prepare_peptide_input(self, _peptides, _file):
-        _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_peptides)))
+    def prepare_input(self, _input, _file):
+        _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_input)))
