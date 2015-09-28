@@ -28,9 +28,8 @@ from tempfile import NamedTemporaryFile
 
 class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
     """
-        Abstract class representing NetMHC prediction function. These are wrapper of external binaries
-
-
+        Abstract class representing an external prediction function. Implementations shall wrap external binaries by
+        following the given abstraction.
     """
 
     @abc.abstractmethod
@@ -57,7 +56,6 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         :param str options: A string of additional options directly past to the external tool.
         :return: EpitopePredictionResult - A EpitopePredictionResult object
         """
-
 
         if not self.is_in_path() and command is None:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,

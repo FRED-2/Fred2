@@ -231,7 +231,6 @@ class AEpitopePrediction(object):
         """
         raise NotImplementedError
 
-
     @abc.abstractmethod
     def convert_alleles(self, alleles):
         """
@@ -338,7 +337,6 @@ class AExternal(object):
         except Exception as e:
                 raise RuntimeError(e)
         return str(stdo).strip()
-
 
 
 class ATAPPrediction(object):
