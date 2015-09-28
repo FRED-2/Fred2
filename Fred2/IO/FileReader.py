@@ -17,6 +17,7 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 
+
 ####################################
 #       F A S T A  -  R E A D E R
 ####################################

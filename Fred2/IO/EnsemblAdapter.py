@@ -1,15 +1,17 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+
 __author__ = 'walzer'
 
 import warnings
 import bisect
 
 from Bio import SeqIO
+from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 
 
-class EnsemblDB:
+class EnsemblDB(ADBAdapter):
     def __init__(self, name='fdb'):
         """
         EnsembleDB class to give quick access to entries (fast exact match searches) and convenient ways to produce
@@ -70,21 +72,30 @@ class EnsemblDB:
             for i in recs.items():
                 ensg = None
                 enst = None
-                ensp = i[0]
+                ensp = None
+                if i[0].startswith('ENSG'):
+                    ensg = i[0]
+                elif i[0].startswith('ENST'):
+                    enst = i[0]
+                elif i[0].startswith('ENSP'):
+                    ensp = i[0]
                 ks = i[1].description.split(' ')
                 for j in ks:
                     if j.startswith('transcript:'):
                         enst = j.strip('transcript:')
                     elif j.startswith('gene:'):
                         ensg = j.strip('gene:')
-                if ensg and enst and ensp:
-                    if ensg not in self.ensg2enst:
-                        self.ensg2enst[ensg] = list()
-                        self.ensg2ensp[ensg] = list()
-                    self.ensg2enst[ensg].append(enst)
-                    self.ensg2ensp[ensg].append(ensp)
-                    self.enst2ensg[enst] = ensg
+                if ensg not in self.ensg2enst:
+                    self.ensg2enst[ensg] = list()
+                    self.ensg2ensp[ensg] = list()
+                self.ensg2enst[ensg].append(enst)
+                self.ensg2ensp[ensg].append(ensp)
+                if enst:
                     self.enst2ensp[enst] = ensp
+                    self.enst2ensg[enst] = ensg
+                else:
+                    warnings.warn("Unparsable filecontents", UserWarning)
+                if ensp:
                     self.ensp2ensg[ensp] = ensg
                     self.ensp2enst[ensp] = enst
                 else:
@@ -119,12 +130,26 @@ class EnsemblDB:
             enst = self.ensp2enst[ensp]
         return {'Ensembl Gene ID': ensg, 'Ensembl Transcript ID': enst, 'Ensembl Protein ID': ensp}
 
-    def map_ensg(self,ensg):
+    def map_ensg(self, ensg):
         warnings.warn('mapping ensg not implemented', NotImplementedError)
 
-    def get_sequence(self,ensp):
-        if ensp in self.collection:
-            return self.collection[ensp]
+    def get_transcript_sequence(self, transcript_id):
+        if transcript_id in self.collection:
+            return str(self.collection[transcript_id].seq)
+        else:
+            return None
+
+    def get_product_sequence(self, product_id):
+        if product_id in self.collection:
+            return self.collection[product_id]
+        else:
+            return None
+
+    def get_transcript_information(self, transcript_id):
+        if transcript_id in self.collection:
+            return {EAdapterFields.SEQ: str(self.collection[transcript_id].seq),
+                    EAdapterFields.GENE: self.collection[transcript_id].description.split('gene:')[1].split(' ')[0],
+                    EAdapterFields.STRAND: "-" if int(self.collection[transcript_id].description.split('chromosome:')[1].split(' ')[0].split(':')[-1]) < 0 else "+"}
         else:
             return None
 
