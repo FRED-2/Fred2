@@ -103,13 +103,13 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                 c_a = 0
                 allele_groups.append(allele_group)
                 if str(allales_string[a]) not in self.supportedAlleles:
-                    warnings.warn("Allele %s is not supported by %s"%(str(allales_string[a]),self.name))
+                    warnings.warn("Allele %s is not supported by %s"%(str(allales_string[a]), self.name))
                     allele_group = []
                     continue
                 allele_group = [a]
             else:
                 if str(allales_string[a]) not in self.supportedAlleles:
-                    warnings.warn("Allele %s is not supported by %s"%(str(allales_string[a]),self.name))
+                    warnings.warn("Allele %s is not supported by %s"%(str(allales_string[a]), self.name))
                     continue
                 allele_group.append(a)
                 c_a += 1
@@ -156,10 +156,11 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
             os.remove(tmp_out.name)
 
         if not result:
-            raise ValueError("No predictions could be made with " +self.name+" for given input. Check your epitope length and HLA allele combination.")
+            raise ValueError("No predictions could be made with " + self.name +
+                             " for given input. Check your epitope length and HLA allele combination.")
         df_result = EpitopePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
-                                                        names=['Seq','Method'])
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
+                                                        names=['Seq', 'Method'])
         return df_result
 
 
@@ -243,8 +244,25 @@ class NetMHC_3_0(NetMHC_3_4):
                            'B*54:01', 'B*57:01', 'B*58:01']) #no PSSM predictors
 
     __supported_length = frozenset([8, 9, 10, 11])
-    __name = "old_netmhc"
+    __name = "netmhc"
     __version = "3.0a"
+    __command = "netMHC-3.0 -p {peptides} -a {alleles} -x {out} {options}"
+
+    @property
+    def version(self):
+        return self.__version
+    @property
+    def name(self):
+        return self.__name
+    @property
+    def command(self):
+        return self.__command
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    def convert_alleles(self, alleles):
+        return ["%s%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def parse_external_result(self, _file):
         result = defaultdict(dict)
