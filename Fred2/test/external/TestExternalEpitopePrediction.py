@@ -27,11 +27,12 @@ class NetMHC_3_0(NetMHC_3_4):
 class TestExternalEpitopePredictionClass(unittest.TestCase):
 
     def setUp(self):
-        self.peptides_mhcI = [Peptide("SYFPEITHI"),Peptide("IHTIEPFYS")]
-        self.peptides_mhcII = [Peptide("AAAAAASYFPEITHI"),Peptide("IHTIEPFYSAAAAAA")]
-        self.mhcI = [Allele("HLA-B*15:01"),Allele("HLA-A*02:01")]
+        self.peptides_mhcI = [Peptide("SYFPEITHI"), Peptide("IHTIEPFYS")]
+        self.peptides_mhcII = [Peptide("AAAAAASYFPEITHI"), Peptide("IHTIEPFYSAAAAAA")]
+        self.mhcI = [Allele("HLA-B*15:01"), Allele("HLA-A*02:01")]
         self.mhcII = [Allele("HLA-DRB1*07:01"), Allele("HLA-DRB1*15:01")]
         self.transcript = Transcript("")
+        #self.methods = ['netmhc', 'old_netmhc']
 
     def test_multiple_inputs(self):
         for m in EpitopePredictorFactory.available_methods():

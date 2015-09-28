@@ -223,14 +223,16 @@ class NetMHC_3_4(AExternalEpitopePrediction):
                 result[a][pep_seq] = sc if sc > 0.0 else 0.0
         return dict(result)
 
+    def get_external_version(self, path=None):
+        return super(NetMHC_3_4, self).get_external_version()
+
     def prepare_input(self, _input, _file):
         _file.write("\n".join(_input))
 
 
-class NetMHC_3_0(AExternalEpitopePrediction):
+class NetMHC_3_0(NetMHC_3_4):
     """
-        Implements the NetMHC binding (for netMHC3.0)
-        Possibility could exist for function injection to support also older versions
+    Implements the NetMHC binding (for netMHC3.0)
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:04', 'A*02:06', 'A*02:11', 'A*02:12',
@@ -241,32 +243,8 @@ class NetMHC_3_0(AExternalEpitopePrediction):
                            'B*54:01', 'B*57:01', 'B*58:01']) #no PSSM predictors
 
     __supported_length = frozenset([8, 9, 10, 11])
-    __name = "netmhc"
-    __command = "netMHC-3.0 -p {peptides} -a {alleles} -x {out} {options}"
+    __name = "old_netmhc"
     __version = "3.0a"
-
-    @property
-    def version(self):
-        return self.__version
-
-    def convert_alleles(self, alleles):
-        return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
-
-    @property
-    def supportedAlleles(self):
-        return self.__alleles
-
-    @property
-    def name(self):
-        return self.__name
-
-    @property
-    def command(self):
-        return self.__command
-
-    @property
-    def supportedLength(self):
-        return self.__supported_length
 
     def parse_external_result(self, _file):
         result = defaultdict(dict)
@@ -285,9 +263,6 @@ class NetMHC_3_0(AExternalEpitopePrediction):
         if 'Average' in result:
             result.pop('Average')
         return dict(result)
-
-    def prepare_input(self, _input, _file):
-        _file.write("\n".join(_input))
 
 
 class NetMHCpan_2_4(AExternalEpitopePrediction):
@@ -658,15 +633,15 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         return self.__supported_length
 
     def parse_external_result(self, _file):
-        result = defaultdict(defaultdict)
-        f = csv.reader(open(_file, "r"), delimiter='\t')
-        alleles = set(filter(lambda x: x != "",f.next()))
-        f.next()
-        ic_pos = 3
-        for row in f:
-            pep_seq = row[1]
-            for i, a in enumerate(alleles):
-                result[a][pep_seq] = float(row[ic_pos+i*3])
+        result = defaultdict(dict)
+        with open(_file, "r") as f:
+            f = csv.reader(f, delimiter='\t')
+            alleles = f.next()[3:-1]
+            ic_pos = 3
+            for row in f:
+                pep_seq = row[1]
+                for i, a in enumerate(alleles):
+                    result[a][pep_seq] = float(row[ic_pos + i])
         return result
 
     def get_external_version(self, path=None):
@@ -677,7 +652,7 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         _file.write("\n".join(_input))
 
 
-class NetMHCII_2_2(AExternalEpitopePrediction,AExternal):
+class NetMHCII_2_2(AExternalEpitopePrediction, AExternal):
     """
         Implements a wrapper for NetMHCII
     """
@@ -867,13 +842,13 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction,AExternal):
     def parse_external_result(self, _file):
         result = defaultdict(defaultdict)
         f = csv.reader(open(_file, "r"), delimiter='\t')
-        alleles = map(lambda x: x.replace("*","_").replace(":",""), set(filter(lambda x: x != "",f.next())))
+        alleles = map(lambda x: x.replace("*", "_").replace(":", ""), set(filter(lambda x: x != "", f.next())))
         f.next()
         ic_pos = 3
         for row in f:
             pep_seq = row[1]
             for i, a in enumerate(alleles):
-                result[a][pep_seq] = float(row[ic_pos+i*3])
+                result[a][pep_seq] = float(row[ic_pos + i * 3])
         return result
 
     def get_external_version(self, path=None):
