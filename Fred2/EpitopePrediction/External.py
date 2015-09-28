@@ -227,6 +227,69 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         _file.write("\n".join(_input))
 
 
+class NetMHC_3_0(AExternalEpitopePrediction):
+    """
+        Implements the NetMHC binding (for netMHC3.0)
+        Possibility could exist for function injection to support also older versions
+    """
+
+    __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:04', 'A*02:06', 'A*02:11', 'A*02:12',
+                           'A*02:16', 'A*02:19', 'A*03:01', 'A*11:01', 'A*23:01', 'A*24:02', 'A*24:03', 'A*26:01',
+                           'A*26:02', 'A*29:02', 'A*30:01', 'A*30:02', 'A*31:01', 'A*33:01', 'A*68:01', 'A*68:02',
+                           'A*69:01', 'B*07:02', 'B*08:01', 'B*08:02', 'B*15:01', 'B*18:01', 'B*27:05', 'B*35:01',
+                           'B*39:01', 'B*40:01', 'B*40:02', 'B*44:02', 'B*44:03', 'B*45:01', 'B*51:01', 'B*53:01',
+                           'B*54:01', 'B*57:01', 'B*58:01']) #no PSSM predictors
+
+    __supported_length = frozenset([8, 9, 10, 11])
+    __name = "netmhc"
+    __command = "netMHC-3.0 -p {peptides} -a {alleles} -x {out} {options}"
+    __version = "3.0a"
+
+    @property
+    def version(self):
+        return self.__version
+
+    def convert_alleles(self, alleles):
+        return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+    @property
+    def supportedAlleles(self):
+        return self.__alleles
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def command(self):
+        return self.__command
+
+    @property
+    def supportedLength(self):
+        return self.__supported_length
+
+    def parse_external_result(self, _file):
+        result = defaultdict(dict)
+        with open(_file, 'r') as f:
+            next(f, None) #skip first line with logging stuff
+            next(f, None) #skip first line with nothing
+            csvr = csv.reader(f, delimiter='\t')
+            alleles = map(lambda x: x.split()[0], csvr.next()[3:])
+            for l in csvr:
+                if not l:
+                    continue
+                pep_seq = l[2]
+                for ic_50, a in itertools.izip(l[3:], alleles):
+                    sc = 1.0 - math.log(float(ic_50), 50000)
+                    result[a][pep_seq] = sc if sc > 0.0 else 0.0
+        if 'Average' in result:
+            result.pop('Average')
+        return dict(result)
+
+    def prepare_input(self, _input, _file):
+        _file.write("\n".join(_input))
+
+
 class NetMHCpan_2_4(AExternalEpitopePrediction):
     """
         Implements the NetMHC binding (in current form for netMHCpan 2.4)
