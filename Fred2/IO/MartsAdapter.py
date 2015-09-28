@@ -17,7 +17,7 @@ import MySQLdb
 
 
 class MartsAdapter(ADBAdapter):
-    def __init__(self, usr=None, host=None, pwd=None, db=None):
+    def __init__(self, usr=None, host=None, pwd=None, db=None, biomart=None):
         """
         used to fetch sequences from given RefSeq id's either from BioMart if no credentials given else from a MySQLdb
         :param usr: db user e.g. = 'ucsc_annot_query'
@@ -34,11 +34,17 @@ class MartsAdapter(ADBAdapter):
         else:
             self.connection = None
 
-        self.biomart_url = "http://biomart.org/biomart/martservice?query="
-        self.new_biomart_url = """http://central.biomart.org/biomart/martservice?query="""
-#        self.biomart_url = """http://biomart.org/biomart/martservice?query="""
-#http://localhost:9000/biomart/martservice?query=%3C!DOCTYPE%20Query%3E%3CQuery%20client=%22biomartclient%22%20processor=%22TSV%22%20limit=%22-1%22%20header=%221%22%3E%3CDataset%20name=%22hsapiens_gene_ensembl%22%20config=%22gene_ensembl_config%22%3E%3CFilter%20name=%22uniprot_genename%22%20value=%22TP53%22%20filter_list=%22%22/%3E%3CFilter%20name=%22germ_line_variation_source%22%20value=%22dbSNP%22%20filter_list=%22%22/%3E%3CAttribute%20name=%22snp_ensembl_gene_id%22/%3E%3CAttribute%20name=%22snp_chromosome_name%22/%3E%3CAttribute%20name=%22snp_ensembl_transcript_id%22/%3E%3CAttribute%20name=%22snp_start_position%22/%3E%3CAttribute%20name=%22snp_ensembl_peptide_id%22/%3E%3CAttribute%20name=%22snp_end_position%22/%3E%3CAttribute%20name=%22snp_external_gene_name%22/%3E%3CAttribute%20name=%22snp_strand%22/%3E%3CAttribute%20name=%22source_description%22/%3E%3CAttribute%20name=%22germ_line_variation_source%22/%3E%3CAttribute%20name=%22allele%22/%3E%3CAttribute%20name=%22variation_name%22/%3E%3C/Dataset%3E%3C/Query%3E
-#        self.biomart_url = """http://134.2.9.124/biomart/martservice?query="""
+        if biomart:
+            self.biomart_url = biomart
+            if not self.biomart_url.endswith("/biomart/martservice?query="):
+                self.biomart_url += "/biomart/martservice?query="
+        else:
+            self.biomart_url = "http://biomart.org/biomart/martservice?query="
+            #new: http://central.biomart.org/biomart/martservice?query="
+            #http://www.ensembl.org/biomart/martview/
+            #http://grch37.ensembl.org/biomart/
+            #http://localhost:9000/biomart/martservice?query=%3C!DOCTYPE%20Query%3E%3CQuery%20client=%22biomartclient%22%20processor=%22TSV%22%20limit=%22-1%22%20header=%221%22%3E%3CDataset%20name=%22hsapiens_gene_ensembl%22%20config=%22gene_ensembl_config%22%3E%3CFilter%20name=%22uniprot_genename%22%20value=%22TP53%22%20filter_list=%22%22/%3E%3CFilter%20name=%22germ_line_variation_source%22%20value=%22dbSNP%22%20filter_list=%22%22/%3E%3CAttribute%20name=%22snp_ensembl_gene_id%22/%3E%3CAttribute%20name=%22snp_chromosome_name%22/%3E%3CAttribute%20name=%22snp_ensembl_transcript_id%22/%3E%3CAttribute%20name=%22snp_start_position%22/%3E%3CAttribute%20name=%22snp_ensembl_peptide_id%22/%3E%3CAttribute%20name=%22snp_end_position%22/%3E%3CAttribute%20name=%22snp_external_gene_name%22/%3E%3CAttribute%20name=%22snp_strand%22/%3E%3CAttribute%20name=%22source_description%22/%3E%3CAttribute%20name=%22germ_line_variation_source%22/%3E%3CAttribute%20name=%22allele%22/%3E%3CAttribute%20name=%22variation_name%22/%3E%3C/Dataset%3E%3C/Query%3E
+            #self.biomart_url = """http://134.2.9.124/biomart/martservice?query="""
         self.biomart_head = """
         <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE Query>
@@ -158,13 +164,12 @@ class MartsAdapter(ADBAdapter):
                 + self.biomart_filter%(filter, str(transcript_refseq))  \
                 + self.biomart_attribute%(filter)  \
                 + self.biomart_attribute%("coding")  \
-                + self.biomart_attribute%("external_gene_id")  \
                 + self.biomart_attribute%("strand")  \
                 + self.biomart_tail
 
             tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
             tsvselect = [x for x in tsvreader]
-            self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']  # TODO to SeqRecord
+            self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']  # TODO is strand information worth to pass along?
             return self.sequence_proxy[transcript_refseq]
 
     def get_transcript_information(self, transcript_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
@@ -230,6 +235,74 @@ class MartsAdapter(ADBAdapter):
                                                       else "+"}
             return self.ids_proxy[transcript_refseq]
 
+    def get_transcript_position(self, start, stop, gene_id, transcript_id, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
+        """
+        If no transcript position is available for the variant
+        :param start:
+        :param stop:
+        :param gene_id:
+        :param transcript_id:
+        :param _db:
+        :param _dataset:
+        :return:
+        """
+        # ma = MartsAdapter(biomart="http://grch37.ensembl.org")
+        # print ma.get_transcript_position('17953929', '17953943', 'ENSG00000074964', 'ENST00000361221')
+        # (1674, 1688)
+        if str(start) + str(stop) + gene_id + transcript_id in self.gene_proxy:
+            return self.gene_proxy[str(start) + str(stop) + gene_id + transcript_id]
+
+        try:
+            x = int(start)
+            y = int(stop)
+        except Exception as e:
+            logging.warning(','.join([str(start), str(stop)]) + ' does not seem to be a genomic position.')
+            return None
+
+            filter_g = None
+            filter_t = None
+            if transcript_id.startswith('NM_'):
+                filter_t = "refseq_mrna"
+            elif transcript_id.startswith('XM_'):
+                filter_t = "refseq_mrna_predicted"
+            elif transcript_id.startswith('ENS'):
+                filter_t = "ensembl_transcript_id"
+            else:
+                warnings.warn("No correct element id: " + transcript_id)
+                return None
+            if gene_id.startswith('ENS'):
+                filter_g = "ensembl_gene_id"
+            else:
+                filter_g = "uniprot_genename"
+                warnings.warn("Could not determine the type og gene_id: " + gene_id)
+
+        rq_n = self.biomart_head%(_db, _dataset) \
+            + self.biomart_filter%("ensembl_gene_id", str(gene_id))  \
+            + self.biomart_filter%("ensembl_transcript_id", str(transcript_id))  \
+            + self.biomart_attribute%("exon_chrom_start")  \
+            + self.biomart_attribute%("exon_chrom_end")  \
+            + self.biomart_tail
+
+        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url + urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+        exons = [ex for ex in tsvreader]
+
+        pos_sum = 0
+        if not exons:
+            logging.warning(','.join([str(gene_id), str(transcript_id)]) + ' does not seem to have exons mapped.')
+            return None
+        for e in exons:
+            se = int(e["Exon Chr Start (bp)"])
+            ee = int(e["Exon Chr End (bp)"])
+            if x in range(se, ee + 1):
+                if not y in range(se, ee + 1):
+                    logging.warning(','.join([str(start), str(stop)]) + ' seems to span more than one exon.')
+                    return None
+                else:
+                    self.gene_proxy[str(start) + str(stop) + gene_id + transcript_id] = (x - se + 1 + pos_sum, y - se + 1 + pos_sum)
+                    return x - se + 1 + pos_sum, y - se + 1 + pos_sum
+            else:
+                pos_sum += ee - se + 1
+
     #TODO: refactor ... function based on old code
     def get_variant_gene(self, chrom, start, stop, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
@@ -239,8 +312,8 @@ class MartsAdapter(ADBAdapter):
         :param stop: integer value of the variation stop position on given chromosome
         :return: The respective gene name, i.e. the first one reported
         """
-        if chrom + start + stop in self.gene_proxy:
-            return self.gene_proxy[chrom + start + stop]
+        if str(chrom) + str(start) + str(stop) in self.gene_proxy:
+            return self.gene_proxy[str(chrom) + str(start) + str(stop)]
 
         rq_n = self.biomart_head%(_db, _dataset) \
             + self.biomart_filter%("chromosome_name", str(chrom))  \
@@ -252,7 +325,7 @@ class MartsAdapter(ADBAdapter):
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if tsvselect and tsvselect[0]:
-            self.gene_proxy[chrom + start + stop] = tsvselect[0]['UniProt Gene Name']
+            self.gene_proxy[str(chrom) + str(start) + str(stop)] = tsvselect[0]['UniProt Gene Name']
             return tsvselect[0]['UniProt Gene Name']
         else:
             logging.warning(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
@@ -305,7 +378,7 @@ class MartsAdapter(ADBAdapter):
                                              else "+"}
         return self.ids_proxy[db_id]
 
-    def get_variant_id_from_protein_id(self,  **kwargs):
+    def get_variant_id_from_protein_id(self, **kwargs):
         """
         returns all information needed to instantiate a variation
 
@@ -349,7 +422,7 @@ class MartsAdapter(ADBAdapter):
 
         return tsvselect
 
-    def get_variant_id_from_gene_id(self,  **kwargs):
+    def get_variant_id_from_gene_id(self, **kwargs):
         """
         returns all information needed to instantiate a variation
 
@@ -442,7 +515,7 @@ class MartsAdapter(ADBAdapter):
                                              else "+"}
 
     #TODO: refactor ... function based on old code
-    def get_all_variant_gene(self, locations,_db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
+    def get_all_variant_gene(self, locations, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
         Fetches the important db ids and names for given chromosomal location
         :param chrom: integer value of the chromosome in question
@@ -452,7 +525,7 @@ class MartsAdapter(ADBAdapter):
         """
         #TODO assert types
         #<!DOCTYPE Query><Query client="true" processor="TSV" limit="-1" header="1"><Dataset name="hsapiens_gene_ensembl" config="gene_ensembl_config"><Filter name="chromosomal_region" value="1:40367114:40367114,1:40702744:40702744,1:40705023:40705023,1:40771399:40771399,1:40777210:40777210,1:40881015:40881015,1:41235036:41235036,1:42048927:42048927,1:43002232:43002232,1:43308758:43308758,1:43393391:43630154,1:43772617:43772617,1:43772834:43772834" filter_list=""/><Attribute name="uniprot_genename"/></Dataset></Query>
-        queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+300])) for x in xrange(0, len(kwargs['genes']), 300)]
+        #queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+300])) for x in xrange(0, len(kwargs['genes']), 300)]
         # if chrom + start + stop in self.gene_proxy:
         #     return self.gene_proxy[chrom + start + stop]
         #
@@ -560,7 +633,7 @@ class MartsAdapter(ADBAdapter):
         return result.values()
 
     #TODO: refactor ... function based on old code
-    def get_all_variant_ids(self,  **kwargs):
+    def get_all_variant_ids(self, **kwargs):
         """
         Fetches the important db ids and names for given gene _or_ chromosomal location. The former is recommended.
         AResult is a list of dicts with either of the tree combinations:
