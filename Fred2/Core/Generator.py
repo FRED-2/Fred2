@@ -342,7 +342,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
-        print tId
+        #print tId
         query = dbadapter.get_transcript_information(tId)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
@@ -494,9 +494,9 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             new_vars = dict()
             for pos, var in t.vars.iteritems():
                 if not var.isSynonymous:
-                    # prot_pos = int(math.ceil(pos/3.0)) #if pos is 0 based this is wrong: 0->0, 1->1, 2->2, 3->1, 4->2
+                    # prot_pos = int(math.ceil(pos/3.0)) #if pos is 0 based this is wrong
                     prot_pos = pos / 3
-                    # new_vars.setdefault(pos, []).append(var) #is obviously an oversight, taking transcript position
+                    # new_vars.setdefault(pos, []).append(var) #this is obviously wrong
                     new_vars.setdefault(prot_pos, []).append(var)
 
             gene_id = t.gene_id
