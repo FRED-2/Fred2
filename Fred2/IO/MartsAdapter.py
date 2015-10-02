@@ -336,29 +336,35 @@ class MartsAdapter(ADBAdapter):
         return None
 
     #TODO: refactor ... function based on old code
-    def get_variant_gene(self, chrom, start, stop, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
+    def get_gene_by_position(self, chrom, start, stop, **kwargs):
         """
-        Fetches the important db ids and names for given chromosomal location
+        Fetches the gene name for given chromosomal location
         :param chrom: integer value of the chromosome in question
         :param start: integer value of the variation start position on given chromosome
         :param stop: integer value of the variation stop position on given chromosome
+        :keyword _db:
+        :keyword _dataset:
         :return: The respective gene name, i.e. the first one reported
         """
         if str(chrom) + str(start) + str(stop) in self.gene_proxy:
             return self.gene_proxy[str(chrom) + str(start) + str(stop)]
 
+        _db = kwargs.get("_db", "hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
+
         rq_n = self.biomart_head%(_db, _dataset) \
             + self.biomart_filter%("chromosome_name", str(chrom))  \
             + self.biomart_filter%("start", str(start))  \
             + self.biomart_filter%("end", str(stop))  \
-            + self.biomart_attribute%("uniprot_genename")  \
+            + self.biomart_attribute%("external_gene_name")  \
             + self.biomart_tail
 
-        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url +
+                                                    urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if tsvselect and tsvselect[0]:
-            self.gene_proxy[str(chrom) + str(start) + str(stop)] = tsvselect[0]['UniProt Gene Name']
-            return tsvselect[0]['UniProt Gene Name']
+            self.gene_proxy[str(chrom) + str(start) + str(stop)] = tsvselect[0]['Associated Gene Name']
+            return self.gene_proxy[str(chrom) + str(start) + str(stop)]
         else:
             logging.warning(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
             return ''
