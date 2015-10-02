@@ -268,7 +268,6 @@ class MartsAdapter(ADBAdapter):
         exons = [ex for ex in tsvreader if ex["CDS Start"] and ex["CDS End"]]
         cds = [dict([k, int(v)] for k, v in e.iteritems()) for e in exons] # cast to int
         cds = sorted(cds, key=itemgetter("CDS Start")) #sort by CDS Start(position in the CDS)
-        print cds
 
         cds_sum = 0
         if not cds:
