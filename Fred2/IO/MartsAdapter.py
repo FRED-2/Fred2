@@ -480,11 +480,11 @@ class MartsAdapter(ADBAdapter):
             logging.warn("No entry found for ID %s"%db_id)
             return None
 
-        self.ids_proxy[db_id] = {EAdapterFields.PROTID: tsvselect[0]['Ensembl Protein ID'],
-                                                  EAdapterFields.GENE: tsvselect[0].get('Ensembl Gene ID', ""),
-                                                  EAdapterFields.TRANSID: tsvselect[0].get('Ensembl Transcript ID', ""),
-                                                  EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0
-                                                  else "+"}
+        self.ids_proxy[db_id] = [{EAdapterFields.PROTID: gtp.get('Ensembl Protein ID', ""),
+                                                  EAdapterFields.GENE: gtp.get('Ensembl Gene ID', ""),
+                                                  EAdapterFields.TRANSID: gtp.get('Ensembl Transcript ID', ""),
+                                                  EAdapterFields.STRAND: "-" if int(gtp['Strand']) < 0
+                                                  else "+"} for gtp in tsvselect]
         return self.ids_proxy[db_id]
 
     def get_protein_sequence_from_protein_id(self, **kwargs):
