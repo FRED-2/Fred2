@@ -60,64 +60,56 @@ class MartsAdapter(ADBAdapter):
         self.biomart_attribute = """<Attribute name="%s"/>"""
 
     #TODO: refactor ... function based on old code
-    def get_product_sequence(self, product_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
+    def get_product_sequence(self, **kwargs):
         """
         fetches product sequence for the given id
         :param product_refseq: given refseq id
         :return: list of dictionaries of the requested sequence, the respective strand and the associated gene name
         """
 
-        if product_refseq in self.sequence_proxy:
-            return self.sequence_proxy[product_refseq]
-
-        if self.connection:
-            cur = self.connection.cursor()
-            #query = "SELECT * FROM sbs_ncbi_mrna WHERE id='%s';"%('5')
-            query = "SELECT refseq,seq FROM hg19_ucsc_annotation.refLink INNER JOIN sbs_ncbi_protein on protAcc=refseq WHERE mrnaAcc='%s';" % (
-                product_refseq)  # gives NP plus prot seq
-            #mysql -h genome-mysql.cse.ucsc.edu -u genome -D hg19 -N -A -e 'SELECT refseq,seq FROM hg19_ucsc_annotation.refLink INNER JOIN sbs_ncbi_protein on protAcc=refseq WHERE mrnaAcc='NM_002486';'
-            try:
-                cur.execute(query)
-                result = cur.fetchall()
-                if result:
-                    product_refseq = result[0][0]
-                    product_sequence = result[0][1]
-                else:
-                    warnings.warn("An Error occured while executing query: " + query + "\n")
-                    return None
-            except MySQLdb.Error, message:
-                warnings.warn(
-                    "An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
-                return None
-            self.sequence_proxy[product_refseq] = product_sequence
-            return [{product_refseq: product_sequence}]
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
+        filter = None
+        db_id = ""
+        if "refseq" in kwargs:
+            filter = "refseq_peptide"
+            db_id = kwargs["refseq"]
+        elif "refseq_predicted" in kwargs:
+            filter = "refseq_peptide_predicted"
+            db_id = kwargs["ensembl"]
+        elif "ensembl" in kwargs:
+            filter = "ensembl_peptide_id"
+            db_id = kwargs["ensembl"]
+        elif "uniprot_tr" in kwargs:
+            filter = "uniprot_sptrembl"
+            db_id = kwargs["uniprot_tr"]
+        elif "uniprot_sp" in kwargs:
+            filter = "uniprot_swissprot"
+            db_id = kwargs["uniprot_sp"]
         else:
-            filter = None
-            if product_refseq.startswith('NP_'):
-                filter = "refseq_peptide"
-            elif product_refseq.startswith('XP_'):
-                filter = "refseq_peptide_predicted"
-            elif product_refseq.startswith('ENS'):
-                filter = "ensembl_peptide_id"
-            else:
-                warnings.warn("No correct product id: " + product_refseq)
-                return None
-            rq_n = self.biomart_head%(_db,_dataset) \
-                + self.biomart_filter%(filter, str(product_refseq))  \
-                + self.biomart_attribute%("peptide")  \
-                + self.biomart_attribute%(filter)  \
-                + self.biomart_attribute%("external_gene_id")  \
-                + self.biomart_attribute%("strand")  \
-                + self.biomart_tail
+            logging.warn("No correct protein id")
+            return None
 
-            logging.warn(rq_n)
+        if db_id in self.sequence_proxy:
+            return self.sequence_proxy[db_id]
 
-            tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
-            tsvselect = [x for x in tsvreader]
-            if not tsvselect:
-                return None
-            self.sequence_proxy[product_refseq] = tsvselect[0]["Protein"]
-            return self.sequence_proxy[product_refseq]  # TODO to SeqRecord
+        rq_n = self.biomart_head%(_db, _dataset) \
+            + self.biomart_filter%(filter, str(db_id))  \
+            + self.biomart_attribute%("peptide")  \
+            + self.biomart_attribute%("external_gene_name")  \
+            + self.biomart_tail
+
+        # logging.warn(rq_n)
+        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url
+                                                   + urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvselect = [x for x in tsvreader]
+        if not tsvselect:
+            logging.warn("There seems to be no Proteinsequence for " + str(db_id))
+            #print self.biomart_url+rq_n
+            return None
+        self.sequence_proxy[db_id] = tsvselect[0]["Protein"][:-1] if tsvselect[0]["Protein"].endswith('*')\
+            else tsvselect[0]["Protein"]
+        return self.sequence_proxy[db_id]
 
     #TODO: refactor ... function based on old code
     def get_transcript_sequence(self, transcript_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
@@ -335,7 +327,6 @@ class MartsAdapter(ADBAdapter):
         logging.warning(','.join([str(start), str(stop)]) + ' seems to be outside of the exons boundaries.')
         return None
 
-    #TODO: refactor ... function based on old code
     def get_gene_by_position(self, chrom, start, stop, **kwargs):
         """
         Fetches the gene name for given chromosomal location
