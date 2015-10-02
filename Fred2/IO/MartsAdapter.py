@@ -11,9 +11,10 @@ import csv
 import urllib2
 import warnings
 import logging
+import MySQLdb
+from operator import itemgetter
 
 from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
-import MySQLdb
 
 
 class MartsAdapter(ADBAdapter):
@@ -235,23 +236,22 @@ class MartsAdapter(ADBAdapter):
                                                       else "+"}
             return self.ids_proxy[transcript_refseq]
 
-    def get_transcript_position(self, start, stop, gene_id, transcript_id, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
+    def get_transcript_position(self, start, stop, **kwargs):
         """
-        If no transcript position is available for the variant
-        :param start:
-        :param stop:
-        :param gene_id:
-        :param transcript_id:
-        :param _db:
-        :param _dataset:
-        :return:
+        If no transcript position is available for a variant, it can be retrieved if the mart has the transcripts
+        connected to the CDS and the exons positions
+        :param start: first position to be mapped
+        :param stop: last position to be mapped
+        :keyword ensembl: if transcript id is from ensembl (ENST...)
+        :keyword refseq: if transcript id is from refseq (NM_...)
+        :keyword refseq_predicted: if transcript id is from refseq predicted (XN_...)
+        :keyword _db:
+        :keyword _dataset:
+        :return: a tuple of the mapped positions start, stop
         """
         # ma = MartsAdapter(biomart="http://grch37.ensembl.org")
-        # print ma.get_transcript_position('17953929', '17953943', 'ENSG00000074964', 'ENST00000361221')
+        # print ma.get_transcript_position('17953929', '17953943', 'ENST00000361221')
         # (1674, 1688)
-        if str(start) + str(stop) + gene_id + transcript_id in self.gene_proxy:
-            return self.gene_proxy[str(start) + str(stop) + gene_id + transcript_id]
-
         try:
             x = int(start)
             y = int(stop)
@@ -259,49 +259,81 @@ class MartsAdapter(ADBAdapter):
             logging.warning(','.join([str(start), str(stop)]) + ' does not seem to be a genomic position.')
             return None
 
-            filter_g = None
-            filter_t = None
-            if transcript_id.startswith('NM_'):
-                filter_t = "refseq_mrna"
-            elif transcript_id.startswith('XM_'):
-                filter_t = "refseq_mrna_predicted"
-            elif transcript_id.startswith('ENS'):
-                filter_t = "ensembl_transcript_id"
-            else:
-                warnings.warn("No correct element id: " + transcript_id)
-                return None
-            if gene_id.startswith('ENS'):
-                filter_g = "ensembl_gene_id"
-            else:
-                filter_g = "uniprot_genename"
-                warnings.warn("Could not determine the type og gene_id: " + gene_id)
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
+        filter = None
+        db_id = ""
+        if "refseq" in kwargs:
+            filter = "refseq_mrna"
+            db_id = kwargs["refseq"]
+        elif "ensembl" in kwargs:
+            filter = "ensembl_transcript_id"
+            db_id = kwargs["ensembl"]
+        elif "refseq_predicted" in kwargs:
+            filter = "refseq_mrna_predicted"
+            db_id = kwargs["refseq_predicted"]
+        else:
+            logging.warn("No correct transcript id")
+            return None
+
+        if str(start) + str(stop) + db_id in self.gene_proxy:
+            return self.gene_proxy[str(start) + str(stop) + db_id]
 
         rq_n = self.biomart_head%(_db, _dataset) \
-            + self.biomart_filter%("ensembl_gene_id", str(gene_id))  \
-            + self.biomart_filter%("ensembl_transcript_id", str(transcript_id))  \
+            + self.biomart_filter%(filter, str(db_id))  \
             + self.biomart_attribute%("exon_chrom_start")  \
             + self.biomart_attribute%("exon_chrom_end")  \
+            + self.biomart_attribute%("strand")  \
+            + self.biomart_attribute%("cds_start")  \
+            + self.biomart_attribute%("cds_end")  \
             + self.biomart_tail
 
-        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url + urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
-        exons = [ex for ex in tsvreader]
+        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url +
+                                                    urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+        exons = [ex for ex in tsvreader if ex["CDS Start"] and ex["CDS End"]]
+        cds = [dict([k, int(v)] for k, v in e.iteritems()) for e in exons] # cast to int
+        cds = sorted(cds, key=itemgetter("CDS Start")) #sort by CDS Start(position in the CDS)
+        print cds
 
-        pos_sum = 0
-        if not exons:
-            logging.warning(','.join([str(gene_id), str(transcript_id)]) + ' does not seem to have exons mapped.')
+        cds_sum = 0
+        if not cds:
+            logging.warning(str(db_id) + ' does not seem to have exons mapped.')
             return None
-        for e in exons:
-            se = int(e["Exon Chr Start (bp)"])
-            ee = int(e["Exon Chr End (bp)"])
+
+        for e in cds:
+            sc = e["CDS Start"]
+            ec = e["CDS End"]
+            if not sc or not ec:
+                continue
+            se = e["Exon Chr Start (bp)"]
+            ee = e["Exon Chr End (bp)"]
+
+            if not cds_sum < sc < ec:
+                logging.warn("unable to follow the CDS, aborting genome-positional lookup in transcript!")
+                print exons
+                print cds
+                return None
+                #after sorting and filtering if this occurs points to corrupt data in mart
+
             if x in range(se, ee + 1):
                 if not y in range(se, ee + 1):
-                    logging.warning(','.join([str(start), str(stop)]) + ' seems to span more than one exon.')
+                    logging.warning(','.join([str(start), str(stop)]) +
+                                    ' spans more than one exon, aborting genome-positional lookup in transcript!')
                     return None
                 else:
-                    self.gene_proxy[str(start) + str(stop) + gene_id + transcript_id] = (x - se + 1 + pos_sum, y - se + 1 + pos_sum)
-                    return x - se + 1 + pos_sum, y - se + 1 + pos_sum
+                    #strand dependent!!!
+                    if e["Strand"] < 0:  # reverse strand!!!
+                        self.gene_proxy[str(start) + str(stop) + db_id] =\
+                            (ee - x + 1 + cds_sum, ee - y + 1 + cds_sum)
+                    else:  # forward strand!!!
+                        self.gene_proxy[str(start) + str(stop) + db_id] =\
+                            (x - se + 1 + cds_sum, y - se + 1 + cds_sum)
+                    return self.gene_proxy[str(start) + str(stop) + db_id]
             else:
-                pos_sum += ee - se + 1
+                cds_sum = ec
+
+        logging.warning(','.join([str(start), str(stop)]) + ' seems to be outside of the exons boundaries.')
+        return None
 
     #TODO: refactor ... function based on old code
     def get_variant_gene(self, chrom, start, stop, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
