@@ -8,7 +8,7 @@
 
    :Note: All internal indices start at 0!
 
-.. moduleauthor:: schubert
+.. moduleauthor:: schubert,walzer
 
 """
 
@@ -494,8 +494,10 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             new_vars = dict()
             for pos, var in t.vars.iteritems():
                 if not var.isSynonymous:
-                    prot_pos = int(math.ceil(pos/3.0))
-                    new_vars.setdefault(pos, []).append(var)
+                    # prot_pos = int(math.ceil(pos/3.0)) #if pos is 0 based this is wrong: 0->0, 1->1, 2->2, 3->1, 4->2
+                    prot_pos = pos / 3
+                    # new_vars.setdefault(pos, []).append(var) #is obviously an oversight, taking transcript position
+                    new_vars.setdefault(prot_pos, []).append(var)
 
             gene_id = t.gene_id
             yield Protein(prot_seq, gene_id, t.transcript_id, t, new_vars)
