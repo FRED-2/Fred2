@@ -59,7 +59,6 @@ class MartsAdapter(ADBAdapter):
         self.biomart_filter = """<Filter name="%s" value="%s" filter_list=""/>"""
         self.biomart_attribute = """<Attribute name="%s"/>"""
 
-    #TODO: refactor ... function based on old code
     def get_product_sequence(self, **kwargs):
         """
         fetches product sequence for the given id
