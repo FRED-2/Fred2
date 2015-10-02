@@ -111,59 +111,55 @@ class MartsAdapter(ADBAdapter):
             else tsvselect[0]["Protein"]
         return self.sequence_proxy[db_id]
 
-    #TODO: refactor ... function based on old code
-    def get_transcript_sequence(self, transcript_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
+    def get_transcript_sequence(self, **kwargs):
         """
         Fetches transcript sequence for the given id
-        :param transcript_refseq:
-        :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
+        :keyword ensembl: if transcript id is from ensembl (ENST...)
+        :keyword refseq: if transcript id is from refseq (NM_...)
+        :keyword refseq_predicted: if transcript id is from refseq predicted (XN_...)
+        :keyword _db:
+        :keyword _dataset:
+
+        :return: the requested sequence
         """
-        # TODO transcript_refseq to transcript_id, sniff which, query according
-        if transcript_refseq in self.sequence_proxy:
-            return self.sequence_proxy[transcript_refseq]
 
-        if self.connection:
-            cur = self.connection.cursor()
-            #query = "SELECT * FROM sbs_ncbi_mrna WHERE id='%s';"%('5')
-            query = "SELECT refseq,seq FROM hg19_ucsc_annotation.sbs_ncbi_mrna WHERE refseq LIKE '" + transcript_refseq + "%'"
-            try:
-                cur.execute(query)
-                result = cur.fetchall()
-                if result:
-                    transcript_refseq = result[0][0]
-                    transcript_sequence = result[0][1]
-                    if len(result) > 1:
-                        warnings.warn("Ambiguous transcript refseq query: " + transcript_refseq + "\n")
-                else:
-                    warnings.warn("An Error occured while executing query: " + query + "\n")
-                    return None
-            except MySQLdb.Error, message:
-                warnings.warn("An Error occured while executing query: " + query + "\n" + "Error message: " + message[1])
-                return None
-            self.sequence_proxy[transcript_refseq] = transcript_sequence
-            return [{transcript_refseq: transcript_sequence}]
+        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _dataset = kwargs.get("_dataset", "gene_ensembl_config")
+        filter = None
+        db_id = ""
+        if "refseq" in kwargs:
+            filter = "refseq_mrna"
+            db_id = kwargs["refseq"]
+        elif "ensembl" in kwargs:
+            filter = "ensembl_transcript_id"
+            db_id = kwargs["ensembl"]
+        elif "refseq_predicted" in kwargs:
+            filter = "refseq_mrna_predicted"
+            db_id = kwargs["refseq_predicted"]
         else:
-            filter = None
-            if transcript_refseq.startswith('NM_'):
-                filter = "refseq_mrna"
-            elif transcript_refseq.startswith('XM_'):
-                filter = "refseq_mrna_predicted"
-            elif transcript_refseq.startswith('ENS'):
-                filter = "ensembl_transcript_id"
-            else:
-                warnings.warn("No correct transcript id: " + transcript_refseq)
-                return None
-            rq_n = self.biomart_head%(_db, _dataset) \
-                + self.biomart_filter%(filter, str(transcript_refseq))  \
-                + self.biomart_attribute%(filter)  \
-                + self.biomart_attribute%("coding")  \
-                + self.biomart_attribute%("strand")  \
-                + self.biomart_tail
+            logging.warn("No correct transcript id")
+            return None
 
-            tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
-            tsvselect = [x for x in tsvreader]
-            self.sequence_proxy[transcript_refseq] = tsvselect[0]['Coding sequence']  # TODO is strand information worth to pass along?
-            return self.sequence_proxy[transcript_refseq]
+        if db_id in self.gene_proxy:
+            return self.gene_proxy[db_id]
+
+        rq_n = self.biomart_head%(_db, _dataset) \
+            + self.biomart_filter%(filter, str(db_id))  \
+            + self.biomart_attribute%(filter)  \
+            + self.biomart_attribute%("coding")  \
+            + self.biomart_attribute%("strand")  \
+            + self.biomart_tail
+
+        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url +
+                                                   urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvselect = [x for x in tsvreader]
+        if not tsvselect:
+            logging.warn("There seems to be no Transcriptsequence for " + str(db_id))
+            #print self.biomart_url+rq_n
+            return None
+
+        self.sequence_proxy[db_id] = tsvselect[0]['Coding sequence']  # TODO is strand information worth to pass along?
+        return self.sequence_proxy[db_id]
 
     def get_transcript_information(self, transcript_refseq, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
