@@ -25,27 +25,34 @@ class ADBAdapter:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_product_sequence(self, product_refseq):
+    def get_product_sequence(self, **kwargs):
         """
-        fetches product sequence for the given id
+        fetches the product sequence for the given id
+        :keyword unknown: given product id, implement other keywords as well if you DBAdapter is supposed to
+        support different id types
+        :return: the requested sequence
 
-        :param product_refseq: Given refseq id
-        :return: List of dictionaries of the requested sequence, the respective strand and the associated gene name
-        :rtype: list(dict)
         """
         pass
 
     @abstractmethod
-    def get_transcript_sequence(self, transcript_refseq):
+    def get_transcript_sequence(self, **kwargs):
         """
         Fetches transcript sequence for the given id
-        
-        :param transcript_refseq: A transcript RefSeq ID
-        :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
-        :rtype: list(dict)
+
+        :keyword unknown: given transcript id, implement other keywords as well if you DBAdapter is supposed to
+        support different id types
+        :return: the requested sequence
+
         """
         pass
 
     @abstractmethod
-    def get_transcript_information(self, transcript_refseq):
+    def get_transcript_information(self, **kwargs):
+        """
+        Fetches transcript sequence for the given id
+        :keyword unknown: given transcript id, implement other keywords as well if you DBAdapter is supposed to
+        support different id types
+        :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
+        """
         pass
