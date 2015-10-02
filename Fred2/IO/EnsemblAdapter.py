@@ -133,23 +133,50 @@ class EnsemblDB(ADBAdapter):
     def map_ensg(self, ensg):
         warnings.warn('mapping ensg not implemented', NotImplementedError)
 
-    def get_transcript_sequence(self, transcript_id):
+    def get_transcript_sequence(self, **kwargs):
+        """
+        Fetches transcript sequence, gene name and strand information for the given id
+        :keyword ensembl: if transcript id is from ensembl (ENST...)
+        :keyword unknown: method will try to sniff from ID prefix
+        :return: the requested sequence
+        """
+        if "unknown" in kwargs:
+            transcript_id = kwargs["unknown"]
+        elif "ensembl" in kwargs:
+            transcript_id = kwargs["ensembl"]
+        else:
+            return None
         if transcript_id in self.collection:
             return str(self.collection[transcript_id].seq)
         else:
             return None
 
-    def get_product_sequence(self, product_id):
+    def get_product_sequence(self, **kwargs):
+        if "unknown" in kwargs:
+            product_id = kwargs["unknown"]
+        elif "ensembl" in kwargs:
+            product_id = kwargs["ensembl"]
+        else:
+            return None
         if product_id in self.collection:
             return self.collection[product_id]
         else:
             return None
 
-    def get_transcript_information(self, transcript_id):
+    def get_transcript_information(self, **kwargs):
+        if "unknown" in kwargs:
+            transcript_id = kwargs["unknown"]
+        elif "ensembl" in kwargs:
+            transcript_id = kwargs["ensembl"]
+        else:
+            return None
+
         if transcript_id in self.collection:
-            return {EAdapterFields.SEQ: str(self.collection[transcript_id].seq),
+            return [{EAdapterFields.SEQ: str(self.collection[transcript_id].seq),
                     EAdapterFields.GENE: self.collection[transcript_id].description.split('gene:')[1].split(' ')[0],
-                    EAdapterFields.STRAND: "-" if int(self.collection[transcript_id].description.split('chromosome:')[1].split(' ')[0].split(':')[-1]) < 0 else "+"}
+                    EAdapterFields.STRAND: "-" if
+                    int(self.collection[transcript_id].description.split('chromosome:')[1].split(' ')[0].split(':')[-1])
+                    < 0 else "+"}]
         else:
             return None
 
