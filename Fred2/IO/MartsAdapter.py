@@ -61,9 +61,15 @@ class MartsAdapter(ADBAdapter):
 
     def get_product_sequence(self, **kwargs):
         """
-        fetches product sequence for the given id
-        :param product_refseq: given refseq id
-        :return: list of dictionaries of the requested sequence, the respective strand and the associated gene name
+        Fetches transcript sequence for the given id
+        :keyword ensembl: if transcript id is from ensembl (ENST...)
+        :keyword refseq: if transcript id is from refseq (NM_...)
+        :keyword refseq_predicted: if transcript id is from refseq predicted (XN_...)
+        :keyword unknown: method will try to sniff from ID prefix
+        :keyword _db:
+        :keyword _dataset:
+
+        :return: the requested sequence
         """
 
         _db = kwargs.get("_db","hsapiens_gene_ensembl")
@@ -75,7 +81,7 @@ class MartsAdapter(ADBAdapter):
             db_id = kwargs["refseq"]
         elif "refseq_predicted" in kwargs:
             filter = "refseq_peptide_predicted"
-            db_id = kwargs["ensembl"]
+            db_id = kwargs["refseq_predicted"]
         elif "ensembl" in kwargs:
             filter = "ensembl_peptide_id"
             db_id = kwargs["ensembl"]
@@ -85,6 +91,18 @@ class MartsAdapter(ADBAdapter):
         elif "uniprot_sp" in kwargs:
             filter = "uniprot_swissprot"
             db_id = kwargs["uniprot_sp"]
+        elif "unknown" in kwargs:
+            db_id = kwargs["unknown"]
+            if db_id.startswith('NP_'):
+                filter = "refseq_peptide"
+            elif db_id.startswith('XP_'):
+                filter = "refseq_peptide_predicted"
+            elif db_id.startswith('ENS'):
+                filter = "ensembl_peptide_id"
+            else:
+                logging.warn("Could not infer the origin of transcript id" + str(db_id))
+                return None
+
         else:
             logging.warn("No correct protein id")
             return None
@@ -116,13 +134,14 @@ class MartsAdapter(ADBAdapter):
         :keyword ensembl: if transcript id is from ensembl (ENST...)
         :keyword refseq: if transcript id is from refseq (NM_...)
         :keyword refseq_predicted: if transcript id is from refseq predicted (XN_...)
+        :keyword unknown: method will try to sniff from ID prefix
         :keyword _db:
         :keyword _dataset:
 
         :return: the requested sequence
         """
 
-        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _db = kwargs.get("_db", "hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
         filter = None
         db_id = ""
@@ -135,6 +154,17 @@ class MartsAdapter(ADBAdapter):
         elif "refseq_predicted" in kwargs:
             filter = "refseq_mrna_predicted"
             db_id = kwargs["refseq_predicted"]
+        elif "unknown" in kwargs:
+            db_id = kwargs["unknown"]
+            if db_id.startswith('NM_'):
+                filter = "refseq_mrna"
+            elif db_id.startswith('XM_'):
+                filter = "refseq_mrna_predicted"
+            elif db_id.startswith('ENS'):
+                filter = "ensembl_transcript_id"
+            else:
+                logging.warn("Could not infer the origin of transcript id" + str(db_id))
+                return None
         else:
             logging.warn("No correct transcript id")
             return None
@@ -166,12 +196,13 @@ class MartsAdapter(ADBAdapter):
         :keyword ensembl: if transcript id is from ensembl (ENST...)
         :keyword refseq: if transcript id is from refseq (NM_...)
         :keyword refseq_predicted: if transcript id is from refseq predicted (XN_...)
+        :keyword unknown: method will try to sniff from ID prefix
         :keyword _db:
         :keyword _dataset:
         :return: dictionary of the requested keys as in EAdapterFields.ENUM
         """
 
-        _db = kwargs.get("_db","hsapiens_gene_ensembl")
+        _db = kwargs.get("_db", "hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
         filter = None
         db_id = ""
@@ -184,6 +215,17 @@ class MartsAdapter(ADBAdapter):
         elif "refseq_predicted" in kwargs:
             filter = "refseq_mrna_predicted"
             db_id = kwargs["refseq_predicted"]
+        elif "unknown" in kwargs:
+            db_id = kwargs["unknown"]
+            if db_id.startswith('NM_'):
+                filter = "refseq_mrna"
+            elif db_id.startswith('XM_'):
+                filter = "refseq_mrna_predicted"
+            elif db_id.startswith('ENS'):
+                filter = "ensembl_transcript_id"
+            else:
+                logging.warn("Could not infer the origin of transcript id" + str(db_id))
+                return None
         else:
             logging.warn("No correct transcript id")
             return None
