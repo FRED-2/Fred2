@@ -433,12 +433,12 @@ class MartsAdapter(ADBAdapter):
 
         return tsvselect
 
-    def get_variant_id_from_gene_id(self, **kwargs):
+    def get_gtp_ids_from_id(self, **kwargs):
         """
-        returns all information needed to instantiate a variation
+        returns a list of gene-transcript-protein ids
 
-        :param trans_id: A transcript ID (either ENSAMBLE (ENS) or RefSeq (NM, XN)
-        :return: list of dicts -- containing all information needed for a variant initialization
+        :param id: ID of some sort hgnc_symbol,ensemble_gene_id, swiss_gene, external_gene_name
+        :return: list of dicts -- containing information about the corresponding (linked) entries.
         """
         _db = kwargs.get("_db","hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
@@ -447,7 +447,7 @@ class MartsAdapter(ADBAdapter):
         if "hgnc_symbol" in kwargs:
             filter = "hgnc_symbol"
             db_id = kwargs["hgnc_symbol"]
-        elif "ensemble" in kwargs:
+        elif "ensemble_gene_id" in kwargs:
             filter = "ensembl_gene_id"
             db_id = kwargs["ensemble"]
         elif "hgnc_id" in kwargs:
@@ -460,19 +460,16 @@ class MartsAdapter(ADBAdapter):
             filter = "external_gene_name"
             db_id = kwargs["external_gene_name"]
         else:
-            warnings.war
+            logging.warn("No usable id in " + kwargs)
+            return None
         rq_n = self.biomart_head%(_db, _dataset) \
                + self.biomart_filter%(filter, str(db_id)) \
-               + self.biomart_filter%("germ_line_variation_source", "dbSNP") \
-               + self.biomart_attribute%("snp_ensembl_gene_id") \
-               + self.biomart_attribute%("variation_name") \
-               + self.biomart_attribute%("snp_chromosome_name") \
-               + self.biomart_attribute%("chromosome_location") \
-               + self.biomart_attribute%("allele") \
-               + self.biomart_attribute%("snp_strand") \
-               + self.biomart_attribute%("peptide_location") \
+               + self.biomart_attribute%("ensembl_gene_id") \
+               + self.biomart_attribute%("strand") \
+               + self.biomart_attribute%("ensembl_transcript_id") \
+               + self.biomart_attribute%("ensembl_peptide_id") \
                + self.biomart_tail
-        tsvreader = csv.DictReader(urllib2.urlopen(self.new_biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
             warnings.warn("No entry found for ID %s"%db_id)
