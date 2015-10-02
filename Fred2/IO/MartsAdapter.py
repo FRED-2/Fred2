@@ -433,11 +433,15 @@ class MartsAdapter(ADBAdapter):
 
         return tsvselect
 
-    def get_gtp_ids_from_id(self, **kwargs):
+    def get_ensembl_ids_from_id(self, **kwargs):
         """
-        returns a list of gene-transcript-protein ids
+        returns a list of gene-transcript-protein ids from some sort of id
+        :keyword ensembl_gene_id: if id is from ensembl and of gene
+        :keyword hgnc_symbol: hgnc
+        :keyword external_gene_name: name of gene
+        :keyword _db:
+        :keyword _dataset:
 
-        :param id: ID of some sort hgnc_symbol,ensemble_gene_id, swiss_gene, external_gene_name
         :return: list of dicts -- containing information about the corresponding (linked) entries.
         """
         _db = kwargs.get("_db","hsapiens_gene_ensembl")
@@ -469,13 +473,19 @@ class MartsAdapter(ADBAdapter):
                + self.biomart_attribute%("ensembl_transcript_id") \
                + self.biomart_attribute%("ensembl_peptide_id") \
                + self.biomart_tail
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url +
+                                                   urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
-            warnings.warn("No entry found for ID %s"%db_id)
+            logging.warn("No entry found for ID %s"%db_id)
             return None
 
-        return tsvselect
+        self.ids_proxy[db_id] = {EAdapterFields.PROTID: tsvselect[0]['Ensembl Protein ID'],
+                                                  EAdapterFields.GENE: tsvselect[0].get('Ensembl Gene ID', ""),
+                                                  EAdapterFields.TRANSID: tsvselect[0].get('Ensembl Transcript ID', ""),
+                                                  EAdapterFields.STRAND: "-" if int(tsvselect[0]['Strand']) < 0
+                                                  else "+"}
+        return self.ids_proxy[db_id]
 
     def get_protein_sequence_from_protein_id(self, **kwargs):
         """
