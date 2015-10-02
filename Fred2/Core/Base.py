@@ -328,7 +328,7 @@ class AExternal(object):
         exe = self.command.split()[0] if path is None else path
         try:
             p = subprocess.Popen(exe + ' --version', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p.wait() #block the rest
+            #p.wait() #block the rest
             stdo, stde = p.communicate()
             stdr = p.returncode
             if stdr > 0:
