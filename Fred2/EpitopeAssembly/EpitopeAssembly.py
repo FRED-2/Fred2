@@ -408,9 +408,9 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                 else:
                     raise RuntimeError("Problem could not be solved. Please check your input.")
             else:
-                ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a] for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
-                cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a] for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
-                non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a] for i in xrange(le-(cn-1))
+                ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
+                cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
+                non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a].value for i in xrange(le-(cn-1))
                                                             for j in instance.C
                                                                 for a in instance.S[i+j]
                                                                     if i != instance.ci and i != instance.cj))
@@ -566,7 +566,7 @@ class EpitopeAssemblyWithSpacer(object):
                         epi_pssms[j,aa,a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
-        res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
+        res = map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                        self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
