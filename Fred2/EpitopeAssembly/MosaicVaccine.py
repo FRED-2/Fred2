@@ -309,16 +309,15 @@ class MosaicVaccineTS:
             model.c = ConstraintList()
             model.tabu = ConstraintList()
 
-            return model.create()
+            return model
 
-    def solve(self, options=""):
+    def solve(self, options=None):
             """
                 solves the model optimally
             """
+            options = dict() if options is None else options
+
             instance = self.instance
-            instance.x.reset()
-            instance.u.reset()
-            instance.preprocess()
 
             res = self.__solver.solve(instance, options=options, tee=False)
             instance.load(res)
@@ -334,12 +333,12 @@ class MosaicVaccineTS:
                 i = j
             return instance.Obj(), sol
 
-    def approximate(self, phi=0.05, options="", _greedyLP=True, _tabu=True, _intensify=True, _jump=True,
+    def approximate(self, phi=0.05, options=None, _greedyLP=True, _tabu=True, _intensify=True, _jump=True,
                     max_iter=10000, delta_change=1e-4, max_delta=101, seed=23478234):
             """
                 Matheueristic using Tabu Search
             """
-
+            options = dict() if options is None else options
             def __greedy_init():
                 __imm = self.__imm
                 __arcCost = self.__arcCost
@@ -389,7 +388,6 @@ class MosaicVaccineTS:
                 __arcCost = self.__arcCost
 
                 instance.x.domain = NonNegativeReals
-                instance.preprocess()
                 result = []
                 imm = 0
                 length = 0
@@ -397,9 +395,9 @@ class MosaicVaccineTS:
                 i = 0
                 while length < __k:
                     lp_result = solver.solve(instance, options=options)
-                    instance.load(lp_result)
+                    instance.solutions.load_from(lp_result)
                     if length == 0:
-                        _,j = max([ (instance.x[0,j].value,j)  for j in possible])
+                        _,j = max([(instance.x[0,j].value,j) for j in possible])
                         instance.x[0,j].setlb(1)
                         instance.x[0,j].setub(1)
                         result.append((0,j))
@@ -407,7 +405,7 @@ class MosaicVaccineTS:
                         i = j
                     else:
                         possible.discard(i)
-                        _,j = max([ (instance.x[i,j].value,j)  for j in possible  ])
+                        _,j = max([(instance.x[i,j].value,j) for j in possible])
                         length += __arcCost[i][j]
                         imm += __imm[i]
                         if length > __k:
@@ -471,9 +469,7 @@ class MosaicVaccineTS:
                 """
                 #set warmstart
                 instance = self.instance
-                instance.x.reset()
-                instance.u.reset()
-                self.instance.x.domain = Binary
+                instance.x.domain = Binary
                 selected_vars = set(curr_sol)
                 sorted_nodes = [ i for (i,j) in curr_sol]
                 for i,j in instance.Arcs:
@@ -494,9 +490,9 @@ class MosaicVaccineTS:
                 instance.c.clear()
                 instance.tabu.clear()
                 instance.c.add(sum(1-instance.x[i,j] for i,j in curr_sol) <= max(math.ceil(phi*len(curr_sol)),2))
-                instance.preprocess()
-                result = self.__solver.solve(instance, options=options+",timelimit=10" if options else "timelimit=10",warmstart=True)# tee=True)
-                instance.load(result)
+                options["timelimit"] = "10"
+                result = self.__solver.solve(instance, options=options, warmstart=True)# tee=True)
+                instance.solutions.load_from(result)
                 sol = []
                 unsorted = dict([(i,j) for i,j in instance.Arcs if instance.x[i,j].value > 0])
                 i=0
@@ -505,6 +501,7 @@ class MosaicVaccineTS:
                     sol.append((i,j))
                     del unsorted[i]
                     i=j
+                del options["timelimit"]
                 return instance.Obj(), sol
 
             def __jump(best_sol):
@@ -540,14 +537,15 @@ class MosaicVaccineTS:
                         #if j > 0:
                         #    instance.u[j].setlb(k+2)
                         #    instance.u[j].setub(k+2)
-                instance.preprocess()
+                #instance.preprocess()
                 result = []
                 imm = 0
                 length = 0
                 possible = set(xrange(1,__n))
                 i = 0
                 while length < __k:
-                    lp_result = solver.solve(instance, options=options+",timelimit=20" if options else "timelimit=20")
+                    options["timelimit"] = "20"
+                    lp_result = solver.solve(instance, options=options)
                     instance.load(lp_result)
                     if length == 0:
                         _,j = max([ (instance.x[0,j].value,j)  for j in possible])
@@ -571,6 +569,7 @@ class MosaicVaccineTS:
                         i = j
                 imm += __imm[j]
                 result.append((j,0))
+                del options["timelimit"]
                 return imm, result
             ##########################################
 
