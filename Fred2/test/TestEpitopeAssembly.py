@@ -19,6 +19,6 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
         :return:
         """
         pred = CleavageSitePredictorFactory("PCM")
-        assembler = EpitopeAssembly(self.peptides, pred, solver="glpk", verbosity=1)
+        assembler = EpitopeAssembly(self.peptides, pred, solver="glpk", verbosity=0)
         r = assembler.solve()
         self.assertEqual(r, [Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL"), Peptide("KLLPRLPGV")])

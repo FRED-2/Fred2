@@ -30,7 +30,7 @@ import itertools as itr
 import copy
 
 from pyomo.environ import *
-from pyomo.opt import SolverFactory
+from pyomo.opt import SolverFactory, TerminationCondition
 
 from Fred2.Core.Result import EpitopePredictionResult
 
@@ -183,7 +183,7 @@ class OptiTope(object):
                                             rule=lambda model, e: (1 - model.c[e]) * model.x[e] <= 1 - model.t_c)
 
         #generate instance
-        self.instance = model.create()
+        self.instance = model
         if self.__verbosity > 0:
             print "MODEL INSTANCE"
             self.instance.pprint()
@@ -337,26 +337,25 @@ class OptiTope(object):
         self.instance.t_c.deactivate()
         self.instance.EpitopeConsConst.deactivate()
 
-    def solve(self, options=""):
+    def solve(self, options=None):
         """
             invokes the selected solver and solves the problem.
 
-            :param str options: a string defining solver specific options.
+            :param dict(str:str) options: A dictionary of solver specific options as keys and their parameters as values.
             :return list(Peptide) -- returns the optimal epitopes as list of Peptide objectives
             :raises EpitopeSelectionException: if the solver raised a problem or the solver is not accessible via the PATH environmental variable.
         """
+        options = dict() if options is None else options
+
         if self.__changed:
             #try:
-                self.instance.x.reset()
-                self.instance.y.reset()
-                self.instance.preprocess()
 
-                res = self.__solver.solve(self.instance,options=options)
-                self.instance.load(res)
+                res = self.__solver.solve(self.instance, options=options)
+                self.instance.solutions.load_from(res)
                 if self.__verbosity > 0:
                     res.write(num=1)
 
-                if str(res.Solution.status) != 'optimal':
+                if res.solver.termination_condition != TerminationCondition.optimal:
                     raise ValueError("Could not solve problem - " + str(res.Solution.status) + ". Please check your settings")
 
                 self.__result = [self.__peptideSet[x] for x in self.instance.x if self.instance.x[x].value == 1.0]

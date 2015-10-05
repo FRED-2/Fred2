@@ -133,12 +133,12 @@ class EpitopeAssembly(object):
                                                   rule=lambda model, a, b:
                                                   model.u[a]-model.u[b]+1 <= (model.card -1)*(1-model.x[a, b]))
 
-        self.instance = model.create()
+        self.instance = model
         if self.__verbosity > 0:
             print "MODEL INSTANCE"
             self.instance.pprint()
 
-    def solve(self, options=""):
+    def solve(self, options=None):
         """
         Solves the Epitope Assembly problem and returns an ordered list of the peptides
 
@@ -149,14 +149,13 @@ class EpitopeAssembly(object):
         :return: list(Peptide) - An order list of the peptides (based on the string-of-beads ordering)
         """
 
-        self.instance.preprocess()
-
+        options = dict() if options is None else options
         res = self.__solver.solve(self.instance, options=options)
-        self.instance.load(res)
+        self.instance.solutions.load_from(res)
         if self.__verbosity > 0:
             res.write(num=1)
 
-        return [ self.__seq_to_pep[u] for u in sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
+        return [self.__seq_to_pep[u] for u in sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
 
     def approximate(self):
         """
@@ -170,7 +169,6 @@ class EpitopeAssembly(object):
 
         :return: list(Peptide) - An order list of the peptides (based on the sting-of-beads ordering)
         """
-        #TODO:Add external code to dependencies
         tmp_conf = NamedTemporaryFile(delete=False)
         tmp_prob = NamedTemporaryFile(delete=False)
         tmp_out = NamedTemporaryFile(delete=False)
@@ -226,12 +224,12 @@ def _runs_lexmin(a):
     :param a:
     :return: ei,ej,cleavage_score,imm_score,c1_score,c2_score,non-junction_score
     """
-    spacer,cleav,epi,good_cleav,bad_cleav,non_c = _spacer_design(*a)
-    return a[0],a[1],cleav,epi,spacer,good_cleav,bad_cleav,non_c
+    spacer, cleav, epi, good_cleav, bad_cleav, non_c = _spacer_design(*a)
+    return a[0], a[1], cleav, epi, spacer, good_cleav, bad_cleav, non_c
 
 
 def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, alpha,
-                    thresh, solver, beta=0, options=""):
+                    thresh, solver, beta=0, options=None):
     """
         PRIVATE:
         internal spacer design for a pre-defined spacer length between two epitopes
@@ -248,9 +246,10 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         :param float alpha: specifies the first-order influence on the objectives [0,1]
         :param float thresh: specifies at which score a peptide is considered as epitope
         :param string solver: string specifying which ILP solver should be used
-        :param str options: solver options
+        :param dict(str:str) options: solver specific options as keys and parameters as values
         :return: Tuple of ei, ej, spacer (str), cleavage score, immunogenicity score
     """
+    options = dict() if options is None else options
 
     if k <= 0:
         seq = ei+ej
@@ -353,7 +352,7 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
     model.c_cleavage = Constraint(rule=lambda model: 0.5*(sum( model.f[i,a]*model.x[model.ci+i,a] for i in model.C for a in model.S[model.ci+i] )
                               + sum(model.f[j,a]*model.x[model.cj+j,a] for j in model.C for a in model.S[model.cj+j])+2*model.bc) >= model.tau_cleav)
 
-    instance = model.create()
+    instance = model
     solver = SolverFactory(solver)
 
     instance.obj_epi.deactivate()
@@ -361,11 +360,10 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
     instance.c_epi.deactivate()
     instance.c_cleavage.deactivate()
 
-    instance.preprocess()
-    res = solver.solve(instance,options=options)#, tee=True)
+    res = solver.solve(instance, options=options)#, tee=True)
 
     if (res.solver.status == SolverStatus.ok) and (res.solver.termination_condition == TerminationCondition.optimal):
-        instance.load(res)
+        instance.solutions.load_from(res)
         #print "In Second objective ",options
         obj_cleav = instance.obj_cleav()
 
@@ -377,13 +375,10 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         getattr(instance, "tau_cleav").set_value(alpha*obj_cleav)
         #instance.pprint()
 
-        instance.x.reset()
-        instance.y.reset()
-        instance.preprocess()
-        res2 = solver.solve(instance,options=options)#, tee=True)
+        res2 = solver.solve(instance, options=options)#, tee=True)
         if (res2.solver.status == SolverStatus.ok) and (
             res2.solver.termination_condition == TerminationCondition.optimal):
-            instance.load(res2)
+            instance.solutions.load_from(res2)
 
             if beta:
 
@@ -396,10 +391,8 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
 
                 getattr(instance, "tau_epi").set_value((2-beta)*obj_imm)
                 #print "imm",obj_imm,"tau_epi", (2-beta)*obj_imm
-                instance.x.reset()
-                instance.y.reset()
-                instance.preprocess()
-                res3 = solver.solve(instance,options=options)#, tee=True)
+
+                res3 = solver.solve(instance, options=options)#, tee=True)
                 if (res3.solver.status == SolverStatus.ok) and (res3.solver.termination_condition == TerminationCondition.optimal):
                     instance.load(res3)
                     ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a] for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
@@ -530,7 +523,7 @@ class EpitopeAssemblyWithSpacer(object):
         self.__peptides = peptides
         #model construction for spacer design
 
-    def solve(self, start=0, threads=None, options=""):
+    def solve(self, start=0, threads=None, options=None):
         """
         solve the epitope assembly problem with spacers optimally using integer linear programming.
 
@@ -542,14 +535,14 @@ class EpitopeAssemblyWithSpacer(object):
         :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
                 Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
-        :param str options: Solver specific options (threads for example)
+        :param dict(str:str) options: Solver specific options as keys and parameters as values
         :return: list(Peptide) -- a list of ordered peptides
         """
         def __load_model(data, name, length):
             model = "%s_%s"%(name, str(length))
             return getattr( __import__(data, fromlist=[model]), model)
 
-
+        options = dict() if options is None else options
         threads = mp.cpu_count() if threads is None else threads
         pool = mp.Pool(threads)
 
@@ -595,7 +588,7 @@ class EpitopeAssemblyWithSpacer(object):
         self.spacer = opt_spacer
         #print "solve assembly with generated adjacency matrix"
         assembler = EpitopeAssembly(self.__peptides, self.__clev_pred, solver=self.__solver, matrix=adj_matrix)
-        res = assembler.solve()
+        res = assembler.solve(options=options())
 
         #generate output
         sob = []
@@ -608,7 +601,7 @@ class EpitopeAssemblyWithSpacer(object):
             sob.append(Peptide(ej))
         return sob
 
-    def approximate(self, start=0, threads=1, options=""):
+    def approximate(self, start=0, threads=1, options=None):
         """
         Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
 
@@ -627,7 +620,7 @@ class EpitopeAssemblyWithSpacer(object):
             model = "%s_%s"%(name, str(length))
             return getattr( __import__(data, fromlist=[model]), model)
 
-
+        options = dict() if options is None else options
         threads = mp.cpu_count() if threads is None else threads
         pool = mp.Pool(threads)
 
