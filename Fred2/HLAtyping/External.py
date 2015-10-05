@@ -63,12 +63,9 @@ class AExternalHLATyping(AHLATyping, AExternal):
             stdo = None
             stde = None
             cmd = _command.format(file=ngsFile, options="" if options is None else options, out=output)
-            print cmd
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdo, stde = p.communicate()
             stdr = p.returncode
-            print stdo
-            print stde
             if stdr > 0:
                 raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
         except Exception as e:
