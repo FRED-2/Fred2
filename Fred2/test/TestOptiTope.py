@@ -79,7 +79,7 @@ YFVIFFVAA""".split()]
         conservation = {}
         for e in self.result.index.levels[0]:
             conservation[str(e)] = random.random()
-        pt = OptiTope(self.result, self.thresh, k=3, solver="cplex", verbosity=0)
+        pt = OptiTope(self.result, self.thresh, k=3, solver="glpk", verbosity=0)
         pt.activate_epitope_conservation_const(0.5, conservation=conservation)
         for e in pt.solve(options={"asdas":"1"}):
             print e, conservation[e]
