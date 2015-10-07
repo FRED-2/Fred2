@@ -172,11 +172,11 @@ class EnsemblDB(ADBAdapter):
             return None
 
         if transcript_id in self.collection:
-            return [{EAdapterFields.SEQ: str(self.collection[transcript_id].seq),
+            return {EAdapterFields.SEQ: str(self.collection[transcript_id].seq),
                     EAdapterFields.GENE: self.collection[transcript_id].description.split('gene:')[1].split(' ')[0],
                     EAdapterFields.STRAND: "-" if
                     int(self.collection[transcript_id].description.split('chromosome:')[1].split(' ')[0].split(':')[-1])
-                    < 0 else "+"}]
+                    < 0 else "+"}
         else:
             return None
 
