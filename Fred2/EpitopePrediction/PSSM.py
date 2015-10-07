@@ -69,6 +69,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
             for a in allales_string.keys():
                 try:
                     pssm = __load_allele_model(a, length)
+                    max_score = sum([max(scrs.values()) for pos,scrs in pssm.iteritems()]) # for percent max reporting
                 except AttributeError:
                     warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
                     continue
@@ -77,7 +78,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
                 ##here is the prediction and result object missing##
                 for p in peps:
                     score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1,{}).get("con", 0)
-                    result[allales_string[a]][pep_seqs[p]] = score
+                    result[allales_string[a]][pep_seqs[p]] = (100.0 / float(max_score) * float(score)) / 100.0 #report percent of max for this allele matrix
                     #print a, score, result
 
         if not result:
