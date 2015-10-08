@@ -16,7 +16,6 @@ class PSSMCleavagePredictonTestCase(unittest.TestCase):
     def test_peptide_cleavage_prediction_mixed_input(self):
         for m in CleavageSitePredictorFactory.available_methods():
             if m.lower() != "netchop":
-                print m
                 mo = CleavageSitePredictorFactory(m)
                 mo.predict(self.seqs)
 
