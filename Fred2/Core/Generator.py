@@ -230,7 +230,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
-        print tId
+        #print tId
         query = dbadapter.get_transcript_information(tId)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
