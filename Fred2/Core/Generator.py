@@ -502,7 +502,7 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             for pos, var in t.vars.iteritems():
                 if not var.isSynonymous:
                     # prot_pos = int(math.ceil(pos/3.0)) #if pos is 0 based this is wrong
-                    prot_pos = pos / 3
+                    prot_pos = pos // 3
                     # new_vars.setdefault(pos, []).append(var) #this is obviously wrong
                     new_vars.setdefault(prot_pos, []).append(var)
 
