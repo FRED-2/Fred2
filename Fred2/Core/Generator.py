@@ -257,7 +257,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
         vs_hetero = filter(lambda x: not x.isHomozygous
                            and x.type not in [VariationType.FSINS, VariationType.FSDEL], vs)
 
-        prots = None
+        prots = []
         for tId, varSeq, varComb in _generate_combinations(tId, vs_homo_and_fs, list(tSeq), {}, 0):
             if vs_hetero:
                 for i in xrange(len(varSeq) + 1 - 3 * length):
@@ -267,11 +267,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                     offset = sum(v.get_transcript_offset() for pos, v in varComb.iteritems() if i <= pos <= end)
                     frac_var = filter(lambda x: i <= x.coding[trans_id].transPos+offset < end, vs_hetero)
                     for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
-                        if not prots:
-                            prots = generate_proteins_from_transcripts(Transcript("".join(vvarSeq), geneid, ttId,
-                                                                                  _vars=vvarComb))
-                        else:
-                            chain(prots, generate_proteins_from_transcripts(Transcript("".join(vvarSeq), geneid, ttId,
+                        chain(prots, generate_proteins_from_transcripts(Transcript("".join(vvarSeq), geneid, ttId,
                                                                                        _vars=vvarComb)))
             else:
                 if not prots:
