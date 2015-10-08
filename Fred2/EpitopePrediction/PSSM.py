@@ -242,6 +242,7 @@ class Hammer(APSSMEpitopePrediction):
 class SMM(APSSMEpitopePrediction):
     """
     Implements IEDBs SMM PSSM method
+
     """
 
     __alleles = frozenset(['B*27:20', 'B*83:01', 'A*32:15', 'B*15:17', 'B*40:13', 'A*24:02', 'A*24:03', 'B*53:01', 'B*15:01',
@@ -331,6 +332,10 @@ class SMMPMBEC(APSSMEpitopePrediction):
 class ARB(APSSMEpitopePrediction):
     """
     Implements IEDBs ARB method
+
+    Bui HH, Sidney J, Peters B, Sathiamurthy M, Sinichi A, Purton KA, Mothe BR, Chisari FV, Watkins DI, Sette A.
+    2005. Automated generation and evaluation of specific MHC binding predictive tools: ARB matrix applications.
+    Immunogenetics 57:304-314.
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:19',
@@ -364,19 +369,75 @@ class ARB(APSSMEpitopePrediction):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
-        #In IEDB scripts score is taken to the base 10**score
-        #TODO: IEDB calculates ARB score as follows.... needs some restructuring to be able to do this
-        #    score/=-self.length
-        #    score-=self.intercept
-        #    score/=self.slope
-        #    score=math.pow(10,score)
-        #    if score < 0.0001:    # Cap predictable values
-        #        score = 0.0001
-        #    elif score > 1e6:
-        #        score = 1e6
-        return EpitopePredictionResult(
-            super(ARB, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :param list(Alleles) alleles: a list of Alleles
+        :param kwargs: optional parameter (not used yet)
+        :return: Returns a AResult object with the prediction results
+        """
+        def __load_allele_model(allele,length):
+            allele_model = "%s_%s_%i"%(self.name, allele, length)
+            return getattr( __import__("Fred2.Data.EpitopePSSMMatrices", fromlist=[allele_model]), allele_model)
+
+        if isinstance(peptides, Peptide):
+            pep_seqs = {str(peptides):peptides}
+        else:
+            if any(not isinstance(p, Peptide) for p in peptides):
+                raise ValueError("Input is not of type Protein or Peptide")
+            pep_seqs = {str(p):p for p in peptides}
+
+        if alleles is None:
+            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+        else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
+            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+
+        result = {}
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+            peps = list(peps)
+            #dynamicaly import prediction PSSMS for alleles and predict
+            if length not in self.supportedLength:
+                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
+                continue
+
+            for a in allales_string.keys():
+                try:
+                    pssm = __load_allele_model(a, length)
+                except AttributeError:
+                    warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
+                    continue
+
+                result[allales_string[a]] = {}
+                ##here is the prediction and result object missing##
+                for p in peps:
+                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1,{}).get("con", 0)
+                    score /= -length
+                    score -= pssm[-1]["intercept"]
+                    score /= pssm[-1]["slope"]
+                    score = math.pow(10, score)
+                    if score < 0.0001:
+                        score = 0.0001
+                    elif score > 1e6:
+                        score = 1e6
+                    result[allales_string[a]][pep_seqs[p]] = score
+                    #print a, score, result
+
+        if not result:
+            raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
+                             "epitope length and HLA allele combination.")
+
+
+        df_result = EpitopePredictionResult.from_dict(result)
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
+                                                        names=['Seq','Method'])
+        return df_result
 
 
 class ComblibSidney2008(APSSMEpitopePrediction):

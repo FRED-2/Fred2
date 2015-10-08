@@ -52,6 +52,5 @@ class TestCaseEpitopePrediction(unittest.TestCase):
                         res = model.predict(self.peptides_mhcII[0], alleles=self.mhcII[1])
 
 
-
 if __name__ == '__main__':
     unittest.main()
