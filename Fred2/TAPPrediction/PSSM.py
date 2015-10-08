@@ -22,8 +22,7 @@ class APSSMTAPPrediction(ATAPPrediction):
 
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
-            return getattr( __import__("Fred2.Data.TAPPSSMMatrices", fromlist=[model]), model)
-
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+model, fromlist=[model]), model)
 
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
@@ -41,7 +40,7 @@ class APSSMTAPPrediction(ATAPPrediction):
                     continue
 
             for p in peps:
-                score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))+pssm.get(-1,{}).get("con", 0)
+                score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))+pssm.get(-1, {}).get("con", 0)
                 result[self.name][pep_seqs[p]] = score
 
         if not result[self.name]:
@@ -76,9 +75,6 @@ class TAPDoytchinova(APSSMTAPPrediction):
     def supportedLength(self):
         return self.__supported_length
 
-    def predict(self, peptides, **kwargs):
-        return super(TAPDoytchinova, self).predict(peptides, **kwargs)
-
 
 class SMMTAP(APSSMTAPPrediction):
     """
@@ -107,8 +103,7 @@ class SMMTAP(APSSMTAPPrediction):
 
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
-            return getattr(__import__("Fred2.Data.TAPPSSMMatrices", fromlist=[model]), model)
-
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+model, fromlist=[model]), model)
 
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
@@ -118,7 +113,7 @@ class SMMTAP(APSSMTAPPrediction):
             pep_seqs = {str(p):p for p in peptides}
 
         result = {self.name:{}}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
             if length < 9:
                 warnings.warn("No model found for %s with length %i"%(self.name, length))
                 continue

@@ -42,7 +42,8 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
-            return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[model]), model)
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+model, fromlist=[model]),
+                           model)
 
         if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
             pep_seqs = {str(aa_seq):aa_seq}
@@ -264,7 +265,8 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         """
         def __load_model(length):
             allele_model = "%%s_%i"%(self.name, length)
-            return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[allele_model]), allele_model)
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),
+                           allele_model)
 
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
@@ -341,9 +343,10 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
         return self.__name
 
     def predict(self, peptides,  **kwargs):
-        def __load_model(allele):
+        def __load_model(length):
             allele_model = "%s_%i"%(self.name, length)
-            return getattr( __import__("Fred2.Data.CleaveagePSSMMatrices", fromlist=[allele_model]), allele_model)
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),
+                           allele_model)
 
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
@@ -353,7 +356,7 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
             pep_seqs = {str(p):p for p in peptides}
 
         result = {self.name:{}}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:

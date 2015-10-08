@@ -38,8 +38,9 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         :return: Returns a AResult object with the prediction results
         """
         def __load_allele_model(allele,length):
-            allele_model = "%s_%s_%i"%(self.name, allele, length)
-            return getattr( __import__("Fred2.Data.EpitopePSSMMatrices", fromlist=[allele_model]), allele_model)
+            allele_model = "%s_%i"%(allele, length)
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),
+                           allele_model)
 
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
@@ -50,44 +51,43 @@ class APSSMEpitopePrediction(AEpitopePrediction):
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
 
         result = {}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:
-                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
+                warnings.warn("Peptide length of %i is not supported by %s"%(length, self.name))
                 continue
 
-            for a in allales_string.keys():
+            for a in alleles_string.keys():
                 try:
                     pssm = __load_allele_model(a, length)
                 except AttributeError:
-                    warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
+                    warnings.warn("No model found for %s with length %i"%(alleles_string[a], length))
                     continue
 
-                result[allales_string[a]] = {}
+                result[alleles_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
-                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1,{}).get("con", 0)
-                    result[allales_string[a]][pep_seqs[p]] = score
+                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1, {}).get("con", 0)
+                    result[alleles_string[a]][pep_seqs[p]] = score
                     #print a, score, result
 
         if not result:
             raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
                              "epitope length and HLA allele combination.")
 
-
         df_result = EpitopePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
-                                                        names=['Seq','Method'])
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
+                                                        names=['Seq', 'Method'])
         return df_result
 
 
@@ -95,10 +95,10 @@ class Syfpeithi(APSSMEpitopePrediction):
     """
         Represents the Syfpeithi PSSM predictor
     """
-    __alleles = frozenset(['B*15:10', 'B*41:01', 'B*37:01', 'B*27:05', 'B*38:01', 'A*02:01', 'B*47:01', 'A*26:01', 'B*37:01',
-                 'DRB1*11:01', 'B*50:01', 'B*07:02', 'A*68:01', 'A*24:02', 'DRB1*15:01', 'B*15:01', 'B*45:01',
-                 'A*11:01', 'A*03:01', 'B*40:01', 'DRB1*03:01', 'B*39:01', 'DRB1*01:01', 'B*51:01', 'B*39:02',
-                 'B*08:01', 'B*18:01', 'B*44:02', 'B*49:01', 'DRB1*07:01', 'B*14:02', 'A*01:01'])
+    __alleles = frozenset(['B*15:10', 'B*41:01', 'B*37:01', 'B*27:05', 'B*38:01', 'A*02:01', 'B*47:01', 'A*26:01',
+                           'B*37:01', 'DRB1*11:01', 'B*50:01', 'B*07:02', 'A*68:01', 'A*24:02', 'DRB1*15:01', 'B*15:01',
+                           'B*45:01', 'A*11:01', 'A*03:01', 'B*40:01', 'DRB1*03:01', 'B*39:01', 'DRB1*01:01', 'B*51:01',
+                           'B*39:02', 'B*08:01', 'B*18:01', 'B*44:02', 'B*49:01', 'DRB1*07:01', 'B*14:02', 'A*01:01'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "syfpeithi"
     __version = "1.0"
@@ -121,10 +121,6 @@ class Syfpeithi(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
-
-    def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
-        return super(Syfpeithi, self).predict(peptides, alleles=alleles, **kwargs)
 
 
 class BIMAS(APSSMEpitopePrediction):
@@ -166,7 +162,7 @@ class BIMAS(APSSMEpitopePrediction):
         #with this implementation customizations of prediction algorithm is still possible
         return EpitopePredictionResult(
             super(BIMAS, self).predict(peptides, alleles=alleles,
-                                       **kwargs).applymap(lambda x: math.pow(math.e,x)))
+                                       **kwargs).applymap(lambda x: math.pow(math.e, x)))
 
 
 class Epidemix(APSSMEpitopePrediction):
@@ -196,10 +192,6 @@ class Epidemix(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
-
-    def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
-        return super(Epidemix, self).predict(peptides, alleles=alleles, **kwargs)
 
 
 class Hammer(APSSMEpitopePrediction):
@@ -233,10 +225,6 @@ class Hammer(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
-
-    def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
-        return super(Hammer, self).predict(peptides, alleles=alleles, **kwargs)
 
 
 class SMM(APSSMEpitopePrediction):
@@ -281,7 +269,7 @@ class SMM(APSSMEpitopePrediction):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
         return EpitopePredictionResult(
-            super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x)))
+            super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
 
 
 class SMMPMBEC(APSSMEpitopePrediction):
@@ -326,7 +314,7 @@ class SMMPMBEC(APSSMEpitopePrediction):
         #with this implementation customizations of prediction algorithm is still possible
         #In IEDB scripts score is taken to the base 10**score
         return EpitopePredictionResult(
-            super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10,x)))
+            super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
 
 
 class ARB(APSSMEpitopePrediction):
@@ -378,9 +366,10 @@ class ARB(APSSMEpitopePrediction):
         :param kwargs: optional parameter (not used yet)
         :return: Returns a AResult object with the prediction results
         """
-        def __load_allele_model(allele,length):
-            allele_model = "%s_%s_%i"%(self.name, allele, length)
-            return getattr( __import__("Fred2.Data.EpitopePSSMMatrices", fromlist=[allele_model]), allele_model)
+        def __load_allele_model(allele, length):
+            allele_model = "%s_%i"%(allele, length)
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),
+                           allele_model)
 
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
@@ -391,33 +380,33 @@ class ARB(APSSMEpitopePrediction):
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
 
         result = {}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:
-                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
+                warnings.warn("Peptide length of %i is not supported by %s"%(length, self.name))
                 continue
 
-            for a in allales_string.keys():
+            for a in alleles_string.keys():
                 try:
                     pssm = __load_allele_model(a, length)
                 except AttributeError:
-                    warnings.warn("No model found for %s with length %i"%(allales_string[a], length))
+                    warnings.warn("No model found for %s with length %i"%(alleles_string[a], length))
                     continue
 
-                result[allales_string[a]] = {}
+                result[alleles_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
-                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1,{}).get("con", 0)
+                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1, {}).get("con", 0)
                     score /= -length
                     score -= pssm[-1]["intercept"]
                     score /= pssm[-1]["slope"]
@@ -426,17 +415,16 @@ class ARB(APSSMEpitopePrediction):
                         score = 0.0001
                     elif score > 1e6:
                         score = 1e6
-                    result[allales_string[a]][pep_seqs[p]] = score
+                    result[alleles_string[a]][pep_seqs[p]] = score
                     #print a, score, result
 
         if not result:
             raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
                              "epitope length and HLA allele combination.")
 
-
         df_result = EpitopePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,self.name)) for i in df_result.index],
-                                                        names=['Seq','Method'])
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
+                                                        names=['Seq', 'Method'])
         return df_result
 
 
@@ -448,7 +436,7 @@ class ComblibSidney2008(APSSMEpitopePrediction):
     __alleles = frozenset(['B*35:01', 'B*51:01', 'B*54:01', 'B*58:02', 'A*02:01', 'A*68:02', 'B*27:05', 'B*08:01', 'B*07:02',
                  'A*32:01', 'B*53:01', 'A*30:01', 'B*15:03', 'B*15:01', 'B*58:01'])
     __supported_length = frozenset([9])
-    __name = "comblibSidney"
+    __name = "comblibsidney"
     __version = "1.0"
 
     @property
@@ -612,6 +600,3 @@ class TEPITOPEpan(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
-
-    def predict(self, peptides, alleles=None, **kwargs):
-        return super(TEPITOPEpan, self).predict(peptides, alleles=alleles, **kwargs)

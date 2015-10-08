@@ -10,18 +10,17 @@
 import svmlight
 import collections
 import itertools
-import pandas
 import os
 import warnings
-import subprocess
+
+import pandas
 import pkg_resources
-from tempfile import NamedTemporaryFile
 
 from Fred2.Core.Allele import Allele
 from Fred2.Core.Peptide import Peptide
-from Fred2.Core.Base import AEpitopePrediction, ASVM, AExternal
+from Fred2.Core.Base import AEpitopePrediction, ASVM
 from Fred2.Core.Result import EpitopePredictionResult
-from Fred2.Data.UniTope_encodedAlleles import UniTope_encodedAlleles
+from Fred2.Data.svms.unitope.UniTope_encodedAlleles import UniTope_encodedAlleles
 
 
 class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
