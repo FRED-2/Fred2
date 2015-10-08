@@ -538,9 +538,8 @@ class EpitopeAssemblyWithSpacer(object):
         :param dict(str:str) options: Solver specific options as keys and parameters as values
         :return: list(Peptide) -- a list of ordered peptides
         """
-        def __load_model(data, name, length):
-            model = "%s_%s"%(name, str(length))
-            return getattr( __import__(data, fromlist=[model]), model)
+        def __load_model(name, model):
+            return getattr(__import__("Fred2.Data.pssms."+name+".mat."+model, fromlist=[model]), model)
 
         options = dict() if options is None else options
         threads = mp.cpu_count() if threads is None else threads
@@ -549,25 +548,24 @@ class EpitopeAssemblyWithSpacer(object):
 
         #prepare parameters
         cn = min(self.__clev_pred.supportedLength)
-        cl_pssm = __load_model("Fred2.Data.CleaveagePSSMMatrices", self.__clev_pred.name,cn)
+        cl_pssm = __load_model(self.__clev_pred.name, self.__clev_pred.name+"_"+str(cn))
         cleav_pos = self.__clev_pred.cleavagePos
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
-            pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
-                                self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            for j,v in pssm.iteritems():
-                for aa,score in  v.iteritems():
-                    if self.__epi_pred.name in ["SMM","SMMPMBEC"]:
-                        epi_pssms[j,aa,a.name] = -score
+            pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+            for j, v in pssm.iteritems():
+                for aa, score in v.iteritems():
+                    if self.__epi_pred.name in ["SMM", "SMMPMBEC"]:
+                        epi_pssms[j, aa, a.name] = -score
                     else:
-                        epi_pssms[j,aa,a.name] = score
+                        epi_pssms[j, aa, a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
         res = map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
-                                       self.__alpha, self.__thresh, self.__solver, self.__beta, options)
+                                      self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
         pool.close()
