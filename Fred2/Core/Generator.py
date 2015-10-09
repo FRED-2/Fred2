@@ -8,12 +8,12 @@
 
    :Note: All internal indices start at 0!
 
-.. moduleauthor:: schubert
+.. moduleauthor:: schubert,walzer
 
 """
 
 import warnings
-import math
+from itertools import chain
 
 from Fred2.Core.Base import COMPLEMENT
 from Fred2.Core.Protein import Protein
@@ -186,7 +186,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset):
                     yield s
         else:
-            yield tId+":FRED2_%i"%transOff, seq, usedVs
+            yield tId + ":FRED2_%i"%transOff, seq, usedVs
 
     def _generate_heterozygous(tId, vs, seq, usedVs, offset=None):
         """
@@ -219,7 +219,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
             for s in _generate_combinations(tId, vs, seq, usedVs, offset=offset):
                 yield s
         else:
-            yield tId+":FRED2_%i"%generate_peptides_from_variants.transOff, seq, usedVs
+            yield tId + ":FRED2_%i"%generate_peptides_from_variants.transOff, seq, usedVs
 
     if not isinstance(dbadapter, ADBAdapter):
         raise ValueError("The given dbadapter is not of type ADBAdapter")
@@ -230,7 +230,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
-        print tId
+        #print tId
         query = dbadapter.get_transcript_information(tId)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
@@ -246,7 +246,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
                 v.obs = v.obs[::-1].translate(COMPLEMENT)
 
-        vs.sort(key=lambda v: v.genomePos-1
+        vs.sort(key=lambda v: v.genomePos - 1
                 if v.type in [VariationType.FSINS, VariationType.INS]
                 else v.genomePos, reverse=True)
         if not _check_for_problematic_variants(vs):
@@ -260,19 +260,22 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
         prots = []
         for tId, varSeq, varComb in _generate_combinations(tId, vs_homo_and_fs, list(tSeq), {}, 0):
             if vs_hetero:
-                for i in xrange(len(varSeq)+1-3*length):
-                    end = i+3*length
+                for i in xrange(len(varSeq) + 1 - 3 * length):
+                    end = i + 3 * length
                     frac_seq = varSeq[i:end]
                     trans_id = tId.split(":FRED2_")[0]
                     offset = sum(v.get_transcript_offset() for pos, v in varComb.iteritems() if i <= pos <= end)
                     frac_var = filter(lambda x: i <= x.coding[trans_id].transPos+offset < end, vs_hetero)
                     for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
-                        prots.append(
-                            generate_proteins_from_transcripts(Transcript("".join(vvarSeq),
-                                                                          geneid, ttId, _vars=vvarComb)))
+                        chain(prots, generate_proteins_from_transcripts(Transcript("".join(vvarSeq), geneid, ttId,
+                                                                                       _vars=vvarComb)))
             else:
-                prots.append(generate_proteins_from_transcripts(
-                    Transcript("".join(varSeq), geneid, tId, _vars=varComb)))
+                if not prots:
+                    prots = generate_proteins_from_transcripts(
+                        Transcript("".join(varSeq), geneid, tId, _vars=varComb))
+                else:
+                    chain(prots, generate_proteins_from_transcripts(
+                        Transcript("".join(varSeq), geneid, tId, _vars=varComb)))
 
         return generate_peptides_from_protein(prots, length, peptides=peptides)
 
@@ -342,7 +345,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
-        print tId
+        #print tId
         query = dbadapter.get_transcript_information(tId)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
@@ -494,8 +497,10 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             new_vars = dict()
             for pos, var in t.vars.iteritems():
                 if not var.isSynonymous:
-                    prot_pos = int(math.ceil(pos/3.0))
-                    new_vars.setdefault(pos, []).append(var)
+                    # prot_pos = int(math.ceil(pos/3.0)) #if pos is 0 based this is wrong
+                    prot_pos = pos // 3
+                    # new_vars.setdefault(pos, []).append(var) #this is obviously wrong
+                    new_vars.setdefault(prot_pos, []).append(var)
 
             gene_id = t.gene_id
             yield Protein(prot_seq, gene_id, t.transcript_id, t, new_vars)
