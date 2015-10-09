@@ -3,7 +3,7 @@ from Bio.Seq import Seq
 
 __author__ = 'schubert,walzer'
 
-from Fred2.Core import Variant
+from Fred2.Core import Variant, Transcript
 from Fred2.Core import VariationType
 from Fred2.Core import MutationSyntax
 from Fred2.IO import MartsAdapter
@@ -174,3 +174,109 @@ class GeneratorTest(TestCase):
     #     #     for v in vars:
     #     #         for trans_id in v.coding.iterkeys():
     #     #             transToVar.setdefault(trans_id, []).append(v)
+
+    def test_peptides_from_variants(self):
+        """
+        Create multiple peptides, given a set
+        containing heterozygous variants .
+
+        Variants:
+        3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
+        HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
+
+        Reference sequence:
+        AAAAACCCCCGGGGG
+        AAATTTGGGGG (DEL,INS,DEL)
+        AAATTTCCCCCGGGGG (DEL,INS)
+        AAAAATTTGGGGG (INS,DEL)
+        AAAAATTTCCCCCGGGGG (INS)
+
+        GGGGGCCCCCAAAAA
+        GGGTTTCAAAAA (DEL,INS,DEL)
+        GGGTTTCCCCCAAAAA (DEL,INS)
+        GGGGGTTTCAAAAA (INS,DEL)
+        GGGGGTTTCCCCCAAAAA (INS)
+
+
+        Resulting protein sequences:
+        KFG
+        KNLG
+        KFPPG
+        KNFPRG
+
+        GFK
+        GGLK
+        GFPPK
+        GGFPQK
+
+        Resulting peptides of length 3:
+        KFG +
+        KNL +
+        NLG +
+        KFP +
+        FPP +
+        PPG +
+        KNF +
+        NFP +
+        FPR +
+        PRG +
+
+        GFK +
+        GGL +
+        GLK +
+        GFP +
+        FPP +
+        PPK +
+        GGF +
+        GFP +
+        FPQ +
+        PQK +
+        """
+        dummy_db = DummyAdapter()
+
+        exp_peps = set(['PRG', 'GLK', 'PPG', 'KFP', 'GFK', 'PPK', 'GFP', 'PQK', 'KNL', 'KFG', 'GGF', 'FPQ',
+                        'FPP', 'NLG', 'FPR', 'KNF', 'GGL', 'NFP'])
+        # 1) INS, SNP, DEL
+        dummy_vars = [var_10, var_11, var_12]
+        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(dummy_vars, 3, dummy_db)))
+
+        self.assertTrue(len(peps-exp_peps) == 0)
+        self.assertTrue(len(exp_peps-peps) == 0)
+
+    def test_proteins_from_variants(self):
+        """
+                Variants:
+        3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
+        HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
+
+        Reference sequence:set(['GLK', 'PPK', 'GFP', 'PQK', 'GFK', 'GGF', 'FPQ', 'FPP', 'GGL'])
+        AAATTTCGGGGG (DEL,INS,DEL)
+        AAATTTCCCCCGGGGG (DEL,INS)
+        AAAAATTTCCGGGG (INS,DEL)
+        AAAAATTTCCCCCGGGGG (INS)
+
+        GGGTTTCAAAAA (DEL,INS,DEL)
+        GGGTTTCCCCCAAAAA (DEL,INS)
+        GGGGGTTTCAAAAA (INS,DEL)
+        GGGGGTTTCCCCCAAAAA (INS)
+
+
+        Resulting protein sequences:
+        KFG
+        KNLG
+        KFPPG
+        KNFPRG
+
+        GFK
+        GGLK
+        GFPPK
+        GGFPQK
+        """
+        dummy_db = DummyAdapter()
+        dummy_vars = [var_10, var_11, var_12]
+        exp_prot = set(['KFG', 'KNLG', 'KFPPG', 'KNFPRG', 'GFK', 'GGLK', 'GFPPK', 'GFPPK', 'GGFPQK'])
+        prot = set(map(lambda x: str(x),
+                       Generator.generate_proteins_from_transcripts(
+                           Generator.generate_transcripts_from_variants(dummy_vars, dummy_db))))
+        self.assertTrue(len(prot-exp_prot) == 0)
+        self.assertTrue(len(exp_prot-prot) == 0)

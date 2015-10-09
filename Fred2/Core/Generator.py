@@ -179,7 +179,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                 # update the transcript variant id
                 generate_peptides_from_variants.transOff += 1
                 transOff = generate_peptides_from_variants.transOff
-                pos = vs.coding[tId].tranPos + offset
+                pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
                 offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
 
@@ -229,8 +229,9 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
         for trans_id in v.coding.iterkeys():
             transToVar.setdefault(trans_id, []).append(v)
 
+    prots = []
     for tId, vs in transToVar.iteritems():
-        #print tId
+        print tId
         query = dbadapter.get_transcript_information(tId)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
@@ -257,7 +258,6 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
         vs_hetero = filter(lambda x: not x.isHomozygous
                            and x.type not in [VariationType.FSINS, VariationType.FSDEL], vs)
 
-        prots = []
         for tId, varSeq, varComb in _generate_combinations(tId, vs_homo_and_fs, list(tSeq), {}, 0):
             if vs_hetero:
                 for i in xrange(len(varSeq) + 1 - 3 * length):
@@ -265,19 +265,15 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                     frac_seq = varSeq[i:end]
                     trans_id = tId.split(":FRED2_")[0]
                     offset = sum(v.get_transcript_offset() for pos, v in varComb.iteritems() if i <= pos <= end)
-                    frac_var = filter(lambda x: i <= x.coding[trans_id].transPos+offset < end, vs_hetero)
-                    for ttId, vvarSeq, vvarComb in _generate_heterozygous(tId, frac_var, frac_seq, varComb):
-                        chain(prots, generate_proteins_from_transcripts(Transcript("".join(vvarSeq), geneid, ttId,
-                                                                                       _vars=vvarComb)))
+                    frac_var = filter(lambda x: i <= x.coding[trans_id].tranPos+offset < end, vs_hetero)
+                    for ttId, vvarSeq, vvarComb in _generate_heterozygous(trans_id, frac_var, frac_seq, varComb):
+                        prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(vvarSeq), geneid, ttId,
+                                                                                   _vars=vvarComb)))
             else:
-                if not prots:
-                    prots = generate_proteins_from_transcripts(
-                        Transcript("".join(varSeq), geneid, tId, _vars=varComb))
-                else:
-                    chain(prots, generate_proteins_from_transcripts(
-                        Transcript("".join(varSeq), geneid, tId, _vars=varComb)))
+                prots = chain(prots, generate_proteins_from_transcripts(
+                              Transcript("".join(varSeq), geneid, tId, _vars=varComb)))
 
-        return generate_peptides_from_protein(prots, length, peptides=peptides)
+    return generate_peptides_from_protein(prots, length, peptides=peptides)
 
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S
@@ -480,11 +476,10 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 
         if isinstance(transcripts, Transcript):
             transcripts = [transcripts]
-        else:
-            if any(not isinstance(t, Transcript) for t in transcripts):
-                raise ValueError("Specified input is not of type Transcript")
 
         for t in transcripts:
+            if not isinstance(t, Transcript):
+                raise ValueError("An element of specified input is not of type Transcript")
             # translate to a protein sequence
             #if len(str(self)) % 3 != 0:
             #    raise ValueError('ERROR while translating: lenght of transcript %s is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
@@ -492,14 +487,11 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             #TODO warn if intrasequence stops - biopython warns if  % 3 != 0
             prot_seq = str(t.translate(table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds))
 
-            # only transfer the non-synonymous variants to the protein as an
-            # ordered dict, also translate into protein positions
+            # only transfer the non-synonymous variants to the protein
             new_vars = dict()
             for pos, var in t.vars.iteritems():
                 if not var.isSynonymous:
-                    # prot_pos = int(math.ceil(pos/3.0)) #if pos is 0 based this is wrong
                     prot_pos = pos // 3
-                    # new_vars.setdefault(pos, []).append(var) #this is obviously wrong
                     new_vars.setdefault(prot_pos, []).append(var)
 
             gene_id = t.gene_id
@@ -515,7 +507,7 @@ def generate_peptides_from_protein(proteins, window_size, peptides=None):
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
 
-    :param Protein protein: (list of) protein(s) from which a list of unique
+    :param Protein protein: (iterable of) protein(s) from which a list of unique
                             peptides should be generated
     :param int window_size: size of peptide fragments
     :param list(Peptide) peptides: a list of peptides to update during peptide generation
@@ -546,10 +538,9 @@ def generate_peptides_from_protein(proteins, window_size, peptides=None):
     if isinstance(proteins, Protein):
         proteins = [proteins]
 
-    if any(not isinstance(p, Protein) for p in proteins):
-        raise ValueError("Input does contain non protein objects.")
-
     for prot in proteins:
+        if not isinstance(prot, Protein):
+            raise ValueError("Input does contain non protein objects.")
         # generate all peptide sequences per protein:
         for (seq, pos) in gen_peptide_info(prot):
 
