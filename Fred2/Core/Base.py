@@ -231,7 +231,6 @@ class AEpitopePrediction(object):
         """
         raise NotImplementedError
 
-
     @abc.abstractmethod
     def convert_alleles(self, alleles):
         """
@@ -329,7 +328,7 @@ class AExternal(object):
         exe = self.command.split()[0] if path is None else path
         try:
             p = subprocess.Popen(exe + ' --version', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p.wait() #block the rest
+            #p.wait() #block the rest
             stdo, stde = p.communicate()
             stdr = p.returncode
             if stdr > 0:
@@ -338,7 +337,6 @@ class AExternal(object):
         except Exception as e:
                 raise RuntimeError(e)
         return str(stdo).strip()
-
 
 
 class ATAPPrediction(object):
