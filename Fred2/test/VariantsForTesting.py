@@ -160,7 +160,7 @@ mut_syn2_10 = MutationSyntax("tsc_2", # transcript_id
                              "")      # aaMutationSyntax - irrelevant
 
 var_10 = Variant(
-    "var_10", VariationType.DEL, "chr1",
+    "var_10", VariationType.FSDEL, "chr1",
     0,                     # Genomic Position
     "AA", "",              # reference , observed
     {"tsc_1":mut_syn1_10,
@@ -200,7 +200,7 @@ mut_syn2_12 = MutationSyntax("tsc_2", # transcript_id
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 var_12 = Variant(
-    "var_12", VariationType.DEL, "chr1",
+    "var_12", VariationType.FSDEL, "chr1",
     5,                     # Genomic Position
     "CCCCC", "",            # reference , observed
     {"tsc_1":mut_syn1_12,
@@ -215,7 +215,7 @@ mut_syn2_13 = MutationSyntax("tsc_1", # transcript_id
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 var_13 = Variant(
-    "var_13", VariationType.INS, "chr1",
+    "var_13", VariationType.FSINS, "chr1",
     15,                    # Genomic Position 
     "", "CC",              # reference , observed
     {"tsc_1":mut_syn2_13}, # dict of (transcrip_id : mutSnytaxes)
@@ -228,7 +228,7 @@ mut_syn2_14 = MutationSyntax("tsc_1", # transcript_id
                              "",      # cdsMutationSyntax - irrelevant
                              "")      # aaMutationSyntax - irrelevant
 var_14 = Variant(
-    "var_14", VariationType.INS, "chr1",
+    "var_14", VariationType.FSINS, "chr1",
     1,                     # Genomic Position 
     "", "C",              # reference , observed
     {"tsc_1":mut_syn2_14}, # dict of (transcrip_id : mutSnytaxes)
