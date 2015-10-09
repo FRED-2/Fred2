@@ -81,7 +81,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string ={conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
 
         result = defaultdict(defaultdict)
 
