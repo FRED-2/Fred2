@@ -65,7 +65,6 @@ class AExternalHLATyping(AHLATyping, AExternal):
             cmd = _command.format(file=ngsFile, options="" if options is None else options, out=output)
             print cmd
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p.wait() #block the rest
             stdo, stde = p.communicate()
             stdr = p.returncode
             print stdo
@@ -143,7 +142,7 @@ class OptiType_1_0(AExternalHLATyping):
 
         :param str _output: the path to the output file or directory of the programme
         """
-        all_subdirs = [os.path.join(_output, d) for d in os.listdir(_output) if os.path.isdir(os.path.join(_output,d))]
+        all_subdirs = [os.path.join(_output, d) for d in os.listdir(_output) if os.path.isdir(os.path.join(_output, d))]
         latest_subdir = max(all_subdirs, key=os.path.getmtime)
         shutil.rmtree(latest_subdir)
 
@@ -178,7 +177,6 @@ class Seq2HLA_2_2(AExternalHLATyping):
             stde = None
             cmd = self.command.split()[0]+" --version"
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            p.wait() #block the rest
             stdo, stde = p.communicate()
             stdr = p.returncode
             if stdr > 0:
