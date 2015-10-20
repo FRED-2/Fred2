@@ -1,27 +1,25 @@
-Fred2.EpitopePrediction package
-===============================
+Fred2.EpitopePrediction Module
+==============================
 
-Submodules
-----------
 
-Fred2.EpitopePrediction.External module
----------------------------------------
+EpitopePrediction.External
+--------------------------
 
 .. automodule:: Fred2.EpitopePrediction.External
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.EpitopePrediction.PSSM module
------------------------------------
+EpitopePrediction.PSSM
+----------------------
 
 .. automodule:: Fred2.EpitopePrediction.PSSM
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.EpitopePrediction.SVM module
-----------------------------------
+EpitopePrediction.SVM
+---------------------
 
 .. automodule:: Fred2.EpitopePrediction.SVM
     :members:

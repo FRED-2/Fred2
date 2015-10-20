@@ -1,22 +1,10 @@
-Fred2.EpitopeSelection package
-==============================
+Fred2.EpitopeSelection Module
+=============================
 
-Submodules
-----------
-
-Fred2.EpitopeSelection.OptiTope module
---------------------------------------
+EpitopeSelection.OptiTope
+-------------------------
 
 .. automodule:: Fred2.EpitopeSelection.OptiTope
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: Fred2.EpitopeSelection
     :members:
     :undoc-members:
     :show-inheritance:

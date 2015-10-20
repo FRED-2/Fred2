@@ -1,62 +1,51 @@
-Fred2.IO package
-================
+Fred2.IO Module
+===============
 
-Submodules
-----------
 
-Fred2.IO.ADBAdapter module
---------------------------
+IO.ADBAdapter
+-------------
 
 .. automodule:: Fred2.IO.ADBAdapter
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.IO.EnsemblAdapter module
-------------------------------
+IO.EnsemblAdapter
+-----------------
 
 .. automodule:: Fred2.IO.EnsemblAdapter
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.IO.FileReader module
---------------------------
+IO.FileReader
+-------------
 
 .. automodule:: Fred2.IO.FileReader
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.IO.MartsAdapter module
-----------------------------
+IO.MartsAdapter
+---------------
 
 .. automodule:: Fred2.IO.MartsAdapter
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.IO.RefSeqAdapter module
------------------------------
+IO.RefSeqAdapter
+----------------
 
 .. automodule:: Fred2.IO.RefSeqAdapter
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.IO.UniProtAdapter module
-------------------------------
+IO.UniProtAdapter
+-----------------
 
 .. automodule:: Fred2.IO.UniProtAdapter
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: Fred2.IO
     :members:
     :undoc-members:
     :show-inheritance:

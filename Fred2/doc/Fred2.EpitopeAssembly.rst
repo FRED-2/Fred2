@@ -1,30 +1,19 @@
-Fred2.EpitopeAssembly package
-=============================
+Fred2.EpitopeAssembly Module
+============================
 
-Submodules
-----------
 
-Fred2.EpitopeAssembly.EpitopeAssembly module
---------------------------------------------
+EpitopeAssembly.EpitopeAssembly
+-------------------------------
 
 .. automodule:: Fred2.EpitopeAssembly.EpitopeAssembly
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.EpitopeAssembly.MosaicVaccine module
-------------------------------------------
+EpitopeAssembly.MosaicVaccine
+-----------------------------
 
 .. automodule:: Fred2.EpitopeAssembly.MosaicVaccine
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: Fred2.EpitopeAssembly
     :members:
     :undoc-members:
     :show-inheritance:

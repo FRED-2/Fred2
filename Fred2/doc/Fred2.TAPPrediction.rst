@@ -1,19 +1,17 @@
-Fred2.TAPPrediction package
-===========================
+Fred2.TAPPrediction Module
+==========================
 
-Submodules
-----------
 
-Fred2.TAPPrediction.PSSM module
--------------------------------
+TAPPrediction.PSSM
+------------------
 
 .. automodule:: Fred2.TAPPrediction.PSSM
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.TAPPrediction.SVM module
-------------------------------
+TAPPrediction.SVM
+-----------------
 
 .. automodule:: Fred2.TAPPrediction.SVM
     :members:

@@ -1,19 +1,17 @@
-Fred2.CleavagePrediction package
-================================
+Fred2.CleavagePrediction Module
+===============================
 
-Submodules
-----------
 
-Fred2.CleavagePrediction.External module
-----------------------------------------
+CleavagePrediction.External
+---------------------------
 
 .. automodule:: Fred2.CleavagePrediction.External
     :members:
     :undoc-members:
     :show-inheritance:
 
-Fred2.CleavagePrediction.PSSM module
-------------------------------------
+CleavagePrediction.PSSM
+-----------------------
 
 .. automodule:: Fred2.CleavagePrediction.PSSM
     :members:
