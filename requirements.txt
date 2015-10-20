@@ -1,0 +1,6 @@
+setuptools>=18.2
+pandas
+pyomo>=4.0
+biopython
+svmlight
+MySQL-python>=1.2.4

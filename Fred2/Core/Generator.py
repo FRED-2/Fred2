@@ -222,7 +222,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
             yield tId + ":FRED2_%i"%generate_peptides_from_variants.transOff, seq, usedVs
 
     if not isinstance(dbadapter, ADBAdapter):
-        raise ValueError("The given dbadapter is not of type ADBAdapter")
+        raise TypeError("The given dbadapter is not of type ADBAdapter")
 
     transToVar = {}
     for v in vars:
@@ -254,6 +254,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
         generate_peptides_from_variants.transOff = 0
+
         vs_homo_and_fs = filter(lambda x: x.type in [VariationType.FSINS, VariationType.FSDEL] or x.isHomozygous, vs)
         vs_hetero = filter(lambda x: not x.isHomozygous
                            and x.type not in [VariationType.FSINS, VariationType.FSDEL], vs)
@@ -272,7 +273,6 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
             else:
                 prots = chain(prots, generate_proteins_from_transcripts(
                               Transcript("".join(varSeq), geneid, tId, _vars=varComb)))
-
     return generate_peptides_from_protein(prots, length, peptides=peptides)
 
 ################################################################################
@@ -333,7 +333,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
         #C) apply variants to transcript and generate transcript object
 
     if not isinstance(dbadapter, ADBAdapter):
-        raise ValueError("The given dbadapter is not of type ADBAdapter")
+        raise TypeError("The given dbadapter is not of type ADBAdapter")
 
     transToVar = {}
     for v in vars:
@@ -423,7 +423,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
         #C) apply variants to transcript and generate transcript object
 
     if not isinstance(dbadapter, ADBAdapter):
-        raise ValueError("The given dbadapter is not of type ADBAdapter")
+        raise TypeError("The given dbadapter is not of type ADBAdapter")
 
     transToVar = {}
     for v in tumor:
@@ -487,7 +487,6 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             #TODO warn if intrasequence stops - biopython warns if  % 3 != 0
             prot_seq = str(t.translate(table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds))
 
-            # only transfer the non-synonymous variants to the protein
             new_vars = dict()
             for pos, var in t.vars.iteritems():
                 if not var.isSynonymous:
@@ -515,7 +514,8 @@ def generate_peptides_from_protein(proteins, window_size, peptides=None):
     """
 
     def gen_peptide_info(protein):
-        # Generate peptide sequences and find the variants within each
+        # Generate peptide sequences and returns the sequence
+        # #and start position within the protein
         res = []
 
         seq = str(protein)
@@ -523,7 +523,6 @@ def generate_peptides_from_protein(proteins, window_size, peptides=None):
             # generate peptide fragment
             end = i+window_size
             pep_seq = seq[i:end]
-
             res.append((pep_seq, i))
         return res
 
@@ -547,7 +546,6 @@ def generate_peptides_from_protein(proteins, window_size, peptides=None):
             t_id = prot.transcript_id
             if seq not in final_peptides:
                 final_peptides[seq] = Peptide(seq)
-
             final_peptides[seq].proteins[t_id] = prot
             final_peptides[seq].proteinPos[t_id].append(pos)
 

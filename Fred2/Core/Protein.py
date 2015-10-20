@@ -60,6 +60,7 @@ class Protein(MetadataLogger, Seq):
 
     def __getitem__(self, index):
         """
+
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
         returns a single letter or a sliced protein (when given a slice).

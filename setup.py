@@ -10,15 +10,15 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     readme = f.read()
 
-d2s_src_dir = path.join(path.join('Fred2', 'Distance2Self'), 'src')
-d2s_module = Extension('Fred2.d2s',
-                       define_macros=[('MAJOR_VERSION', '1'),
-                                      ('MINOR_VERSION', '0')],
-                       include_dirs=[d2s_src_dir],
-                       libraries=['boost_serialization', 'boost_python'],
-                       #library_dirs = ['/usr/local/lib'],
-                       depends=[path.join(d2s_src_dir, 'distance2self.hpp')],
-                       sources=[path.join(d2s_src_dir, 'distance2self.cpp')])
+#d2s_src_dir = path.join(path.join('Fred2', 'Distance2Self'), 'src')
+#d2s_module = Extension('Fred2.d2s',
+#                       define_macros=[('MAJOR_VERSION', '1'),
+#                                      ('MINOR_VERSION', '0')],
+#                       include_dirs=[d2s_src_dir],
+#                       libraries=['boost_serialization', 'boost_python'],
+#                       #library_dirs = ['/usr/local/lib'],
+#                       depends=[path.join(d2s_src_dir, 'distance2self.hpp')],
+#                       sources=[path.join(d2s_src_dir, 'distance2self.cpp')])
 
 
 #data_files = list()
@@ -96,7 +96,7 @@ setup(
         'Fred2.Data.svms.svmtap': ['*'],
         'Fred2.Data.svms.svmhc': ['*'],
         'Fred2.Data.svms.unitope': ['*'],
-        'Fred2.Distance2Self': ['src/*'],  #does not get installed, because the src folder is no package folder - compiles ok
+        #'Fred2.Distance2Self': ['src/*'],  #does not get installed, because the src folder is no package folder - compiles ok
     },
 
     #package_data is a lie: http://stackoverflow.com/questions/7522250/how-to-include-package-data-with-setuptools-distribute
@@ -117,7 +117,7 @@ setup(
     },
 
     #ext_modules=[helloworld_module],
-    ext_modules=[d2s_module],
+    #ext_modules=[d2s_module],
 
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
     install_requires=['setuptools>=18.2', 'pandas', 'pyomo>=4.0', 'biopython', 'svmlight', 'MySQL-python >= 1.2.4'],
