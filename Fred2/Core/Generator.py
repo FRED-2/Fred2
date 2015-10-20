@@ -506,11 +506,7 @@ def generate_peptides_from_protein(proteins, window_size, peptides=None):
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
 
-<<<<<<< HEAD
     :param Protein protein: (iterable of) protein(s) from which a list of unique
-=======
-    :param Protein proteins: (list of) protein(s) from which a list of unique
->>>>>>> requirenment file for readthedocs
                             peptides should be generated
     :param int window_size: size of peptide fragments
     :param list(Peptide) peptides: a list of peptides to update during peptide generation
