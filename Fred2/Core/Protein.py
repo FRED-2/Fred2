@@ -40,7 +40,7 @@ class Protein(MetadataLogger, Seq):
         :param str _transcript_id: ID of the transcript the protein originated 
                                    from
         :param Transcript _orig_transcript: Reference to the originating 
-                                            transcript
+                                            transcript object
         :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
                                               assoziated with the protein. 
                                               key=position within protein, 

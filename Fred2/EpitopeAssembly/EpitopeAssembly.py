@@ -30,18 +30,18 @@ from Fred2.EpitopePrediction.PSSM import APSSMEpitopePrediction
 class EpitopeAssembly(object):
     """
         Implements the epitope assembly approach proposed by Toussaint et al.
-        using proteasomal cleaveage site prediction and formulationg the problem as
+        using proteasomal cleavage site prediction and fformulatingthe problem as
         TSP.
 
         The ILP model is implemented. So be reasonable with the size of epitope to be arranged.
 
-        :param List(Peptide) peptides: A list of peptides which shell be arranged
+        :param list(Peptide) peptides: A list of peptides which shell be arranged
         :param ACleavageSitePredictor pred: A cleavage site predictor
-        :param str solver: specifies the solver to use (mused by callable by coopr)
-        :param float weight: specifies how strong unwanted cleavage sites should be punished [0,1],
+        :param str solver: Specifies the solver to use (mused by callable by coopr)
+        :param float weight: Specifies how strong unwanted cleavage sites should be punished [0,1],
                              where 0 means they will be ignored, and 1 the sum of all unwanted cleave sites is
                              subtracted from the cleave site between two epitopes
-        :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
+        :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
     def __init__(self, peptides, pred, solver="glpk", weight=0.0, matrix=None, verbosity=0):
@@ -145,6 +145,7 @@ class EpitopeAssembly(object):
         .. note::
 
             This can take quite long and should not be done for more and 30 epitopes max!
+
         :param str options: Solver specific options as string (will not be checked for correctness)
         :return: list(Peptide) - An order list of the peptides (based on the string-of-beads ordering)
         """
@@ -159,7 +160,7 @@ class EpitopeAssembly(object):
 
     def approximate(self):
         """
-        Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
+        Approximates the eptiope assembly problem by applying Lin-Kernighan traveling salesman heuristic
 
         .. note::
 
@@ -440,13 +441,13 @@ class EpitopeAssemblyWithSpacer(object):
         :param List(Allele) alleles: A list of alleles for which predictions should be made
         :param int k: The maximal length of a spacer
         :param int en: Length of epitopes
-        :param dict(str:float) threhsold: a dictionary specifying the epitope prediction threshold for each allele
-        :param str solver: specifies the solver to use (must be callable by coopr)
-        :param float alpha: specifies how how much junction-cleavage score can be sacrificed /
+        :param dict(str,float) threshold: A dictionary specifying the epitope prediction threshold for each allele
+        :param str solver: Specifies the solver to use (must be callable by coopr)
+        :param float alpha: Specifies how how much junction-cleavage score can be sacrificed /
                             to gain lower neo-immunogenicity
-        :param float beta: specifies how how much noe-immunogenicity score can be sacrificed /
+        :param float beta: Specifies how how much noe-immunogenicity score can be sacrificed /
                             to gain lower non-junction cleavage score
-        :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
+        :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
     def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", alpha=0.99,
@@ -525,7 +526,7 @@ class EpitopeAssemblyWithSpacer(object):
 
     def solve(self, start=0, threads=None, options=None):
         """
-        solve the epitope assembly problem with spacers optimally using integer linear programming.
+        Solve the epitope assembly problem with spacers optimally using integer linear programming.
 
         .. note::
 
@@ -535,8 +536,8 @@ class EpitopeAssemblyWithSpacer(object):
         :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
                 Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
-        :param dict(str:str) options: Solver specific options as keys and parameters as values
-        :return: list(Peptide) -- a list of ordered peptides
+        :param dict(str, str) options: Solver specific options as keys and parameters as values
+        :return: list(Peptide) - a list of ordered peptides
         """
         def __load_model(name, model):
             return getattr(__import__("Fred2.Data.pssms."+name+".mat."+model, fromlist=[model]), model)
@@ -611,12 +612,12 @@ class EpitopeAssemblyWithSpacer(object):
         :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
                 Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
-        :param str options: Solver specific options (threads for example)
+        :param dict(str, str) options: Solver specific options (threads for example)
         :return: list(Peptide) -- a list of ordered peptides
         """
         def __load_model(data, name, length):
             model = "%s_%s"%(name, str(length))
-            return getattr( __import__(data, fromlist=[model]), model)
+            return getattr(__import__(data, fromlist=[model]), model)
 
         options = dict() if options is None else options
         threads = mp.cpu_count() if threads is None else threads
@@ -636,9 +637,9 @@ class EpitopeAssemblyWithSpacer(object):
                 pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
                                     self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
                 allele_prob[a.name] = a.prob
-                for j,v in pssm.iteritems():
-                    for aa,score in  v.iteritems():
-                        epi_pssms[j,aa,a.name] = score
+                for j, v in pssm.iteritems():
+                    for aa, score in v.iteritems():
+                        epi_pssms[j, aa, a.name] = score
             except AttributeError:
                 #del self.__thresh[a.name]
                 continue
@@ -661,8 +662,8 @@ class EpitopeAssemblyWithSpacer(object):
         #print res
         #print "find best scoring spacer for each epitope pair"
         for ei, ej, score, epi, spacer, c1, c2, non_c in res:
-                if adj_matrix.get((ei, ej), inf) > -min(c1,c2):
-                    adj_matrix[(ei, ej)] = -min(c1,c2)
+                if adj_matrix.get((ei, ej), inf) > -min(c1, c2):
+                    adj_matrix[(ei, ej)] = -min(c1, c2)
                     opt_spacer[(ei, ej)] = spacer
 
         self.spacer = opt_spacer
