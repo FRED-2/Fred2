@@ -1,11 +1,13 @@
+=====
 Basic
 =====
 .. toctree::
     Fred2.Core
     Fred2.IO
 
+##########
 Prediction
-==========
+##########
 .. toctree::
     Fred2.CleavagePrediction
     Fred2.TAPPrediction
