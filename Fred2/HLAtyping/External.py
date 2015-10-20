@@ -122,7 +122,7 @@ class OptiType_1_0(AExternalHLATyping):
         Searches within the defined dir _file for the newest dir and reads
         the prediction file from there
 
-        :param str _output: the path to the output dir
+        :param str _output: The path to the output dir
         :return: list(Allele) - The predicted HLA genotype
         """
         all_subdirs = [os.path.join(_output,d) for d in os.listdir(_output) if os.path.isdir(os.path.join(_output,d))]
@@ -140,7 +140,7 @@ class OptiType_1_0(AExternalHLATyping):
         This could cause some terrible site effects if someone or something also writes in that directory!!
         OptiType should change the way it writes its output!
 
-        :param str _output: the path to the output file or directory of the programme
+        :param str _output: The path to the output file or directory of the programme
         """
         all_subdirs = [os.path.join(_output, d) for d in os.listdir(_output) if os.path.isdir(os.path.join(_output, d))]
         latest_subdir = max(all_subdirs, key=os.path.getmtime)
@@ -260,7 +260,7 @@ class ATHLATES_1_0(AExternalHLATyping):
         Searches within the defined dir _file for the newest dir and reads
         the prediction file from there
 
-        :param str _output: the path to the output dir
+        :param str _output: The path to the output dir
         :return: list(Allele) - The predicted HLA genotype
         """
         alleles = []
@@ -283,9 +283,9 @@ class ATHLATES_1_0(AExternalHLATyping):
 
     def clean_up(self, _output):
         """
-        deletes files created by ATHLATES within _output
+        Deletes files created by ATHLATES within _output
 
-        :param str _output: the path to the output file or directory of the programme
+        :param str _output: The path to the output file or directory of the programme
         """
         if os.path.isdir(_output):
             for f in os.listdir(_output):
@@ -333,7 +333,7 @@ class Polysolver(AExternalHLATyping):
         Searches within the defined dir _file for the newest dir and reads
         the prediction file from there
 
-        :param str _output: the path to the output dir
+        :param str _output: The path to the output dir
         :return: list(Allele) - The predicted HLA genotype
         """
         alleles = []
@@ -357,8 +357,8 @@ class Polysolver(AExternalHLATyping):
 
     def clean_up(self, _output):
         """
-        deletes files created by Polysolver within _output
+        Deletes files created by Polysolver within _output
 
-        :param str _output: the path to the output file or directory of the programme
+        :param str _output: The path to the output file or directory of the programme
         """
         os.remove(os.path.join(_output, "winner.hla.txt"))

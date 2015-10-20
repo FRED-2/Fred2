@@ -61,6 +61,7 @@ class SVMTAP(ASVMTAPPrediction):
     """
         Implements SVMTAP prediction of Doeness et al.
 
+
         An SVM method for prediction of TAP affinities.
         Doennes, P. and Kohlbacher, O.
         Integrated modeling of the major events in the MHC class I antigen processing pathway.
@@ -85,10 +86,10 @@ class SVMTAP(ASVMTAPPrediction):
 
     def encode(self, peptides):
         """
-        Here implements a binary sparse encoding of the peptide
+        Encodes the peptides with a binary sparse encoding
 
-        :param peptides:
-        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) -- dictionary with peptide
+        :param list(Peptide) peptides: A list of peptides
+        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) - dictionary with peptide
                  as key and feature encoding as value (see svmlight encoding scheme http://svmlight.joachims.org/)
         """
         AA = {'A': 1, 'C': 2, 'E': 4, 'D': 3, 'G': 6, 'F': 5, 'I': 8, 'H': 7, 'K': 9, 'M': 11, 'L': 10, 'N': 12,

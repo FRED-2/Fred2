@@ -38,11 +38,25 @@ from Fred2.Core.Result import EpitopePredictionResult
 
 class OptiTope(object):
     """
+    This class implements the epitope selection functionality
+    of OptiTope published by Toussaint et al. [1].
+
+    This module builds upon Pyomo, an embedded algebraic modeling
+    languages [2].
+
+    It allows to (de)select specific constraints of the underlying
+    ILP and to solve the specific problem with a MIP solver of choice
 
 
-            :param EpitopePredictionResult _result: Epitope prediction result object from which the epitope selection should be performed
-            :param int k : the number of epitopes to select
-            :param str solver : the solver to be used (default glpk)
+    [1] N. C. Toussaint and O. Kohlbacher. OptiTope--a web server for the selection of
+    an optimal set of peptides for epitope-based vaccines. Nucleic Acids Res,
+    2009, 37, W617-W622
+    [2] Pyomo - Optimization Modeling in Python. William E. Hart, Carl Laird,
+    Jean-Paul Watson and David L. Woodruff. Springer, 2012.
+
+    :param EpitopePredictionResult _result: Epitope prediction result object from which the epitope selection should be performed
+    :param int k: the number of epitopes to select
+    :param str solver: the solver to be used (default glpk)
     """
 
     def __init__(self, _results,  threshold=None, k=10, solver="glpk", verbosity=0):
@@ -209,26 +223,26 @@ class OptiTope(object):
 
     def set_k(self, k):
         """
-            sets the number of epitopes to select
+            Sets the number of epitopes to select
 
-            :param int k: the number of epitopes
-            :raises Exception: if the input variable is not in the same domain as the parameter
+            :param int k: The number of epitopes
+            :raise ValueError: If the input variable is not in the same domain as the parameter
         """
         tmp = self.instance.k.value
         try:
             getattr(self.instance, str(self.instance.k)).set_value(int(k))
             self.__changed = True
-        except:
+        except ValueError:
             self.__changed = False
             getattr(self.instance, str(self.instance.k)).set_value(int(tmp))
-            raise Exception('set_k', 'An error has occurred during setting parameter k. Please check if k is integer.')
+            raise ValueError('set_k', 'An error has occurred during setting parameter k. Please check if k is integer.')
 
     def activate_allele_coverage_const(self, minCoverage):
         """
-            enables the allele Coverage Constraint
+            Enables the allele coverage constraint
 
-            :param float minCoverage : percentage of alleles which have to be covered
-            :raises EpitopeSelectionException: if the input variable is not in the same domain as the parameter
+            :param float minCoverage: Percentage of alleles which have to be covered [0,1]
+            :raise ValueError: If the input variable is not in the same domain as the parameter
         """
         # parameter
         mc = self.instance.t_allele.value
@@ -243,17 +257,17 @@ class OptiTope(object):
             self.instance.IsAlleleCovConst.activate()
             self.instance.MinAlleleCovConst.activate()
             self.__changed = True
-        except:
+        except ValueError:
             getattr(self.instance, str(self.instance.t_allele)).set_value(mc)
             self.instance.t_allele.deactivate()
             self.__changed = False
-            raise Exception(
+            raise ValueError(
                 'activate_allele_coverage_const","An error occurred during activation of of the allele coverage constraint. ' +
                 'Please check your specified minimum coverage parameter to be in the range of 0.0 and 1.0.')
 
     def deactivate_allele_coverage_const(self):
         """
-            deactivates the allele coverage constraint
+            Deactivates the allele coverage constraint
         """
 
         # parameter
@@ -269,10 +283,10 @@ class OptiTope(object):
 
     def activate_antigen_coverage_const(self, t_var):
         """
-            activates the variation coverage constraint
+            Activates the variation coverage constraint
 
-            :param int t_var: the number of epitopes which have to come from each variation
-            :raises Exception: if the input variable is not in the same domain as the parameter
+            :param int t_var: The number of epitopes which have to come from each variation
+            :raise ValueError: If the input variable is not in the same domain as the parameter
 
         """
         tmp = self.instance.t_var.value
@@ -283,19 +297,19 @@ class OptiTope(object):
             self.instance.IsAntigenCovConst.activate()
             self.instance.MinAntigenCovConst.activate()
             self.__changed = True
-        except:
+        except ValueError:
             self.instance.t_var.deactivate()
             self.instance.z.deactivate()
             getattr(self.instance, str(self.instance.t_var)).set_value(int(tmp))
             self.instance.IsAntigenCovConst.deactivate()
             self.instance.MinAntigenCovConst.deactivate()
             self.__changed = False
-            raise Exception("activate_antigen_coverage_const",
+            raise ValueError("activate_antigen_coverage_const",
                             "An error has occurred during activation of the coverage constraint. Please make sure your input is an integer.")
 
     def deactivate_antigen_coverage_const(self):
         """
-            deactivates the variation coverage constraint
+            Deactivates the variation coverage constraint
         """
         self.__changed = True
         self.instance.z.activate()
@@ -305,12 +319,12 @@ class OptiTope(object):
 
     def activate_epitope_conservation_const(self, t_c, conservation=None):
         """
-            activates the epitope conservation constraint
+            Activates the epitope conservation constraint
 
-            :param float t_c: the percentage of conservation an epitope has to have [0.0,1.0].
-            :param: dict(Peptide:float) conservation: A dict with key=Peptide specifying a different conservation score
+            :param float t_c: The percentage of conservation an epitope has to have [0.0,1.0].
+            :param: dict(Peptide,float) Conservation: A dict with key=Peptide specifying a different conservation score
                                                     for each peptide
-            :raises ValueError: if the input variable is not in the same domain as the parameter
+            :raises ValueError: If the input variable is not in the same domain as the parameter
         """
         if t_c < 0 or t_c > 1:
             raise ValueError("activate_epitope_conservation_const",
@@ -331,7 +345,7 @@ class OptiTope(object):
 
     def deactivate_epitope_conservation_const(self):
         """
-            deactivates epitope conservation constraint
+            Deactivates epitope conservation constraint
         """
         self.__changed = True
         self.instance.c.deactivate()
@@ -340,16 +354,17 @@ class OptiTope(object):
 
     def solve(self, options=None):
         """
-            invokes the selected solver and solves the problem.
+            Invokes the selected solver and solves the problem.
 
             :param dict(str:str) options: A dictionary of solver specific options as keys and their parameters as values.
-            :return list(Peptide) -- returns the optimal epitopes as list of Peptide objectives
-            :raises EpitopeSelectionException: if the solver raised a problem or the solver is not accessible via the PATH environmental variable.
+            :return list(Peptide) - Returns the optimal epitopes as list of Peptide objectives
+            :raise RuntimeError: If the solver raised a problem or the solver is not accessible via the
+                                 PATH environmental variable.
         """
         options = dict() if options is None else options
 
         if self.__changed:
-            #try:
+            try:
 
                 res = self.__solver.solve(self.instance, options=options)
                 self.instance.solutions.load_from(res)
@@ -357,16 +372,15 @@ class OptiTope(object):
                     res.write(num=1)
 
                 if res.solver.termination_condition != TerminationCondition.optimal:
-                    raise ValueError("Could not solve problem - " + str(res.Solution.status) + ". Please check your settings")
+                    raise RuntimeError("Could not solve problem - " + str(res.Solution.status) + ". Please check your settings")
 
                 self.__result = [self.__peptideSet[x] for x in self.instance.x if self.instance.x[x].value == 1.0]
                 #self.__result.log_metadata("obj", res.Solution.Objective.Value)
 
                 self.__changed = False
                 return self.__result
-            #except Exception as e:
-            #    print str(e)
-            #    raise Exception("solve",
-            #                    "An Error has occurred during solving. Please check your settings and if the solver is registered in PATH environment variable.")
+            except Exception as e:
+                raise RuntimeError("solve",
+                                "An Error has occurred during solving. Please check your settings and if the solver is registered in PATH environment variable.")
         else:
             return self.__result

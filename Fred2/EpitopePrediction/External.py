@@ -4,7 +4,7 @@
 """
 .. module:: EpitopePrediction.ANN
    :synopsis: This module contains all classes for ANN-based epitope prediction methods.
-.. moduleauthor:: schubert,  walzer
+.. moduleauthor:: schubert, walzer
 
 """
 import abc
@@ -35,13 +35,13 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
     @abc.abstractmethod
     def prepare_input(self, _input, _file):
         """
-        Prepares  input for external tools
+        Prepares input for external tools
         and writes them to _file in the specific format
 
         NO return value!
 
-        :param: (list(str)) _input: the peptide sequences to write into _file
-        :param (File) _file: File handler to input file for external tool
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
         """
         return NotImplementedError
 
@@ -169,6 +169,13 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         Implements the NetMHC binding (in current form for netMHC3.4)
         Possibility could exist for function injection to support also older versions
 
+
+        NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides of length 8-11
+        Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M. Nucleic Acids Res. 1;36(Web Server issue):W509-12. 2008
+
+        Accurate approximation method for prediction of class I MHC affinities for peptides of length 8, 10 and 11 using prediction tools trained on 9mers.
+        Lundegaard C, Lund O, Nielsen M. Bioinformatics, 24(11):1397-98, 2008.
+
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16',
@@ -234,6 +241,13 @@ class NetMHC_3_4(AExternalEpitopePrediction):
 class NetMHC_3_0(NetMHC_3_4):
     """
     Implements the NetMHC binding (for netMHC3.0)
+
+
+    NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides of length 8-11
+    Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M. Nucleic Acids Res. 1;36(Web Server issue):W509-12. 2008
+
+    Accurate approximation method for prediction of class I MHC affinities for peptides of length 8, 10 and 11 using prediction tools trained on 9mers.
+    Lundegaard C, Lund O, Nielsen M. Bioinformatics, 24(11):1397-98, 2008.
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:04', 'A*02:06', 'A*02:11', 'A*02:12',
@@ -286,7 +300,6 @@ class NetMHC_3_0(NetMHC_3_4):
 class NetMHCpan_2_4(AExternalEpitopePrediction):
     """
         Implements the NetMHC binding (in current form for netMHCpan 2.4)
-
         Supported  MHC alleles currently only restricted to HLA alleles
 
 
@@ -1065,6 +1078,12 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
 class NetMHCII_2_2(AExternalEpitopePrediction):
     """
         Implements a wrapper for NetMHCII
+
+        Nielsen, M., & Lund, O. (2009). NN-align. An artificial neural network-based alignment algorithm for MHC class
+        II peptide binding prediction. BMC Bioinformatics, 10(1), 296.
+
+        Nielsen, M., Lundegaard, C., & Lund, O. (2007). Prediction of MHC class II binding affinity using SMM-align,
+        a novel stabilization matrix alignment method. BMC Bioinformatics, 8(1), 238.
     """
     __supported_length = frozenset([15])
     __name = "netmhcII"
@@ -1124,6 +1143,10 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
 class NetMHCIIpan_3_0(AExternalEpitopePrediction):
     """
         Implements a wrapper for NetMHCIIpan
+
+        Andreatta, M., Karosiene, E., Rasmussen, M., Stryhn, A., Buus, S., & Nielsen, M. (2015).
+        Accurate pan-specific prediction of peptide-MHC class II binding affinity with improved binding
+        core identification. Immunogenetics, 1-10.
     """
 
     __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])

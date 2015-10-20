@@ -25,13 +25,13 @@ from Fred2.Data.svms.unitope.UniTope_encodedAlleles import UniTope_encodedAllele
 
 class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
     """
-        implements default prediction routine for SVM based epitope prediction tools
+        Implements default prediction routine for SVM based epitope prediction tools
     """
 
     def predict(self, peptides, alleles=None, **kwargs):
 
         if isinstance(peptides, Peptide):
-            pep_seqs = {str(peptides):peptides}
+            pep_seqs = {str(peptides): peptides}
         else:
             if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
@@ -39,13 +39,13 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
 
         #group peptides by length and
         result = {}
@@ -147,9 +147,9 @@ class UniTope(ASVMEpitopePrediction):
     """
     Implements UniTope prediction for MHC-I
 
-    Feldhahn, M., Toussaint, N. C., Ziehm, M. anf Kohlbacher, O.
-    UniTope - Prediction of MHC Class I Binding Peptides for All MHC Alleles.
-    Submitted to Bioinformatics on 09-22-2007.
+    Toussaint, N. C., Feldhahn, M., Ziehm, M., Stevanovic, S., & Kohlbacher, O. (2011, August).
+    T-cell epitope prediction based on self-tolerance. In Proceedings of the 2nd ACM Conference on
+    Bioinformatics, Computational Biology and Biomedicine (pp. 584-588). ACM.
     """
 
     __name = "unitope"

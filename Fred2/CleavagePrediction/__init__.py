@@ -25,12 +25,10 @@ class CleavageSitePredictorFactory(object):
             type.__init__(cls, name, bases, nmspc)
 
         def __call__(self, _predictor, *args, **kwargs):
-            '''
-            just as I think it works.....
-
+            """
             If a third person wants to write a new Cleavage Site Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
-            '''
+            """
 
             version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
@@ -48,9 +46,9 @@ class CleavageSitePredictorFactory(object):
         """
         Returns a list of available cleavage site predictors
 
-        :return: list of cleavage site predictor represented as string
+        :return: dict(str,list(int)) - dict of cleavage site predictor represented as string and the supported versions
         """
-        return {k:sorted(versions.iterkeys()) for k,versions in ACleavageSitePrediction.registry.iteritems()}
+        return {k: sorted(versions.iterkeys()) for k, versions in ACleavageSitePrediction.registry.iteritems()}
 
 
 class CleavageFragmentPredictorFactory(object):
@@ -59,12 +57,10 @@ class CleavageFragmentPredictorFactory(object):
             type.__init__(cls, name, bases, nmspc)
 
         def __call__(self, _predictor, *args, **kwargs):
-            '''
-            just as I think it works.....
-
+            """
             If a third person wants to write a new Cleavage Fragment Predictor. One has to name the file fred_plugin and
-            inherit from ACleavagePrediction. That's it nothing more.
-            '''
+            inherit from CleavageFragmentPredictorFactory. That's it nothing more.
+            """
 
             version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
@@ -80,8 +76,8 @@ class CleavageFragmentPredictorFactory(object):
     @staticmethod
     def available_methods():
         """
-        Returns a list of available cleavage fragment predictors
+        Returns a list of available cleavage site predictors
 
-        :return: list of cleavage fragment predictors represented as string
+        :return: dict(str,list(str)) - dict of cleavage site predictor represented as string and the supported versions
         """
-        return {k:sorted(versions.iterkeys()) for k,versions in ACleavageFragmentPrediction.registry.iteritems()}
+        return {k: sorted(versions.iterkeys()) for k, versions in ACleavageFragmentPrediction.registry.iteritems()}

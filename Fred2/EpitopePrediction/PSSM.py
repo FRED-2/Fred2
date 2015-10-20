@@ -33,9 +33,9 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         are made.
 
         :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :param list(Alleles) alleles: a list of Alleles
+        :param list(Alleles) alleles: A list of Alleles
         :param kwargs: optional parameter (not used yet)
-        :return: Returns a AResult object with the prediction results
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
         """
         def __load_allele_model(allele,length):
             allele_model = "%s_%i"%(allele, length)
@@ -94,6 +94,10 @@ class APSSMEpitopePrediction(AEpitopePrediction):
 class Syfpeithi(APSSMEpitopePrediction):
     """
         Represents the Syfpeithi PSSM predictor
+
+
+        Rammensee, H. G., Bachmann, J., Emmerich, N. P. N., Bachor, O. A., & Stevanovic, S. (1999).
+        SYFPEITHI: database for MHC ligands and peptide motifs. Immunogenetics, 50(3-4), 213-219.
     """
     __alleles = frozenset(['B*15:10', 'B*41:01', 'B*37:01', 'B*27:05', 'B*38:01', 'A*02:01', 'B*47:01', 'A*26:01',
                            'B*37:01', 'DRB1*11:01', 'B*50:01', 'B*07:02', 'A*68:01', 'A*24:02', 'DRB1*15:01', 'B*15:01',
@@ -231,6 +235,9 @@ class SMM(APSSMEpitopePrediction):
     """
     Implements IEDBs SMM PSSM method
 
+
+    Peters B, Sette A. 2005. Generating quantitative models describing the sequence specificity of
+    biological processes with the stabilized matrix method. BMC Bioinformatics 6:132.
     """
 
     __alleles = frozenset(['B*27:20', 'B*83:01', 'A*32:15', 'B*15:17', 'B*40:13', 'A*24:02', 'A*24:03', 'B*53:01', 'B*15:01',
@@ -275,6 +282,10 @@ class SMM(APSSMEpitopePrediction):
 class SMMPMBEC(APSSMEpitopePrediction):
     """
     Implements IEDBs SMMPMBEC PSSM method
+
+
+    Kim, Y., Sidney, J., Pinilla, C., Sette, A., & Peters, B. (2009). Derivation of an amino acid similarity matrix for
+    peptide: MHC binding and its application as a Bayesian prior. BMC Bioinformatics, 10(1), 394.
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:17',
@@ -362,9 +373,8 @@ class ARB(APSSMEpitopePrediction):
         are made.
 
         :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :param list(Alleles) alleles: a list of Alleles
-        :param kwargs: optional parameter (not used yet)
-        :return: Returns a AResult object with the prediction results
+        :param list(Alleles) alleles: A list of Alleles
+        :return: EpitopePredictionResult - Returns a EpitopePredictionResult object with the prediction results
         """
         def __load_allele_model(allele, length):
             allele_model = "%s_%i"%(allele, length)
@@ -431,6 +441,11 @@ class ARB(APSSMEpitopePrediction):
 class ComblibSidney2008(APSSMEpitopePrediction):
     """
     Implements IEDBs Comblib_Sidney2008 PSSM method
+
+
+    Sidney J, Assarsson E, Moore C, Ngo S, Pinilla C, Sette A, Peters B. 2008. Quantitative peptide binding motifs for
+    19 human and mouse MHC class I molecules derived using positional scanning combinatorial peptide libraries.
+    Immunome Res 4:2.
     """
 
     __alleles = frozenset(['B*35:01', 'B*51:01', 'B*54:01', 'B*58:02', 'A*02:01', 'A*68:02', 'B*27:05', 'B*08:01', 'B*07:02',
@@ -469,8 +484,11 @@ class ComblibSidney2008(APSSMEpitopePrediction):
 class TEPITOPEpan(APSSMEpitopePrediction):
     """
     Implements TEPITOPEpan
+
+
     TEPITOPEpan: Extending TEPITOPE for Peptide Binding Prediction Covering over 700 HLA-DR Molecules
-                Lianming Zhang , Yiqing Chen , Hau-San Wong, Shuigeng Zhou, Hiroshi Mamitsuka, Shanfeng Zhu
+    Zhang L, Chen Y, Wong H-S, Zhou S, Mamitsuka H, et al. (2012) TEPITOPEpan: Extending TEPITOPE
+    for Peptide Binding Prediction Covering over 700 HLA-DR Molecules. PLoS ONE 7(2): e30483.
     """
 
     __alleles = frozenset(['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',

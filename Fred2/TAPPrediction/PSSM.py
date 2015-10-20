@@ -54,9 +54,10 @@ class TAPDoytchinova(APSSMTAPPrediction):
     """
         Implements the TAP prediction model from Doytchinova
 
+
         Doytchinova, I., Hemsley, S. and Flower, D. R.
-        Transporter associated with antigen processing preselection of peptides binding to the MHC: a bioinformatic evaluation.
-        J Immunol, 2004, 173, 6813-6819
+        Transporter associated with antigen processing preselection of peptides binding to the MHC: a bioinformatic
+        evaluation. J. Immunol, 2004, 173, 6813-6819
     """
 
     __name = "doytchinova"
@@ -78,7 +79,9 @@ class TAPDoytchinova(APSSMTAPPrediction):
 
 class SMMTAP(APSSMTAPPrediction):
     """
-        Implementation of
+        Implementation of SMMTAP
+
+
         Peters, B., Bulik, S., Tampe, R., Van Endert, P. M., & Holzhuetter, H. G. (2003). Identifying MHC class I
         epitopes by predicting the TAP transport efficiency of epitope precursors. The Journal of Immunology,
         171(4), 1741-1749.
