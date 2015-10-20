@@ -11,8 +11,33 @@ Contents:
 .. toctree::
    :maxdepth: 4
 
-   Fred2
+Basic
+=====
+.. toctree::
+   :maxdepth: 4
+    Fred2.Core
+    Fred2.IO
 
+Prediction
+==========
+.. toctree::
+   :maxdepth: 4
+    Fred2.CleavagePrediction
+    Fred2.TAPPrediction
+    Fred2.EpitopePrediction
+
+Vaccine Design
+==============
+.. toctree::
+   :maxdepth: 4
+    Fred2.EpitopeSelection
+    Fred2.EpitopeAssembly
+
+HLA Typing
+==========
+.. toctree::
+   :maxdepth: 4
+    Fred2.HLATyping
 
 Indices and tables
 ==================
