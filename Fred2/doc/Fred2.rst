@@ -1,24 +1,27 @@
-Fred2 package
-=============
-
+Basic
+=====
 .. toctree::
-
-Core
-----
     Fred2.Core
+    Fred2.IO
 
 Prediction
-----------
+==========
+.. toctree::
     Fred2.CleavagePrediction
     Fred2.TAPPrediction
     Fred2.EpitopePrediction
-Extensions
-----------
+
+Vaccine Design
+==============
+.. toctree::
     Fred2.EpitopeSelection
     Fred2.EpitopeAssembly
+
+HLA Typing
+==========
+.. toctree::
     Fred2.HLATyping
-IO
---
-    Fred2.IO
+
+
 
 
