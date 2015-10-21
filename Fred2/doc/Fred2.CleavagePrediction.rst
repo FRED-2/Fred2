@@ -9,6 +9,7 @@ CleavagePrediction.External
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 CleavagePrediction.PSSM
 -----------------------
@@ -17,7 +18,7 @@ CleavagePrediction.PSSM
     :members:
     :undoc-members:
     :show-inheritance:
-
+    :inherited-members:
 
 Module contents
 ---------------
@@ -26,3 +27,4 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

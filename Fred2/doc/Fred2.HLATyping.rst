@@ -9,4 +9,4 @@ HLAtyping.External
     :members:
     :undoc-members:
     :show-inheritance:
-
+    :inherited-members:

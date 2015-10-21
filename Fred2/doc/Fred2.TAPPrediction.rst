@@ -9,6 +9,7 @@ TAPPrediction.PSSM
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 TAPPrediction.SVM
 -----------------
@@ -17,6 +18,7 @@ TAPPrediction.SVM
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 
 Module contents
@@ -26,3 +28,4 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

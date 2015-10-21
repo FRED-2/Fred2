@@ -9,6 +9,7 @@ EpitopePrediction.External
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 EpitopePrediction.PSSM
 ----------------------
@@ -17,6 +18,7 @@ EpitopePrediction.PSSM
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 EpitopePrediction.SVM
 ---------------------
@@ -25,7 +27,7 @@ EpitopePrediction.SVM
     :members:
     :undoc-members:
     :show-inheritance:
-
+    :inherited-members:
 
 Module contents
 ---------------
@@ -33,4 +35,6 @@ Module contents
 .. automodule:: Fred2.EpitopePrediction
     :members:
     :undoc-members:
+    :undoc-members:
     :show-inheritance:
+    :inherited-members:

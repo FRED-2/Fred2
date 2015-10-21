@@ -22,9 +22,7 @@ from Fred2.Core.Base import AEpitopePrediction
 class APSSMEpitopePrediction(AEpitopePrediction):
     """
         Abstract base class for PSSM predictions.
-
         Implements predict functionality
-
     """
 
     def predict(self, peptides, alleles=None, **kwargs):
@@ -33,9 +31,9 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         are made.
 
         :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :param list(Alleles) alleles: a list of Alleles
+        :param list(Alleles) alleles: A list of Alleles
         :param kwargs: optional parameter (not used yet)
-        :return: Returns a AResult object with the prediction results
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
         """
         def __load_allele_model(allele,length):
             allele_model = "%s_%i"%(allele, length)
@@ -93,7 +91,12 @@ class APSSMEpitopePrediction(AEpitopePrediction):
 
 class Syfpeithi(APSSMEpitopePrediction):
     """
-        Represents the Syfpeithi PSSM predictor
+    Represents the Syfpeithi PSSM predictor.
+
+    .. note::
+
+        Rammensee, H. G., Bachmann, J., Emmerich, N. P. N., Bachor, O. A., & Stevanovic, S. (1999).
+        SYFPEITHI: database for MHC ligands and peptide motifs. Immunogenetics, 50(3-4), 213-219.
     """
     __alleles = frozenset(['B*15:10', 'B*41:01', 'B*37:01', 'B*27:05', 'B*38:01', 'A*02:01', 'B*47:01', 'A*26:01',
                            'B*37:01', 'DRB1*11:01', 'B*50:01', 'B*07:02', 'A*68:01', 'A*24:02', 'DRB1*15:01', 'B*15:01',
@@ -105,27 +108,48 @@ class Syfpeithi(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
 
 class BIMAS(APSSMEpitopePrediction):
     """
-        Represents the BIMAS PSSM predictor
+    Represents the BIMAS PSSM predictor.
+
+    .. note::
+
+        Parker, K.C., Bednarek, M.A. and Coligan, J.E. Scheme for ranking potential HLA-A2 binding peptides based on
+        independent binding of individual peptide side-chains. The Journal of Immunology 1994;152(1):163-175.
     """
 
     __alleles = frozenset(['B*04:01', 'A*31:01', 'B*58:01', 'C*06:02', 'A*03:01', 'B*35:01',
@@ -141,31 +165,62 @@ class BIMAS(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :param list(Alleles) alleles: A list of Alleles
+        :param kwargs: optional parameter (not used yet)
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
+        """
         return EpitopePredictionResult(
             super(BIMAS, self).predict(peptides, alleles=alleles,
                                        **kwargs).applymap(lambda x: math.pow(math.e, x)))
 
 
 class Epidemix(APSSMEpitopePrediction):
+    """
+    Represents the Epidemix PSSM predictor.
+
+    .. note::
+
+        Feldhahn, M., et al. FRED-a framework for T-cell epitope detection. Bioinformatics 2009;25(20):2758-2759.
+    """
     __alleles = frozenset(['B*27', 'A*11:01', 'B*27:05', 'B*07', 'B*27', 'A*01', 'B*44', 'A*03',
                  'A*25', 'B*37:01', 'A*02:01', 'A*02:01', 'B*18:01', 'B*18:01', 'A*03',
                  'A*24', 'A*25', 'A*02:01', 'A*11:01', 'A*24:02', 'B*08', 'B*08',
@@ -176,25 +231,49 @@ class Epidemix(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
 
 class Hammer(APSSMEpitopePrediction):
+    """
+    Represents the virtual pockets approach by Sturniolo et al.
+
+    .. note::
+
+        Sturniolo, T., et al. Generation of tissue-specific and promiscuous HLA ligand databases using DNA microarrays
+        and virtual HLA class II matrices. Nature biotechnology 1999;17(6):555-561.
+    """
     __alleles = frozenset(['DRB1*07:03', 'DRB1*07:01', 'DRB1*11:28', 'DRB1*11:21', 'DRB1*11:20', 'DRB1*04:26', 'DRB1*04:23',
                  'DRB1*04:21', 'DRB5*01:05:', 'DRB1*08:17', 'DRB1*13:05', 'DRB1*13:04', 'DRB1*13:07', 'DRB1*13:01',
                  'DRB1*13:02', 'DRB1*08:04', 'DRB1*08:06', 'DRB1*08:01', 'DRB1*01:01', 'DRB1*01:02', 'DRB1*08:02',
@@ -209,28 +288,48 @@ class Hammer(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
 
 class SMM(APSSMEpitopePrediction):
     """
-    Implements IEDBs SMM PSSM method
+    Implements IEDBs SMM PSSM method.
 
+    .. note::
+
+        Peters B, Sette A. 2005. Generating quantitative models describing the sequence specificity of
+        biological processes with the stabilized matrix method. BMC Bioinformatics 6:132.
     """
 
     __alleles = frozenset(['B*27:20', 'B*83:01', 'A*32:15', 'B*15:17', 'B*40:13', 'A*24:02', 'A*24:03', 'B*53:01', 'B*15:01',
@@ -248,33 +347,61 @@ class SMM(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s_%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
-        #In IEDB scripts score is taken to the base 10**score
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :param list(Alleles) alleles: A list of Alleles
+        :param kwargs: optional parameter (not used yet)
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
+        """
         return EpitopePredictionResult(
             super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
 
 
 class SMMPMBEC(APSSMEpitopePrediction):
     """
-    Implements IEDBs SMMPMBEC PSSM method
+    Implements IEDBs SMMPMBEC PSSM method.
+
+    .. note::
+
+        Kim, Y., Sidney, J., Pinilla, C., Sette, A., & Peters, B. (2009). Derivation of an amino acid similarity matrix for
+        peptide: MHC binding and its application as a Bayesian prior. BMC Bioinformatics, 10(1), 394.
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:17',
@@ -293,37 +420,62 @@ class SMMPMBEC(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s_%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
-        #In IEDB scripts score is taken to the base 10**score
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :param list(Alleles) alleles: A list of Alleles
+        :param kwargs: optional parameter (not used yet)
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
+        """
         return EpitopePredictionResult(
             super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
 
 
 class ARB(APSSMEpitopePrediction):
     """
-    Implements IEDBs ARB method
+    Implements IEDBs ARB method.
 
-    Bui HH, Sidney J, Peters B, Sathiamurthy M, Sinichi A, Purton KA, Mothe BR, Chisari FV, Watkins DI, Sette A.
-    2005. Automated generation and evaluation of specific MHC binding predictive tools: ARB matrix applications.
-    Immunogenetics 57:304-314.
+    .. note::
+
+        Bui HH, Sidney J, Peters B, Sathiamurthy M, Sinichi A, Purton KA, Mothe BR, Chisari FV, Watkins DI, Sette A.
+        2005. Automated generation and evaluation of specific MHC binding predictive tools: ARB matrix applications.
+        Immunogenetics 57:304-314.
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:06', 'A*02:11', 'A*02:12', 'A*02:16', 'A*02:19',
@@ -339,21 +491,37 @@ class ARB(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
@@ -362,9 +530,8 @@ class ARB(APSSMEpitopePrediction):
         are made.
 
         :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :param list(Alleles) alleles: a list of Alleles
-        :param kwargs: optional parameter (not used yet)
-        :return: Returns a AResult object with the prediction results
+        :param list(Alleles) alleles: A list of Alleles
+        :return: EpitopePredictionResult - Returns a EpitopePredictionResult object with the prediction results
         """
         def __load_allele_model(allele, length):
             allele_model = "%s_%i"%(allele, length)
@@ -430,7 +597,13 @@ class ARB(APSSMEpitopePrediction):
 
 class ComblibSidney2008(APSSMEpitopePrediction):
     """
-    Implements IEDBs Comblib_Sidney2008 PSSM method
+    Implements IEDBs Comblib_Sidney2008 PSSM method.
+
+    .. note::
+
+        Sidney J, Assarsson E, Moore C, Ngo S, Pinilla C, Sette A, Peters B. 2008. Quantitative peptide binding motifs
+        for 19 human and mouse MHC class I molecules derived using positional scanning combinatorial peptide libraries.
+        Immunome Res 4:2.
     """
 
     __alleles = frozenset(['B*35:01', 'B*51:01', 'B*54:01', 'B*58:02', 'A*02:01', 'A*68:02', 'B*27:05', 'B*08:01', 'B*07:02',
@@ -441,26 +614,49 @@ class ComblibSidney2008(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
-        #with this implementation customizations of prediction algorithm is still possible
-        #In IEDB scripts score is taken to the base 10**score
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :param list(Alleles) alleles: A list of Alleles
+        :param kwargs: optional parameter (not used yet)
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
+        """
         return EpitopePredictionResult(
             super(ComblibSidney2008, self).predict(peptides,
                                                       alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
@@ -468,9 +664,13 @@ class ComblibSidney2008(APSSMEpitopePrediction):
 
 class TEPITOPEpan(APSSMEpitopePrediction):
     """
-    Implements TEPITOPEpan
-    TEPITOPEpan: Extending TEPITOPE for Peptide Binding Prediction Covering over 700 HLA-DR Molecules
-                Lianming Zhang , Yiqing Chen , Hau-San Wong, Shuigeng Zhou, Hiroshi Mamitsuka, Shanfeng Zhu
+    Implements TEPITOPEpan.
+
+    .. note::
+
+        TEPITOPEpan: Extending TEPITOPE for Peptide Binding Prediction Covering over 700 HLA-DR Molecules
+        Zhang L, Chen Y, Wong H-S, Zhou S, Mamitsuka H, et al. (2012) TEPITOPEpan: Extending TEPITOPE
+        for Peptide Binding Prediction Covering over 700 HLA-DR Molecules. PLoS ONE 7(2): e30483.
     """
 
     __alleles = frozenset(['DRB1*01:01', 'DRB1*01:02', 'DRB1*01:03', 'DRB1*01:04', 'DRB1*01:05', 'DRB1*01:06', 'DRB1*01:07',
@@ -584,19 +784,35 @@ class TEPITOPEpan(APSSMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]

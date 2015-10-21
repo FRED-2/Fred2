@@ -29,12 +29,12 @@ class MutationSyntax():
     This class represents the mutation syntax of a variant and stores its 
     transcript and protein position
 
-    :param str transID: the transcript id
-    :param int transPos: the position of the variant within the transcript
-    :param int protPos: the protein position of the variant within the 
+    :param str transID: The transcript id
+    :param int transPos: The position of the variant within the transcript
+    :param int protPos: The protein position of the variant within the
                         transcript
-    :param str cds: the complete cds_mutation_syntax string
-    :param str aas: the complete protein_mutation_syntax string
+    :param str cds: The complete cds_mutation_syntax string
+    :param str aas: The complete protein_mutation_syntax string
     """
     def __init__(self, transID, transPos, protPos, cds, aas):
         #TODO: is protPos always given? what about synonymous variants?
@@ -60,14 +60,14 @@ class Variant(MetadataLogger):
     :param dict(str,MutationSyntax) coding: A dictionary of associated 
                                             transcripts. Key=transcript_id, 
                                             value=MutationSyntax
-    :param bool isHomozygous: defines if variant is homozygous or not
-    :param bool isSynonymous: defines if variant is a synonymous mutation 
+    :param bool isHomozygous: Defines if variant is homozygous or not
+    :param bool isSynonymous: Defines if variant is a synonymous mutation
                               or not
-    :param dict(str,int) offsets: the position offset this variant has in a 
+    :param dict(str,int) offsets: The position offset this variant has in a
                                   specific transcript-variant
                                   key=transcript-variant-id (xxx:FRED2_nn)
                                   value=offset
-    :param defaultdict(list) metadata: meta information (not relevant for core
+    :param dict(list) metadata: meta information (not relevant for core
                                        functionality of Fred2)
 
     """
@@ -98,17 +98,28 @@ class Variant(MetadataLogger):
             if self.experimentalDesign else "Variant(g.%i%s>%s)" % (self.genomePos, self.ref, self.obs)
 
     def get_transcript_offset(self):
+        """
+        Returns the sequence offset caused by the mutation
+
+        :return: int - The sequence offset
+        """
         return len(self.obs) - len(self.ref)
 
     def get_shift(self):
+        """
+        Returns the frameshift offset caused by the mutation in {0,1,2}
+
+        :return: int - The frameshift caused by mutation
+        """
         return self.get_transcript_offset() % 3
 
     def get_annotated_transcript_pos(self, transID):
         """
-        returns the annotated transcript position
-        :param (str) transID: the transcript ID of interest
-        :return: int - the annotated transcript position of the given transcript ID
-        :raise KeyError: if variant is not annotated to the given transcript ID
+        Returns the annotated transcript position
+
+        :param (str) transID: The transcript ID of interest
+        :return: int - The annotated transcript position of the given transcript ID
+        :raise KeyError: If variant is not annotated to the given transcript ID
         """
         trID = transID.split(":FRED_")[0]
         try:
@@ -118,10 +129,11 @@ class Variant(MetadataLogger):
 
     def get_annotated_protein_pos(self, transID):
         """
-        returns the annotated protein position
-        :param (str) transID: the transcript ID of interest
-        :return: int - the annotated protein position of the given transcript ID
-        :raise KeyError: if variant is not annotated to the given transcript ID
+        Returns the annotated protein position
+
+        :param (str) transID: The transcript ID of interest
+        :return: int - The annotated protein position of the given transcript ID
+        :raise KeyError: If variant is not annotated to the given transcript ID
         """
         trID = transID.split(":FRED_")[0]
         try:

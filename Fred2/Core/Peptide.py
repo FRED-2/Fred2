@@ -22,8 +22,8 @@ class Peptide(MetadataLogger, Seq):
 
     def __init__(self, _seq, protein_pos=None):
         """
-        :param str _seq: sequence of the peptide in one letter amino acid code
-        :param dict(Protein,list(int)) protein_pos: dict of transcript_IDs to position of origin in protein
+        :param str _seq: Sequence of the peptide in one letter amino acid code
+        :param dict(Protein,list(int)) protein_pos: Dict of transcript_IDs to position of origin in protein
 
         """
         MetadataLogger.__init__(self)
@@ -43,7 +43,7 @@ class Peptide(MetadataLogger, Seq):
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        Returns a single letter or a sliced Peptide with.
+        Returns a single letter or a sliced Peptide.
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position in the peptide sequence
@@ -78,16 +78,38 @@ class Peptide(MetadataLogger, Seq):
         return '\n'.join(lines)
 
     def get_all_proteins(self):
+        """
+        Returns all protein objects associated with the peptide
+
+        :return: list(Protein) - A list of Proteins
+        """
         return self.proteins.values()
 
     def get_protein(self, _transcript_id):
+        """
+        Returns a specific protein object identified by a unique transcript-ID
+
+        :param str _transcript_id: A transcript ID
+        :return: Protein - A Protein
+        """
         #Default return value None if peptide does not origin from protein?
         return self.proteins.get(_transcript_id, None)
 
     def get_all_transcripts(self):
+        """
+        Returns a list of transcript objects that are associated with the peptide
+
+        :return: list(Transcript) - A list of Transcripts
+        """
         return [p.orig_transcript for p in self.proteins.itervalues()]
 
     def get_transcript(self, _transcript_id):
+        """
+        Returns a specific transcript object identified by a unique transcript-ID
+
+        :param str _transcript_id: A transcript ID
+        :return: Transcript - A Transcript
+        """
         try:
             return self.proteins[_transcript_id].orig_transcript
         except KeyError:
@@ -95,20 +117,21 @@ class Peptide(MetadataLogger, Seq):
 
     def get_protein_positions(self, _transcript_id):
         """
-        returns all positions of origin for a given protein
+        Returns all positions of origin for a given protein
         identified by its transcript_id
 
-        :param (str) _transcript_id: The unique transcript ID of the protein in question
-        :return: list(int) - a list of positions within the protein from which the peptide originated (starts at 0)
+        :param str _transcript_id: The unique transcript ID of the protein in question
+        :return: list(int) - A list of positions within the protein from which the peptide originated (starts at 0)
         """
         return self.proteinPos.get(_transcript_id, [])
 
     def get_variants_by_protein(self, _transcript_id):
         """
-        returns all variants of a protein that have influenced the peptide sequence
+        Returns all variants of a protein that have influenced the peptide sequence
 
-        :param _transcript_id: Transcript ID of the specific protein in question
+        :param str _transcript_id: Transcript ID of the specific protein in question
         :return: list(Variant) - A list variants that influenced the peptide sequence
+        :raise KeyError: If peptide does not originate from specified protein
         """
         try:
             p = self.proteins[_transcript_id]
@@ -135,13 +158,16 @@ class Peptide(MetadataLogger, Seq):
 
     def get_variants_by_protein_position(self, _transcript_id, _protein_pos):
         """
-        returns all variants and their relative position to the peptide sequence of a given protein
+        Returns all variants and their relative position to the peptide sequence of a given protein
         and protein protein position
 
-        :param _transcript_id:
-        :param _protein_pos:
-        :return: dict(int,list(Vars)) - dictionary of relative position of variants in peptide (starts at 0)
+        :param str _transcript_id: A transcript ID of the specific protein in question
+        :param int _protein_pos: The protein position at which the peptides sequence starts in the protein
+        :return: dict(int,list(Vars)) - Dictionary of relative position of variants in peptide (starts at 0)
                                         and associated variants that influenced the peptide sequence
+        :raises:
+         :ValueError: If peptides does not start at specified position
+         :KeyError: If peptide does not originate from specified protein
         """
         try:
             p = self.proteins[_transcript_id]

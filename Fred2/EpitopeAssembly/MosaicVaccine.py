@@ -19,6 +19,7 @@ WHILE convergence is not reached DO:
           s_best = s
   III: Diversification(s) to escape local maxima
 END
+
 .. moduleauthor:: schubert
 
 """

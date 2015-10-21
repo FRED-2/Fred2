@@ -8,6 +8,7 @@ IO.ADBAdapter
 .. automodule:: Fred2.IO.ADBAdapter
     :members:
     :undoc-members:
+    :undoc-members:
     :show-inheritance:
 
 IO.EnsemblAdapter
@@ -15,6 +16,7 @@ IO.EnsemblAdapter
 
 .. automodule:: Fred2.IO.EnsemblAdapter
     :members:
+    :undoc-members:
     :undoc-members:
     :show-inheritance:
 
@@ -25,6 +27,7 @@ IO.FileReader
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 IO.MartsAdapter
 ---------------
@@ -33,6 +36,7 @@ IO.MartsAdapter
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 IO.RefSeqAdapter
 ----------------
@@ -41,6 +45,7 @@ IO.RefSeqAdapter
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 IO.UniProtAdapter
 -----------------
@@ -49,3 +54,4 @@ IO.UniProtAdapter
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

@@ -23,8 +23,6 @@ class TAPPredictorFactory(object):
 
         def __call__(self, _predictor, *args, **kwargs):
             '''
-            just as I think it works.....
-
             If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
             inherit from AEpitopePrediction. That's it nothing more.
             '''
@@ -43,8 +41,8 @@ class TAPPredictorFactory(object):
     @staticmethod
     def available_methods():
         """
-        Returns a list of available TAP predictors
+        Returns a dictionary of available TAP predictors and the supported versions
 
-        :return: list of TAP predictors represented as string
+        :return: dict(str, list(str)) - A dictionary of TAP predictors represented as string and supported versions
         """
         return {k:sorted(versions.iterkeys()) for k,versions in ATAPPrediction.registry.iteritems()}

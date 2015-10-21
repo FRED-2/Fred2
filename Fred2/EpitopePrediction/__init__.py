@@ -26,8 +26,6 @@ class EpitopePredictorFactory(object):
 
         def __call__(self, _predictor, *args, **kwargs):
             '''
-            just as I think it works.....
-
             If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
             inherit from AEpitopePrediction. That's it nothing more.
             '''
@@ -46,8 +44,9 @@ class EpitopePredictorFactory(object):
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a dictionary of available epitope predictors and their supported versions
 
-        :return: list of epitope predictors represented as string
+        :return: dict(str,list(str) - dictionary of epitope predictors represented as string and a list of supported
+                                      versions
         """
-        return {k:sorted(versions.iterkeys()) for k,versions in AEpitopePrediction.registry.iteritems() }
+        return {k: sorted(versions.iterkeys()) for k, versions in AEpitopePrediction.registry.iteritems()}

@@ -17,21 +17,30 @@ from Fred2.Core.Result import TAPPredictionResult
 
 
 class APSSMTAPPrediction(ATAPPrediction):
+    """
+        Abstract base class for PSSM predictions.
+        Implements predict functionality
+    """
 
     def predict(self, peptides, **kwargs):
+        """
+        Returns predictions for given peptides.
 
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
             return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+model, fromlist=[model]), model)
 
         if isinstance(peptides, Peptide):
-            pep_seqs = {str(peptides):peptides}
+            pep_seqs = {str(peptides): peptides}
         else:
             if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {str(p): p for p in peptides}
 
-        result = {self.name:{}}
+        result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             try:
                 pssm = __load_model(length)
@@ -52,11 +61,13 @@ class APSSMTAPPrediction(ATAPPrediction):
 
 class TAPDoytchinova(APSSMTAPPrediction):
     """
-        Implements the TAP prediction model from Doytchinova
+    Implements the TAP prediction model from Doytchinova.
+
+    .. note::
 
         Doytchinova, I., Hemsley, S. and Flower, D. R.
-        Transporter associated with antigen processing preselection of peptides binding to the MHC: a bioinformatic evaluation.
-        J Immunol, 2004, 173, 6813-6819
+        Transporter associated with antigen processing preselection of peptides binding to the MHC: a bioinformatic
+        evaluation. J. Immunol, 2004, 173, 6813-6819
     """
 
     __name = "doytchinova"
@@ -65,20 +76,27 @@ class TAPDoytchinova(APSSMTAPPrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__supported_length
 
 
 class SMMTAP(APSSMTAPPrediction):
     """
-        Implementation of
+    Implementation of SMMTAP.
+
+    .. note::
+
+
         Peters, B., Bulik, S., Tampe, R., Van Endert, P. M., & Holzhuetter, H. G. (2003). Identifying MHC class I
         epitopes by predicting the TAP transport efficiency of epitope precursors. The Journal of Immunology,
         171(4), 1741-1749.
@@ -89,30 +107,38 @@ class SMMTAP(APSSMTAPPrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__supported_length
 
     def predict(self, peptides, **kwargs):
+        """
+        Returns predictions for given peptides.
 
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
             return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+model, fromlist=[model]), model)
 
         if isinstance(peptides, Peptide):
-            pep_seqs = {str(peptides):peptides}
+            pep_seqs = {str(peptides): peptides}
         else:
             if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {str(p): p for p in peptides}
 
-        result = {self.name:{}}
+        result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
             if length < 9:
                 warnings.warn("No model found for %s with length %i"%(self.name, length))

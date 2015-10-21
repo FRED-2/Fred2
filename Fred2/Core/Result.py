@@ -26,10 +26,11 @@ class AResult(pandas.DataFrame):
     @abc.abstractmethod
     def filter_result(self, expression):
         """
-        filter result based on a list of expressions
+        Filter result based on a list of expressions
 
-        :param expression: list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: AResult
+        :param list((str,comparator,float)) expressions: A list of triples consisting of
+                                                        (method_name, comparator, threshold)
+        :return: AResult - A new filtered AResult object
         """
         raise NotImplementedError()
 
@@ -38,8 +39,8 @@ class AResult(pandas.DataFrame):
         """
         Merges results of the same type and returns a merged result
 
-        :param AResult other:
-        :return:
+        :param AResult other: Another AResult object of the same class
+        :return: AResult - A new merged AResult object
         """
         raise NotImplementedError()
 
@@ -48,19 +49,32 @@ class EpitopePredictionResult(AResult):
     """
         A AResult object is a DataFrame with with multi-indexing, where column Id are the prediction model (i.e HLA allele
         for epitope prediction), row ID the target of the prediction (i.e. peptide) and the second row ID the predictor
-        (i.e BIMAS)
+        (e.g. BIMAS)
 
         Epitope prediction result
+
+        +--------------+-------------+-------------+-------------+-------------+
+        | Peptide Obj  | Method Name | Allele1 Obj | Allele2 Obj | Allele3 Obj |
+        +==============+=============+=============+=============+=============+
+        | Peptide1     | Method 1    |    0.324    |     0.56    |    0.013    |
+        +              +-------------+-------------+-------------+-------------+
+        |              | Method 2    |     20      |      15     |     23      |
+        +--------------+-------------+-------------+-------------+-------------+
+        | Peptide2     | Method 1    |    0.50     |     0.36    |    0.98     |
+        +              +-------------+-------------+-------------+-------------+
+        |              | Method 2    |     26      |      10     |     50      |
+        +--------------+-------------+-------------+-------------+-------------+
+
     """
 
     def filter_result(self, expressions):
         """
-        filters a result data frame based on a specified expression consisting
+        Filters a result data frame based on a specified expression consisting
         of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
         columns full fill the criteria the row remains.
 
         :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: filtered result object
+        :return: EpitopePredictionResult - Filtered result object
         """
         if isinstance(expressions, tuple):
             expressions = [expressions]
@@ -79,6 +93,12 @@ class EpitopePredictionResult(AResult):
         return EpitopePredictionResult(self.loc[idx, :])
 
     def merge_results(self, others):
+        """
+        Merges results of type EpitopePredictionResult and returns the merged result
+
+        :param EpitopePredictionResult other: Another EpitopePredictionResult object of the same class
+        :return: EpitopePredictionResult - A new merged EpitopePredictionResult object
+        """
         df = self.copy(deep=False)
 
         if type(others) == type(self):
@@ -106,25 +126,27 @@ class Distance2SelfResult(AResult):
     """
 
     def filter_result(self, expressions):
+        #TODO: has to be implemented
         pass
 
     def merge_results(self, others):
+        #TODO: has to be implemented
         pass
 
 
 class CleavageSitePredictionResult(AResult):
     """
-        Epitope prediction result
+        Cleavage site prediction result
     """
 
     def filter_result(self, expressions):
         """
-        filters a result data frame based on a specified expression consisting
+        Filters a result data frame based on a specified expression consisting
         of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
         columns full fill the criteria the row remains.
 
         :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: filtered result object
+        :return: CleavageSitePredictionResult - A new filtered result object
         """
         if isinstance(expressions, tuple):
             expressions = [expressions]
@@ -141,25 +163,31 @@ class CleavageSitePredictionResult(AResult):
         return CleavageSitePredictionResult(self.loc[masks, :])
 
     def merge_results(self, others):
+        """
+        Merges results of type CleavageSitePredictionResult and returns the merged result
+
+        :param CleavageSitePredictionResult other: Another CleavageSitePredictionResult object of the same class
+        :return: CleavageSitePredictionResult - A new merged CleavageSitePredictionResult object
+        """
         if type(others) == type(self):
             others = [others]
         df = self
 
         for i in xrange(len(others)):
             o = others[i]
-            df1a,df2a = df.align(o,)
+            df1a, df2a = df.align(o,)
 
             o_diff = o.index.difference(df.index)
             d_diff = df.index.difference(o.index)
 
             if len(d_diff) and len(o_diff):
-                df2a.loc[d_diff,"Seq"] = ""
+                df2a.loc[d_diff, "Seq"] = ""
                 df1a.loc[o_diff, "Seq"] = ""
             elif len(o_diff):
                 df2a.loc[df.index.intersection(o.index), "Seq"] = ""
                 df1a.loc[o_diff, "Seq"] = ""
             elif len(d_diff):
-                df2a.loc[d_diff,"Seq"] = ""
+                df2a.loc[d_diff, "Seq"] = ""
                 df1a.loc[o.index.intersection(df.index), "Seq"] = ""
             else:
                 df2a.loc[o.index, "Seq"] = ""
@@ -175,8 +203,6 @@ class CleavageSitePredictionResult(AResult):
             false_zero = df_merged == 0
             zero = true_zero & false_zero
 
-
-
             nans = ~true_zero & false_zero
             df_merged = df_merged.where(~zero, other=0)
             df_merged = df_merged.where(~nans, other=numpy.NaN)
@@ -184,23 +210,19 @@ class CleavageSitePredictionResult(AResult):
         return CleavageSitePredictionResult(df)
 
 
-    def get_peptides(self,expression, length=9):
-        pass
-
-
 class CleavageFragmentPredictionResult(AResult):
     """
-        Epitope prediction result
+        Cleavage fragment prediction result
     """
 
     def filter_result(self, expressions):
         """
-        filters a result data frame based on a specified expression consisting
+        Filters a result data frame based on a specified expression consisting
         of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
         columns full fill the criteria the row remains.
 
         :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: filtered result object
+        :return: CleavageFragmentPredictionResult - A new filtered result object
         """
 
         if isinstance(expressions, tuple):
@@ -216,6 +238,12 @@ class CleavageFragmentPredictionResult(AResult):
         return CleavageFragmentPredictionResult(self.loc[masks, :])
 
     def merge_results(self, others):
+        """
+        Merges results of type CleavageFragmentPredictionResult and returns the merged result
+
+        :param CleavageFragmentPredictionResult other: Another CleavageFragmentPredictionResult object of the same class
+        :return: CleavageFragmentPredictionResult - A new merged CleavageFragmentPredictionResult object
+        """
         if type(others) == type(self):
             others = [others]
 
@@ -224,7 +252,7 @@ class CleavageFragmentPredictionResult(AResult):
 
 class TAPPredictionResult(AResult):
     """
-        Epitope prediction result
+        TAP prediction result
     """
 
     def filter_result(self, expressions):
@@ -234,7 +262,7 @@ class TAPPredictionResult(AResult):
         columns full fill the criteria the row remains.
 
         :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: filtered result object
+        :return: TAPPredictionResult - A new filtered result object
         """
         if isinstance(expressions, tuple):
             expressions = [expressions]
@@ -250,6 +278,12 @@ class TAPPredictionResult(AResult):
         return TAPPredictionResult(self.loc[masks, :])
 
     def merge_results(self, others):
+        """
+        Merges results of type TAPPredictionResult and returns the merged result
+
+        :param TAPPredictionResult other: Another TAPPredictionResult object of the same class
+        :return: TAPPredictionResult - A new merged TAPPredictionResult object
+        """
         if type(others) == type(self):
             others = [others]
 

@@ -22,17 +22,22 @@ from Fred2.Core.Result import TAPPredictionResult
 class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
     def predict(self, peptides,  **kwargs):
+        """
+        Returns predictions for given peptides.
 
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
             if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {str(p): p for p in peptides}
 
         #group peptides by length and
 
-        result = {self.name:{}}
+        result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             #load svm model
             if length not in self.supportedLength:
@@ -59,12 +64,12 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
 class SVMTAP(ASVMTAPPrediction):
     """
-        Implements SVMTAP prediction of Doeness et al.
+    Implements SVMTAP prediction of Doeness et al.
 
-        An SVM method for prediction of TAP affinities.
-        Doennes, P. and Kohlbacher, O.
-        Integrated modeling of the major events in the MHC class I antigen processing pathway.
-        Protein Sci, 2005
+    .. note::
+
+        Doennes, P. and Kohlbacher, O. Integrated modeling of the major events in the MHC class
+        I antigen processing pathway. Protein Sci, 2005
     """
 
     __name = "svmtap"
@@ -73,22 +78,25 @@ class SVMTAP(ASVMTAPPrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__length
 
     def encode(self, peptides):
         """
-        Here implements a binary sparse encoding of the peptide
+        Encodes the peptides with a binary sparse encoding
 
-        :param peptides:
-        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) -- dictionary with peptide
+        :param list(str) peptides: A list of peptides
+        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) - dictionary with peptide
                  as key and feature encoding as value (see svmlight encoding scheme http://svmlight.joachims.org/)
         """
         AA = {'A': 1, 'C': 2, 'E': 4, 'D': 3, 'G': 6, 'F': 5, 'I': 8, 'H': 7, 'K': 9, 'M': 11, 'L': 10, 'N': 12,
@@ -109,4 +117,10 @@ class SVMTAP(ASVMTAPPrediction):
             return {peptides:__encode(peptides)}
 
     def predict(self, peptides,  **kwargs):
-       return super(SVMTAP, self).predict(peptides, **kwargs)
+        """
+        Returns predictions for given peptides.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        """
+        return super(SVMTAP, self).predict(peptides, **kwargs)

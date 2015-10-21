@@ -25,13 +25,21 @@ from Fred2.Data.svms.unitope.UniTope_encodedAlleles import UniTope_encodedAllele
 
 class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
     """
-        implements default prediction routine for SVM based epitope prediction tools
+        Implements default prediction routine for SVM based epitope prediction tools
     """
 
     def predict(self, peptides, alleles=None, **kwargs):
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
 
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :param list(Alleles) alleles: A list of Alleles
+        :param kwargs: optional parameter (not used yet)
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
+        """
         if isinstance(peptides, Peptide):
-            pep_seqs = {str(peptides):peptides}
+            pep_seqs = {str(peptides): peptides}
         else:
             if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
@@ -39,13 +47,13 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
-            allales_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string ={conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles),alleles)}
+            allales_string ={conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
 
         #group peptides by length and
         result = {}
@@ -84,12 +92,12 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
 class SVMHC(ASVMEpitopePrediction):
     """
-    Implements SVMHC epitope prediction for MHC-I alleles (SYFPEITHI models)
+    Implements SVMHC epitope prediction for MHC-I alleles (SYFPEITHI models).
 
-    Doennes, P. and Kohlbacher, O.
-    SVMHC: a server for prediction of MHC-binding peptides.
-    Nucleic Acids Res, 2006, 34, W194-W197
+    .. note::
 
+        Doennes, P. and Kohlbacher, O. SVMHC: a server for prediction of MHC-binding peptides.
+        Nucleic Acids Res, 2006, 34, W194-W197
     """
     __name = "svmhc"
     __alleles = frozenset(['A*02:01', 'A*02:01', 'A*11:01', 'A*11:01', 'A*24:02', 'B*15:01',
@@ -100,26 +108,34 @@ class SVMHC(ASVMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported allele models
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def encode(self, peptides):
         """
-        Here implements a binary sparse encoding of the peptide
+        Encodes the input with binary sparse encoding of the peptide
 
-        :param peptides:
-        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) -- dictionary with peptide
+        :param str peptides: A list of peptide sequences
+        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) - dictionary with peptide
                  as key and feature encoding as value (see svmlight encoding scheme http://svmlight.joachims.org/)
         """
         AA = {'A': 1, 'C': 2, 'E': 4, 'D': 3, 'G': 6, 'F': 5, 'I': 8, 'H': 7, 'K': 9, 'M': 11, 'L': 10, 'N': 12,
@@ -140,16 +156,26 @@ class SVMHC(ASVMEpitopePrediction):
             return {peptides:__encode(peptides)}
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
 
 class UniTope(ASVMEpitopePrediction):
     """
-    Implements UniTope prediction for MHC-I
+    Implements UniTope prediction for MHC-I.
 
-    Feldhahn, M., Toussaint, N. C., Ziehm, M. anf Kohlbacher, O.
-    UniTope - Prediction of MHC Class I Binding Peptides for All MHC Alleles.
-    Submitted to Bioinformatics on 09-22-2007.
+    .. note::
+
+        Toussaint, N. C., Feldhahn, M., Ziehm, M., Stevanovic, S., & Kohlbacher, O. (2011, August).
+        T-cell epitope prediction based on self-tolerance. In Proceedings of the 2nd ACM Conference on
+        Bioinformatics, Computational Biology and Biomedicine (pp. 584-588). ACM.
     """
 
     __name = "unitope"
@@ -383,26 +409,49 @@ class UniTope(ASVMEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported allele models
+        """
         return self.__alleles
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     #overrides encoding from base class
     def encode(self, peptides, allele):
+        """
+        Encodes the input with binary sparse encoding of the peptide
 
+        :param str peptides: A list of peptide sequences
+        :param str allele: The HLA allele represented by a string
+        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) - dictionary with peptide
+                 as key and feature encoding as value (see svmlight encoding scheme http://svmlight.joachims.org/)
+        """
         pca = [{'A': 0.008, 'C': -0.132, 'E': 0.221, 'D': 0.303, 'G': 0.218, 'F': -0.329, 'I': -0.353, 'H': 0.023,
                 'K': 0.243, 'M': -0.239, 'L': -0.267, 'N': 0.255, 'Q': 0.149, 'P': 0.173, 'S': 0.199, 'R': 0.171,
                 'T': 0.068, 'W': -0.296, 'V': -0.274, 'Y': -0.141},
@@ -435,7 +484,15 @@ class UniTope(ASVMEpitopePrediction):
 
     #overrides encoding from base class
     def predict(self, peptides, alleles=None, **kwargs):
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
 
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :param list(Alleles) alleles: A list of Alleles
+        :param kwargs: optional parameter (not used yet)
+        :return: AEpitopePredictionResult - Returns a AEpitopePredictionResult object with the prediction results
+        """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:

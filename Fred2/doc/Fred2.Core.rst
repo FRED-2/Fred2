@@ -9,6 +9,8 @@ Core.Allele
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
+
 
 Core.Base
 ---------
@@ -17,6 +19,7 @@ Core.Base
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 Core.Generator
 --------------
@@ -25,6 +28,7 @@ Core.Generator
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 Core.Peptide
 ------------
@@ -33,6 +37,7 @@ Core.Peptide
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 Core.Protein
 ------------
@@ -41,6 +46,8 @@ Core.Protein
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
+
 
 Core.Result
 -----------
@@ -49,6 +56,7 @@ Core.Result
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 Core.Transcript
 ---------------
@@ -57,6 +65,7 @@ Core.Transcript
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 Core.Variant
 ------------
@@ -65,3 +74,4 @@ Core.Variant
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

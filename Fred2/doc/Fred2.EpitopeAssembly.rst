@@ -9,6 +9,7 @@ EpitopeAssembly.EpitopeAssembly
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 EpitopeAssembly.MosaicVaccine
 -----------------------------
@@ -17,3 +18,4 @@ EpitopeAssembly.MosaicVaccine
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
