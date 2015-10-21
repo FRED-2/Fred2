@@ -30,10 +30,13 @@ from Fred2.EpitopePrediction.PSSM import APSSMEpitopePrediction
 class EpitopeAssembly(object):
     """
         Implements the epitope assembly approach proposed by Toussaint et al.
-        using proteasomal cleavage site prediction and fformulatingthe problem as
+        using proteasomal cleavage site prediction and formulating the problem as
         TSP.
 
-        The ILP model is implemented. So be reasonable with the size of epitope to be arranged.
+        .. note::
+
+            Toussaint, N.C., et al. Universal peptide vaccines - Optimal peptide vaccine design based on viral
+            sequence conservation. Vaccine 2011;29(47):8745-8753.
 
         :param list(Peptide) peptides: A list of peptides which shell be arranged
         :param ACleavageSitePredictor pred: A cleavage site predictor

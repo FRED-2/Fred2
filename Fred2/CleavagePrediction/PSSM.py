@@ -23,10 +23,8 @@ from Fred2.Core.Result import CleavageSitePredictionResult, CleavageFragmentPred
 class APSSMCleavageSitePredictor(ACleavageSitePrediction):
     """
         Abstract base class for PSSM predictions.
-
-        This implementation only supports cleavage site prediction not fragment prediction
-
-        Implements predict functionality
+        This implementation only supports cleavage site prediction not fragment prediction.
+        Implements predict functionality.
     """
 
     def predict(self, aa_seq, length=None, **kwargs):
@@ -107,7 +105,9 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
 class PCM(APSSMCleavageSitePredictor):
     """
-    Implements the PCM cleavage prediction method::
+    Implements the PCM cleavage prediction method.
+
+    .. note::
 
         Doennes, P., and Kohlbacher, O. (2005). Integrated modeling of the major events in the MHC class
         I antigen processing pathway. Protein science, 14(8), 2132-2140.
@@ -153,15 +153,18 @@ class PCM(APSSMCleavageSitePredictor):
 
 class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
     """
-    Implements the ProteaSMM cleavage prediction method::
+    Implements the ProteaSMM cleavage prediction method.
 
+    .. note::
         Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
         TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
 
     This model represents the consecutive proteasom
 
     The matrices are generated not using the preon-dataset since a recent study has show that including those
-    worsened the results. See::
+    worsened the results.
+
+    .. note::
 
         Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
         contribution of different prediction programs." Immunogenetics (2014): 1-9.
@@ -208,7 +211,9 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
 
 class ProteaSMMImmuno(APSSMCleavageSitePredictor):
     """
-    Implements the ProteaSMM cleavage prediction method::
+    Implements the ProteaSMM cleavage prediction method.
+
+    .. note::
 
         Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
         TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
@@ -216,7 +221,9 @@ class ProteaSMMImmuno(APSSMCleavageSitePredictor):
     This model represents the immuno proteasom
 
     The matrices are generated not using the preon-dataset since a recent study has show that including those
-    worsened the results. See::
+    worsened the results.
+
+    .. note::
 
         Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
         contribution of different prediction programs." Immunogenetics (2014): 1-9.
@@ -334,7 +341,9 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
 
 class PSSMGinodi(APSSMCleavageFragmentPredictor):
     """
-    Implements the Cleavage Fragment prediction method of Ginodi et al.::
+    Implements the Cleavage Fragment prediction method of Ginodi et al.
+
+    .. note::
 
         Ido Ginodi, Tal Vider-Shalit, Lea Tsaban, and Yoram Louzoun
         Precise score for the prediction of peptides cleaved by the proteasome

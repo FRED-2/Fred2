@@ -23,7 +23,10 @@ from Fred2.Core.Result import CleavageSitePredictionResult
 
 
 class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
-
+    """
+        Abstract base class for external cleavage site prediction methods.
+        Implements predict functionality.
+    """
     @abc.abstractmethod
     def prepare_input(self, _input, _file):
         """
@@ -97,12 +100,13 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
 
 class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
     """
-    Implements NetChop Cleavage Site Prediction (v. 3.1)
+    Implements NetChop Cleavage Site Prediction (v. 3.1).
 
+    .. note::
 
-    Nielsen, M., Lundegaard, C., Lund, O., & Kesmir, C. (2005).
-    The role of the proteasome in generating cytotoxic T-cell epitopes: insights obtained from
-    improved predictions of proteasomal cleavage. Immunogenetics, 57(1-2), 33-41.
+        Nielsen, M., Lundegaard, C., Lund, O., & Kesmir, C. (2005). The role of the proteasome in generating cytotoxic
+        T-cell epitopes: insights obtained from improved predictions of proteasomal cleavage.
+        Immunogenetics, 57(1-2), 33-41.
     """
     __supported_length = [sys.maxint]
     __name = "netchop"

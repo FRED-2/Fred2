@@ -92,7 +92,9 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
 class SVMHC(ASVMEpitopePrediction):
     """
-    Implements SVMHC epitope prediction for MHC-I alleles (SYFPEITHI models).::
+    Implements SVMHC epitope prediction for MHC-I alleles (SYFPEITHI models).
+
+    .. note::
 
         Doennes, P. and Kohlbacher, O. SVMHC: a server for prediction of MHC-binding peptides.
         Nucleic Acids Res, 2006, 34, W194-W197
@@ -167,7 +169,9 @@ class SVMHC(ASVMEpitopePrediction):
 
 class UniTope(ASVMEpitopePrediction):
     """
-    Implements UniTope prediction for MHC-I.::
+    Implements UniTope prediction for MHC-I.
+
+    .. note::
 
         Toussaint, N. C., Feldhahn, M., Ziehm, M., Stevanovic, S., & Kohlbacher, O. (2011, August).
         T-cell epitope prediction based on self-tolerance. In Proceedings of the 2nd ACM Conference on

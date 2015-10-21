@@ -47,16 +47,21 @@ class OptiTope(object):
     It allows to (de)select specific constraints of the underlying
     ILP and to solve the specific problem with a MIP solver of choice
 
+    .. note::
 
-    [1] N. C. Toussaint and O. Kohlbacher. OptiTope--a web server for the selection of
-    an optimal set of peptides for epitope-based vaccines. Nucleic Acids Res,
-    2009, 37, W617-W622
-    [2] Pyomo - Optimization Modeling in Python. William E. Hart, Carl Laird,
-    Jean-Paul Watson and David L. Woodruff. Springer, 2012.
+        [1] N. C. Toussaint and O. Kohlbacher. OptiTope--a web server for the selection of
+        an optimal set of peptides for epitope-based vaccines. Nucleic Acids Res,
+        2009, 37, W617-W622
+        [2] Pyomo - Optimization Modeling in Python. William E. Hart, Carl Laird,
+        Jean-Paul Watson and David L. Woodruff. Springer, 2012.
 
-    :param EpitopePredictionResult _result: Epitope prediction result object from which the epitope selection should be performed
-    :param int k: the number of epitopes to select
-    :param str solver: the solver to be used (default glpk)
+    :param EpitopePredictionResult _result: Epitope prediction result object from which the epitope selection should be
+                                            performed
+    :param dict(str,float) threshold: A dictionary scoring the binding thresholds for each HLA allele. Key = allele name;
+                                      value = the threshold
+    :param int k: The number of epitopes to select
+    :param str solver: The solver to be used (default glpk)
+    :pram int verbosity: Integer defining whether additional debugg prints are made >0 => debug mode
     """
 
     def __init__(self, _results,  threshold=None, k=10, solver="glpk", verbosity=0):

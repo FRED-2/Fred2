@@ -166,8 +166,9 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
 
 class NetMHC_3_4(AExternalEpitopePrediction):
     """
-    Implements the NetMHC binding (in current form for netMHC3.4)::
+    Implements the NetMHC binding (in current form for netMHC3.4).
 
+    .. note::
 
         NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides
         of length 8-11. Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M.
@@ -378,8 +379,10 @@ class NetMHC_3_0(NetMHC_3_4):
 
 class NetMHCpan_2_4(AExternalEpitopePrediction):
     """
-    Implements the NetMHC binding (in current form for netMHCpan 2.4)
-    Supported  MHC alleles currently only restricted to HLA alleles::
+    Implements the NetMHC binding (in current form for netMHCpan 2.4).
+    Supported  MHC alleles currently only restricted to HLA alleles.
+
+    .. note::
 
         Nielsen, Morten, et al. "NetMHCpan, a method for quantitative predictions of peptide binding to any HLA-A and-B locus
         protein of known sequence." PloS one 2.8 (2007): e796.
@@ -812,9 +815,10 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
 
 class NetMHCpan_2_8(AExternalEpitopePrediction):
     """
-    Implements the NetMHC binding (in current form for netMHCpan 2.8)
+    Implements the NetMHC binding (in current form for netMHCpan 2.8).
+    Supported  MHC alleles currently only restricted to HLA alleles.
 
-    Supported  MHC alleles currently only restricted to HLA alleles::
+    .. note::
 
         Nielsen, Morten, et al. "NetMHCpan, a method for quantitative predictions of peptide binding to any HLA-A and-B locus
         protein of known sequence." PloS one 2.8 (2007): e796.
@@ -1244,7 +1248,9 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
 
 class NetMHCII_2_2(AExternalEpitopePrediction):
     """
-    Implements a wrapper for NetMHCII::
+    Implements a wrapper for NetMHCII
+
+    .. note::
 
         Nielsen, M., & Lund, O. (2009). NN-align. An artificial neural network-based alignment algorithm for MHC class
         II peptide binding prediction. BMC Bioinformatics, 10(1), 296.
@@ -1352,7 +1358,9 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
 
 class NetMHCIIpan_3_0(AExternalEpitopePrediction):
     """
-    Implements a wrapper for NetMHCIIpan.::
+    Implements a wrapper for NetMHCIIpan.
+
+    .. note::
 
         Andreatta, M., Karosiene, E., Rasmussen, M., Stryhn, A., Buus, S., & Nielsen, M. (2015).
         Accurate pan-specific prediction of peptide-MHC class II binding affinity with improved binding
@@ -1547,7 +1555,9 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
 
 class PickPocket_1_1(AExternalEpitopePrediction):
     """
-    Implementation of PickPocket adapter.::
+    Implementation of PickPocket adapter.
+
+    .. note::
 
         Zhang, H., Lund, O., & Nielsen, M. (2009). The PickPocket method for predicting binding specificities
         for receptors based on receptor pocket similarities: application to MHC-peptide binding.
@@ -1946,11 +1956,12 @@ class PickPocket_1_1(AExternalEpitopePrediction):
 
 class NetCTLpan_1_1(AExternalEpitopePrediction):
     """
-    Interface for NetCTLpan 1.1
+    Interface for NetCTLpan 1.1.
 
-    NetCTLpan - Pan-specific MHC class I epitope predictions
-    Stranzl T., Larsen M. V., Lundegaard C., Nielsen M.
-    Immunogenetics. 2010 Apr 9. [Epub ahead of print]
+    .. note::
+
+        NetCTLpan - Pan-specific MHC class I epitope predictions Stranzl T., Larsen M. V., Lundegaard C., Nielsen M.
+        Immunogenetics. 2010 Apr 9. [Epub ahead of print]
     """
     __name = "netctlpan"
     __command = "netctlpan -f {peptides} -a {alleles} {options} > {out}"

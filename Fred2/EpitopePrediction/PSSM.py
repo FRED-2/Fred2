@@ -91,8 +91,9 @@ class APSSMEpitopePrediction(AEpitopePrediction):
 
 class Syfpeithi(APSSMEpitopePrediction):
     """
-    Represents the Syfpeithi PSSM predictor.::
+    Represents the Syfpeithi PSSM predictor.
 
+    .. note::
 
         Rammensee, H. G., Bachmann, J., Emmerich, N. P. N., Bachor, O. A., & Stevanovic, S. (1999).
         SYFPEITHI: database for MHC ligands and peptide motifs. Immunogenetics, 50(3-4), 213-219.
@@ -143,7 +144,9 @@ class Syfpeithi(APSSMEpitopePrediction):
 
 class BIMAS(APSSMEpitopePrediction):
     """
-    Represents the BIMAS PSSM predictor.::
+    Represents the BIMAS PSSM predictor.
+
+    .. note::
 
         Parker, K.C., Bednarek, M.A. and Coligan, J.E. Scheme for ranking potential HLA-A2 binding peptides based on
         independent binding of individual peptide side-chains. The Journal of Immunology 1994;152(1):163-175.
@@ -212,7 +215,9 @@ class BIMAS(APSSMEpitopePrediction):
 
 class Epidemix(APSSMEpitopePrediction):
     """
-    Represents the Epidemix PSSM predictor.::
+    Represents the Epidemix PSSM predictor.
+
+    .. note::
 
         Feldhahn, M., et al. FRED-a framework for T-cell epitope detection. Bioinformatics 2009;25(20):2758-2759.
     """
@@ -262,7 +267,9 @@ class Epidemix(APSSMEpitopePrediction):
 
 class Hammer(APSSMEpitopePrediction):
     """
-    Represents the virtual pockets approach by Sturniolo et al.::
+    Represents the virtual pockets approach by Sturniolo et al.
+
+    .. note::
 
         Sturniolo, T., et al. Generation of tissue-specific and promiscuous HLA ligand databases using DNA microarrays
         and virtual HLA class II matrices. Nature biotechnology 1999;17(6):555-561.
@@ -317,7 +324,9 @@ class Hammer(APSSMEpitopePrediction):
 
 class SMM(APSSMEpitopePrediction):
     """
-    Implements IEDBs SMM PSSM method.::
+    Implements IEDBs SMM PSSM method.
+
+    .. note::
 
         Peters B, Sette A. 2005. Generating quantitative models describing the sequence specificity of
         biological processes with the stabilized matrix method. BMC Bioinformatics 6:132.
@@ -387,7 +396,9 @@ class SMM(APSSMEpitopePrediction):
 
 class SMMPMBEC(APSSMEpitopePrediction):
     """
-    Implements IEDBs SMMPMBEC PSSM method.::
+    Implements IEDBs SMMPMBEC PSSM method.
+
+    .. note::
 
         Kim, Y., Sidney, J., Pinilla, C., Sette, A., & Peters, B. (2009). Derivation of an amino acid similarity matrix for
         peptide: MHC binding and its application as a Bayesian prior. BMC Bioinformatics, 10(1), 394.
@@ -458,7 +469,9 @@ class SMMPMBEC(APSSMEpitopePrediction):
 
 class ARB(APSSMEpitopePrediction):
     """
-    Implements IEDBs ARB method.::
+    Implements IEDBs ARB method.
+
+    .. note::
 
         Bui HH, Sidney J, Peters B, Sathiamurthy M, Sinichi A, Purton KA, Mothe BR, Chisari FV, Watkins DI, Sette A.
         2005. Automated generation and evaluation of specific MHC binding predictive tools: ARB matrix applications.
@@ -584,7 +597,9 @@ class ARB(APSSMEpitopePrediction):
 
 class ComblibSidney2008(APSSMEpitopePrediction):
     """
-    Implements IEDBs Comblib_Sidney2008 PSSM method.::
+    Implements IEDBs Comblib_Sidney2008 PSSM method.
+
+    .. note::
 
         Sidney J, Assarsson E, Moore C, Ngo S, Pinilla C, Sette A, Peters B. 2008. Quantitative peptide binding motifs
         for 19 human and mouse MHC class I molecules derived using positional scanning combinatorial peptide libraries.
@@ -649,7 +664,9 @@ class ComblibSidney2008(APSSMEpitopePrediction):
 
 class TEPITOPEpan(APSSMEpitopePrediction):
     """
-    Implements TEPITOPEpan.::
+    Implements TEPITOPEpan.
+
+    .. note::
 
         TEPITOPEpan: Extending TEPITOPE for Peptide Binding Prediction Covering over 700 HLA-DR Molecules
         Zhang L, Chen Y, Wong H-S, Zhou S, Mamitsuka H, et al. (2012) TEPITOPEpan: Extending TEPITOPE

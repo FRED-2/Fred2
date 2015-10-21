@@ -64,13 +64,12 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
 class SVMTAP(ASVMTAPPrediction):
     """
-        Implements SVMTAP prediction of Doeness et al.
+    Implements SVMTAP prediction of Doeness et al.
 
+    .. note::
 
-        An SVM method for prediction of TAP affinities.
-        Doennes, P. and Kohlbacher, O.
-        Integrated modeling of the major events in the MHC class I antigen processing pathway.
-        Protein Sci, 2005
+        Doennes, P. and Kohlbacher, O. Integrated modeling of the major events in the MHC class
+        I antigen processing pathway. Protein Sci, 2005
     """
 
     __name = "svmtap"

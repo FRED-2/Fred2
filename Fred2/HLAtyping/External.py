@@ -93,10 +93,12 @@ class AExternalHLATyping(AHLATyping, AExternal):
 
 class OptiType_1_0(AExternalHLATyping):
     """
-    Wrapper of OptiType v1.0
+    Wrapper of OptiType v1.0.
 
-    Szolek, A., Schubert, B., Mohr, C., Sturm, M., Feldhahn, M., & Kohlbacher, O. (2014).
-    OptiType: precision HLA typing from next-generation sequencing data. Bioinformatics, 30(23), 3310-3316.
+    .. note::
+
+        Szolek, A., Schubert, B., Mohr, C., Sturm, M., Feldhahn, M., & Kohlbacher, O. (2014). OptiType: precision HLA
+        typing from next-generation sequencing data. Bioinformatics, 30(23), 3310-3316.
     """
     __name = "OptiType"
     __version = "1.0"
@@ -149,11 +151,12 @@ class OptiType_1_0(AExternalHLATyping):
 
 class Seq2HLA_2_2(AExternalHLATyping):
     """
-    Wrapper of seq2HLA v2.2
+    Wrapper of seq2HLA v2.2.
 
+    .. note::
 
-    Boegel, S., Scholtalbers, J., Loewer, M., Sahin, U., & Castle, J. C. (2015).
-    In Silico HLA Typing Using Standard RNA-Seq Sequence Reads. Molecular Typing of Blood Cell Antigens, 247.
+        Boegel, S., Scholtalbers, J., Loewer, M., Sahin, U., & Castle, J. C. (2015). In Silico HLA Typing Using
+        Standard RNA-Seq Sequence Reads. Molecular Typing of Blood Cell Antigens, 247.
     """
     __name = "seq2HLA"
     __version = "2.2"
@@ -229,11 +232,12 @@ class Seq2HLA_2_2(AExternalHLATyping):
 
 class ATHLATES_1_0(AExternalHLATyping):
     """
-    Wrapper for ATHLATES
+    Wrapper for ATHLATES.
 
-    C. Liu, X. Yang, B. Duffy, T. Mohanakumar, R.D. Mitra, M.C. Zody, J.D. Pfeifer (2012) ATHLATES:
-    accurate typing of human leukocyte antigen through exome sequencing, Nucl. Acids Res.
-    (2013)
+    .. note::
+
+        C. Liu, X. Yang, B. Duffy, T. Mohanakumar, R.D. Mitra, M.C. Zody, J.D. Pfeifer (2012) ATHLATES:
+        accurate typing of human leukocyte antigen through exome sequencing, Nucl. Acids Res. (2013)
     """
 
     __name = "athlates"
@@ -301,12 +305,13 @@ class ATHLATES_1_0(AExternalHLATyping):
 
 class Polysolver(AExternalHLATyping):
     """
-    Wrapper for Polysolver
+    Wrapper for Polysolver.
 
+    .. note::
 
-    Shukla, Sachet A., Rooney, Michael S., Rajasagi, Mohini, Tiao, Grace, et al. (2015).
-    Comprehensive analysis of cancer-associated somatic mutations in class I HLA genes.
-    Nat Biotech, advance online publication. doi: 10.1038/nbt.3344
+        Shukla, Sachet A., Rooney, Michael S., Rajasagi, Mohini, Tiao, Grace, et al. (2015).
+        Comprehensive analysis of cancer-associated somatic mutations in class I HLA genes.
+        Nat Biotech, advance online publication. doi: 10.1038/nbt.3344
     """
 
     __name = "polysolver"
