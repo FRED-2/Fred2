@@ -7,5 +7,6 @@ HLAtyping.External
 
 .. automodule:: Fred2.HLAtyping.External
     :members:
+    :undoc-members:
     :show-inheritance:
     :inherited-members:

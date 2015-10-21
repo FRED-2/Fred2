@@ -44,6 +44,7 @@ Core.Protein
 
 .. automodule:: Fred2.Core.Protein
     :members:
+    :undoc-members:
     :show-inheritance:
     :inherited-members:
 
@@ -53,6 +54,7 @@ Core.Result
 
 .. automodule:: Fred2.Core.Result
     :members:
+    :undoc-members:
     :show-inheritance:
     :inherited-members:
 
@@ -61,6 +63,7 @@ Core.Transcript
 
 .. automodule:: Fred2.Core.Transcript
     :members:
+    :undoc-members:
     :show-inheritance:
     :inherited-members:
 
@@ -69,5 +72,6 @@ Core.Variant
 
 .. automodule:: Fred2.Core.Variant
     :members:
+    :undoc-members:
     :show-inheritance:
     :inherited-members:
