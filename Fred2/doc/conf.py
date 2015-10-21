@@ -377,7 +377,12 @@ autodoc_member_order = "bysource"
 
 # skip registry of meta classes
 def autodoc_skip_member(app, what, name, obj, skip, options):
-    return name in ["registry"]
+    exclusions = ('__weakref__',  # special-members
+                  '__doc__', '__module__', '__dict__',  # undoc-members
+                  'registry'                             # registry of __metaclass__
+                  )
+    exclude = name in exclusions
+    return skip or exclude
 
 
 def setup(app):
