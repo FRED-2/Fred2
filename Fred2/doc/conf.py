@@ -121,9 +121,6 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
-# preserve ordering of source code
-autodoc_member_order = "bysource"
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -372,3 +369,16 @@ epub_exclude_files = ['search.html']
 
 # If false, no index is generated.
 #epub_use_index = True
+
+#------ Advanced settings -------------------------------------
+# preserve ordering of source code
+autodoc_member_order = "bysource"
+
+
+# skip registry of meta classes
+def autodoc_skip_member(app, what, name, obj, skip, options):
+    return name in ["registry"]
+
+
+def setup(app):
+    app.connect('autodoc-skip-member', autodoc_skip_member)
