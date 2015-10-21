@@ -374,12 +374,12 @@ epub_exclude_files = ['search.html']
 # preserve ordering of source code
 autodoc_member_order = "bysource"
 
+#'__doc__', '__module__', '__dict__',  # undoc-members
 
 # skip registry of meta classes
 def autodoc_skip_member(app, what, name, obj, skip, options):
     exclusions = ('__weakref__',  # special-members
-                  '__doc__', '__module__', '__dict__',  # undoc-members
-                  'registry'                             # registry of __metaclass__
+                  'registry'       # registry of __metaclass__
                   )
     exclude = name in exclusions
     return skip or exclude
