@@ -110,7 +110,6 @@ class ACleavageSitePrediction(object):
     def version(self):
         """
         Parameter specifying the version of the prediction method
-
         """
         raise NotImplementedError
 
@@ -196,6 +195,7 @@ class AEpitopePrediction(object):
 
     @abc.abstractproperty
     def version(cls):
+        """The version of the predictor"""
         raise NotImplementedError
 
     @abc.abstractproperty
@@ -266,6 +266,7 @@ class AExternal(object):
         """
         Defines the commandline call for external tool
         """
+        raise NotImplementedError
 
     @abc.abstractmethod
     def parse_external_result(self, _file):
@@ -273,7 +274,7 @@ class AExternal(object):
         Parses external results and returns the result
 
         :param str _file: The file path or the external prediction results
-        :return: AResult - Returns a AResult object
+        :return: dict - A dictionary containing the prediction results
         """
         raise NotImplementedError
 
@@ -303,7 +304,7 @@ class AExternal(object):
         with super()
 
         :param (str) path: - Optional specification of executable path if deviant from self.__command
-        :return: str - The external version of the tool
+        :return: str - The external version of the tool or None if tool does not support versioning
         """
         exe = self.command.split()[0] if path is None else path
         try:

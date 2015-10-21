@@ -26,6 +26,12 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
 
     @abc.abstractmethod
     def prepare_input(self, _input, _file):
+        """
+        Prepares the data and writes them to _file in the special format used by the external tool
+
+        :param str _input: The input data (here peptide sequences)
+        :param File _file: A file handler with which the data are written to file
+        """
         raise NotImplementedError
 
     def predict(self, _aa_seq, command=None, options=None, **kwargs):
@@ -106,25 +112,40 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
 
     @property
     def version(self):
+        """
+        The version of the Method
+        """
         return self.__version
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """The supported lengths of the predictor"""
         return self.__supported_length
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def cleavagePos(self):
+        """Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved"""
         return self.__cleavage_pos
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict(str,dict((str,int),float)) - Returns a dictionary with the prediction results
+        """
         result = {"Seq": {}, self.name: {}}
         count = 0
         is_new_seq = 0
@@ -151,8 +172,26 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         return result
 
     def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         #cannot be determined method does not support --version or something similar
         return None
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares the data and writes them to _file in the special format used by the external tool
+
+        :param str _input: The input data (here peptide sequences)
+        :param File _file: A file handler with which the data are written to file
+        """
         _file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(_input)))

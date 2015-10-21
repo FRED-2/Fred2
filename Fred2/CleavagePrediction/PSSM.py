@@ -27,9 +27,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         This implementation only supports cleavage site prediction not fragment prediction
 
         Implements predict functionality
-
     """
-
 
     def predict(self, aa_seq, length=None, **kwargs):
         """
@@ -101,7 +99,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         if not result["Seq"]:
             raise ValueError("No predictions could be made for the given input.")
         df_result = CleavageSitePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, j)) for i,j in df_result.index],
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, j)) for i, j in df_result.index],
                                                         names=['ID', 'Pos'])
 
         return df_result
@@ -109,7 +107,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
 class PCM(APSSMCleavageSitePredictor):
     """
-        Implements the PCM cleavage prediction method
+    Implements the PCM cleavage prediction method::
 
         Doennes, P., and Kohlbacher, O. (2005). Integrated modeling of the major events in the MHC class
         I antigen processing pathway. Protein science, 14(8), 2132-2140.
@@ -122,35 +120,48 @@ class PCM(APSSMCleavageSitePredictor):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__supported_length
 
     @property
     def cleavagePos(self):
+        """
+        Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
+        """
         return self.__cleavage_pos
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     def predict(self, peptides, **kwargs):
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: CleavageSitePredictionResult - Returns a CleavageSitePredictionResult object
+        """
         return super(PCM, self).predict(peptides, **kwargs)
 
 
 class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
     """
-        Implements the ProteaSMM cleavage prediction method
+    Implements the ProteaSMM cleavage prediction method::
 
         Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
         TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
 
-        This model represents the consecutive proteasom
+    This model represents the consecutive proteasom
 
-        The matrices are generated not using the preon-dataset since a recent study has show that including those
-        worsened the results. See
+    The matrices are generated not using the preon-dataset since a recent study has show that including those
+    worsened the results. See::
 
         Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
         contribution of different prediction programs." Immunogenetics (2014): 1-9.
@@ -164,35 +175,48 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__supported_length
 
     @property
     def cleavagePos(self):
+        """
+        Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
+        """
         return self.__cleavage_pos
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     def predict(self, peptides, **kwargs):
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: CleavageSitePredictionResult - Returns a CleavageSitePredictionResult object
+        """
         return super(ProteaSMMConsecutive, self).predict(peptides, **kwargs)
 
 
 class ProteaSMMImmuno(APSSMCleavageSitePredictor):
     """
-        Implements the ProteaSMM cleavage prediction method
+    Implements the ProteaSMM cleavage prediction method::
 
         Tenzer, S., et al. "Modeling the MHC class I pathway by combining predictions of proteasomal cleavage,
         TAP transport and MHC class I binding." Cellular and Molecular Life Sciences CMLS 62.9 (2005): 1025-1037.
 
-        This model represents the immuno proteasom
+    This model represents the immuno proteasom
 
-        The matrices are generated not using the preon-dataset since a recent study has show that including those
-        worsened the results. See
+    The matrices are generated not using the preon-dataset since a recent study has show that including those
+    worsened the results. See::
 
         Calis, Jorg JA, et al. "Role of peptide processing predictions in T cell epitope identification:
         contribution of different prediction programs." Immunogenetics (2014): 1-9.
@@ -206,21 +230,34 @@ class ProteaSMMImmuno(APSSMCleavageSitePredictor):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__supported_length
 
     @property
     def cleavagePos(self):
+        """
+        Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
+        """
         return self.__cleavage_pos
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     def predict(self, peptides, **kwargs):
+        """
+        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
+        are made.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: CleavageSitePredictionResult - Returns a CleavageSitePredictionResult object
+        """
         return super(ProteaSMMImmuno, self).predict(peptides, **kwargs)
 
 
@@ -236,14 +273,14 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
     @abc.abstractproperty
     def trailingN(self):
         """
-        The number of trailing residues at the N terminal of the peptide used for prediction
+        The number of trailing residues at the N-terminal of the peptide used for prediction
         """
         raise NotImplementedError
 
     @abc.abstractproperty
     def tralingC(self):
         """
-        The number of trailing residues at the N terminal of the peptide used for prediction
+        The number of trailing residues at the C-terminal of the peptide used for prediction
         """
         raise NotImplementedError
 
@@ -297,7 +334,7 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
 
 class PSSMGinodi(APSSMCleavageFragmentPredictor):
     """
-        Implements the Cleavage Fragment prediction method of Ginodi et al.
+    Implements the Cleavage Fragment prediction method of Ginodi et al.::
 
         Ido Ginodi, Tal Vider-Shalit, Lea Tsaban, and Yoram Louzoun
         Precise score for the prediction of peptides cleaved by the proteasome
@@ -313,29 +350,49 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def cleavagePos(self):
+        """
+        Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
+        """
         return 0
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__supported_lengths
 
     @property
     def trailingN(self):
+        """
+        The number of trailing residues at the N-terminal of the peptide used for prediction
+        """
         return self.__trailingN
 
     @property
     def tralingC(self):
+        """
+        The number of trailing residues at the C-terminal of the peptide used for prediction
+        """
         return self.__trailingC
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     def predict(self, peptides,  **kwargs):
+        """
+        Takes peptides plus their trailing C and N-terminal residues to predict
+        the probability that this 9mer was produced by proteasomal cleavage. It returns the score and
+        the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
+
+        :param list(Peptide)/Peptide peptides: A list of peptide objects or a single peptide object
+        :return: CleeavageFragmentPredictionResult - Returns a CleavageFragmentPredictionResults object
+        """
         def __load_model(length):
             allele_model = "%s_%i"%(self.name, length)
             return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),

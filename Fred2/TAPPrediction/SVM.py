@@ -22,17 +22,22 @@ from Fred2.Core.Result import TAPPredictionResult
 class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
     def predict(self, peptides,  **kwargs):
+        """
+        Returns predictions for given peptides.
 
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
             if any(not isinstance(p, Peptide) for p in peptides):
                 raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {str(p): p for p in peptides}
 
         #group peptides by length and
 
-        result = {self.name:{}}
+        result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             #load svm model
             if length not in self.supportedLength:
@@ -74,21 +79,24 @@ class SVMTAP(ASVMTAPPrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__length
 
     def encode(self, peptides):
         """
         Encodes the peptides with a binary sparse encoding
 
-        :param list(Peptide) peptides: A list of peptides
+        :param list(str) peptides: A list of peptides
         :return: dict(peptide, (tuple(int, list(tuple(int,float)))) - dictionary with peptide
                  as key and feature encoding as value (see svmlight encoding scheme http://svmlight.joachims.org/)
         """
@@ -110,4 +118,10 @@ class SVMTAP(ASVMTAPPrediction):
             return {peptides:__encode(peptides)}
 
     def predict(self, peptides,  **kwargs):
-       return super(SVMTAP, self).predict(peptides, **kwargs)
+        """
+        Returns predictions for given peptides.
+
+        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
+        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        """
+        return super(SVMTAP, self).predict(peptides, **kwargs)

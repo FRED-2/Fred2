@@ -166,15 +166,15 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
 
 class NetMHC_3_4(AExternalEpitopePrediction):
     """
-        Implements the NetMHC binding (in current form for netMHC3.4)
-        Possibility could exist for function injection to support also older versions
+    Implements the NetMHC binding (in current form for netMHC3.4)::
 
 
-        NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides of length 8-11
-        Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M. Nucleic Acids Res. 1;36(Web Server issue):W509-12. 2008
+        NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides
+        of length 8-11. Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M.
+        Nucleic Acids Res. 1;36(Web Server issue):W509-12. 2008
 
-        Accurate approximation method for prediction of class I MHC affinities for peptides of length 8, 10 and 11 using prediction tools trained on 9mers.
-        Lundegaard C, Lund O, Nielsen M. Bioinformatics, 24(11):1397-98, 2008.
+        Accurate approximation method for prediction of class I MHC affinities for peptides of length 8, 10 and 11 using
+        prediction tools trained on 9mers. Lundegaard C, Lund O, Nielsen M. Bioinformatics, 24(11):1397-98, 2008.
 
     """
 
@@ -195,28 +195,53 @@ class NetMHC_3_4(AExternalEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     @property
     def supportedAlleles(self):
+        """
+        A list of valid allele models
+        """
         return self.__alleles
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(defaultdict)
         f = csv.reader(open(_file, "r"), delimiter='\t')
         f.next()
@@ -232,22 +257,44 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         return dict(result)
 
     def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return super(NetMHC_3_4, self).get_external_version()
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
+        """
         _file.write("\n".join(_input))
 
 
 class NetMHC_3_0(NetMHC_3_4):
     """
-    Implements the NetMHC binding (for netMHC3.0)
+    Implements the NetMHC binding (for netMHC3.0)::
 
 
-    NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides of length 8-11
-    Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M. Nucleic Acids Res. 1;36(Web Server issue):W509-12. 2008
+        NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides
+        of length 8-11. Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M.
+        Nucleic Acids Res. 1;36(Web Server issue):W509-12. 2008
 
-    Accurate approximation method for prediction of class I MHC affinities for peptides of length 8, 10 and 11 using prediction tools trained on 9mers.
-    Lundegaard C, Lund O, Nielsen M. Bioinformatics, 24(11):1397-98, 2008.
+        Accurate approximation method for prediction of class I MHC affinities for peptides of length 8, 10 and 11 using prediction
+        tools trained on 9mers. Lundegaard C, Lund O, Nielsen M. Bioinformatics, 24(11):1397-98, 2008.
     """
 
     __alleles = frozenset(['A*01:01', 'A*02:01', 'A*02:02', 'A*02:03', 'A*02:04', 'A*02:06', 'A*02:11', 'A*02:12',
@@ -264,21 +311,53 @@ class NetMHC_3_0(NetMHC_3_4):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
+
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
+
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
+
     @property
     def supportedAlleles(self):
+        """
+        A list of valid allele models
+        """
         return self.__alleles
 
+    @property
+    def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
+        return self.__supported_length
+
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(dict)
         with open(_file, 'r') as f:
             next(f, None) #skip first line with logging stuff
@@ -299,9 +378,8 @@ class NetMHC_3_0(NetMHC_3_4):
 
 class NetMHCpan_2_4(AExternalEpitopePrediction):
     """
-        Implements the NetMHC binding (in current form for netMHCpan 2.4)
-        Supported  MHC alleles currently only restricted to HLA alleles
-
+    Implements the NetMHC binding (in current form for netMHCpan 2.4)
+    Supported  MHC alleles currently only restricted to HLA alleles::
 
         Nielsen, Morten, et al. "NetMHCpan, a method for quantitative predictions of peptide binding to any HLA-A and-B locus
         protein of known sequence." PloS one 2.8 (2007): e796.
@@ -645,28 +723,53 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
-
-    def convert_alleles(self, alleles):
-        return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     @property
     def supportedAlleles(self):
+        """
+        A list of valid allele models
+        """
         return self.__alleles
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
+    def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
+        return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(dict)
         with open(_file, "r") as f:
             f = csv.reader(f, delimiter='\t')
@@ -679,10 +782,31 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         return result
 
     def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         #can not be determined netmhcpan does not support --version or similar
         return None
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
+        """
         _file.write("\n".join(_input))
 
 
@@ -690,10 +814,10 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
     """
     Implements the NetMHC binding (in current form for netMHCpan 2.8)
 
-    Supported  MHC alleles currently only restricted to HLA alleles
+    Supported  MHC alleles currently only restricted to HLA alleles::
 
-    Nielsen, Morten, et al. "NetMHCpan, a method for quantitative predictions of peptide binding to any HLA-A and-B locus
-    protein of known sequence." PloS one 2.8 (2007): e796.
+        Nielsen, Morten, et al. "NetMHCpan, a method for quantitative predictions of peptide binding to any HLA-A and-B locus
+        protein of known sequence." PloS one 2.8 (2007): e796.
     """
     __version = "2.8"
     __supported_length = frozenset([8, 9, 10, 11])
@@ -1034,35 +1158,78 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     @property
     def supportedAlleles(self):
+        """A list of valid allele models"""
         return self.__alleles
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def get_external_version(self, path=None):
-        #can not be determined netmhcpan does not support --version or similar
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
+        """
         _file.write("\n".join(_input))
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(defaultdict)
         f = csv.reader(open(_file, "r"), delimiter='\t')
         alleles = set(filter(lambda x: x != "", f.next()))
@@ -1077,7 +1244,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
 
 class NetMHCII_2_2(AExternalEpitopePrediction):
     """
-        Implements a wrapper for NetMHCII
+    Implements a wrapper for NetMHCII::
 
         Nielsen, M., & Lund, O. (2009). NN-align. An artificial neural network-based alignment algorithm for MHC class
         II peptide binding prediction. BMC Bioinformatics, 10(1), 296.
@@ -1095,28 +1262,51 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     @property
     def supportedAlleles(self):
+        """A list of valid allele models"""
         return self.__alleles
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["HLA-%s%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(defaultdict)
         f = csv.reader(open(_file, "r"), delimiter='\t')
         for r in f:
@@ -1133,16 +1323,36 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
         return result
 
     def get_external_version(self, path=None):
-        #can not be determined netmhcpan does not support --version or similar
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
+        """
         _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_input)))
 
 
 class NetMHCIIpan_3_0(AExternalEpitopePrediction):
     """
-        Implements a wrapper for NetMHCIIpan
+    Implements a wrapper for NetMHCIIpan.::
 
         Andreatta, M., Karosiene, E., Rasmussen, M., Stryhn, A., Buus, S., & Nielsen, M. (2015).
         Accurate pan-specific prediction of peptide-MHC class II binding affinity with improved binding
@@ -1251,28 +1461,51 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     @property
     def supportedAlleles(self):
+        """A list of valid allele models"""
         return self.__alleles
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(defaultdict)
         f = csv.reader(open(_file, "r"), delimiter='\t')
         alleles = map(lambda x: x.replace("*", "_").replace(":", ""), set(filter(lambda x: x != "", f.next())))
@@ -1285,20 +1518,40 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         return result
 
     def get_external_version(self, path=None):
-        #can't be determined method does not support --version or similar
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
+        """
         _file.write("\n".join(_input))
 
 
 class PickPocket_1_1(AExternalEpitopePrediction):
     """
-    Implementation of PickPocket adapter
+    Implementation of PickPocket adapter.::
 
-    Zhang, H., Lund, O., & Nielsen, M. (2009). The PickPocket method for predicting binding specificities
-    for receptors based on receptor pocket similarities: application to MHC-peptide binding.
-    Bioinformatics, 25(10), 1293-1299.
+        Zhang, H., Lund, O., & Nielsen, M. (2009). The PickPocket method for predicting binding specificities
+        for receptors based on receptor pocket similarities: application to MHC-peptide binding.
+        Bioinformatics, 25(10), 1293-1299.
 
     """
     __name = "pickpocket"
@@ -1606,28 +1859,53 @@ class PickPocket_1_1(AExternalEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_alleles
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     def convert_alleles(self, alleles):
+        """
+        Converts alleles into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param list(Allele) alleles: The alleles for which the internal predictor
+         representation is needed
+        :return: list(str) - Returns a string representation of the input alleles
+        """
         return ["HLA-%s%s:%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(defaultdict)
         with open(_file, "r") as f:
             for row in f:
@@ -1639,10 +1917,30 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         return result
 
     def get_external_version(self, path=None):
-        #Undertermined pickpocket does not support --version or something similar
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
+        """
         _file.write("\n".join(_input))
 
 
@@ -1993,6 +2291,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     def convert_alleles(self, alleles):
@@ -2000,21 +2299,37 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
 
     @property
     def supportedAlleles(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__alleles
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     @property
     def supportedLength(self):
+        """
+        A list of supported peptide lengths
+        """
         return self.__supported_length
 
     def parse_external_result(self, _file):
+        """
+        Parses external results and returns the result
+
+        :param str _file: The file path or the external prediction results
+        :return: dict - A dictionary containing the prediction results
+        """
         result = defaultdict(defaultdict)
         with open(_file, "r") as f:
             for l in f:
@@ -2029,8 +2344,28 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         return result
 
     def get_external_version(self, path=None):
-        #Undertermined pickpocket does not support --version or something similar
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def prepare_input(self, _input, _file):
+        """
+        Prepares input for external tools
+        and writes them to _file in the specific format
+
+        NO return value!
+
+        :param: list(str) _input: The peptide sequences to write into _file
+        :param File _file: File-handler to input file for external tool
+        """
         _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_input)))
