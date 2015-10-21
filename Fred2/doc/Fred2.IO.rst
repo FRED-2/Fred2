@@ -23,7 +23,6 @@ IO.FileReader
 
 .. automodule:: Fred2.IO.FileReader
     :members:
-    :undoc-members:
     :show-inheritance:
     :inherited-members:
 
@@ -32,7 +31,6 @@ IO.MartsAdapter
 
 .. automodule:: Fred2.IO.MartsAdapter
     :members:
-    :undoc-members:
     :show-inheritance:
     :inherited-members:
 
@@ -41,7 +39,6 @@ IO.RefSeqAdapter
 
 .. automodule:: Fred2.IO.RefSeqAdapter
     :members:
-    :undoc-members:
     :show-inheritance:
     :inherited-members:
 
@@ -50,6 +47,5 @@ IO.UniProtAdapter
 
 .. automodule:: Fred2.IO.UniProtAdapter
     :members:
-    :undoc-members:
     :show-inheritance:
     :inherited-members:
