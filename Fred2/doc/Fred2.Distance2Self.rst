@@ -11,6 +11,7 @@ Fred2.Distance2Self.Distance2Self module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 Fred2.Distance2Self.DistanceMatrix module
 -----------------------------------------
@@ -19,6 +20,7 @@ Fred2.Distance2Self.DistanceMatrix module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 
 Module contents
@@ -28,3 +30,4 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
