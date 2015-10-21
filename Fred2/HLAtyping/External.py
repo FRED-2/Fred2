@@ -106,17 +106,34 @@ class OptiType_1_0(AExternalHLATyping):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def parse_external_result(self, _output):
@@ -164,17 +181,34 @@ class Seq2HLA_2_2(AExternalHLATyping):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         try:
             stdo = None
             stde = None
@@ -190,6 +224,16 @@ class Seq2HLA_2_2(AExternalHLATyping):
             raise RuntimeError(e)
 
     def predict(self, ngsFile, output, command=None, options=None, delete=True, **kwargs):
+        """
+        Implementation of prediction
+
+        :param str ngsFile: The path to the NGS file of interest
+        :param str output: The path to the output file or directory
+        :param str command: The path to a alternative binary (if binary is not globally executable)
+        :param str options: A string with additional options that is directly past to the tool
+        :param bool delete: Boolean indicator whether generated files should be deleted afterwards
+        :return: list(Allele) - A list of Allele objects representing the most likely HLA genotype
+        """
         if "-2" not in options:
             ValueError("Seq2HLA only supports paired-end inputs. Please use the options "
                        "parameter to specify the second ngs file (e.g. options='-2 /path/to/ngs2.fq'")
@@ -197,6 +241,13 @@ class Seq2HLA_2_2(AExternalHLATyping):
                                                 options=options, delete=delete, **kwargs)
 
     def parse_external_result(self, _file):
+        """
+        Searches within the defined dir _file for the newest dir and reads
+        the prediction file from there
+
+        :param str _output: The path to the output dir
+        :return: list(Allele) - The predicted HLA genotype
+        """
         alleles = []
         try:
             with open(_file+"-ClassI.HLAgenotype4digits") as c1:
@@ -217,6 +268,11 @@ class Seq2HLA_2_2(AExternalHLATyping):
         return alleles
 
     def clean_up(self, _output):
+        """
+        Deletes all created files.
+
+        :param str _output: The path to the output file or directory of the programme
+        """
         if os.path.isdir(_output):
             #if _output was mistakenly set to a directory all seq2HLA files will start with -ClassI or -ClassII
             for f in os.listdir(_output):
@@ -246,17 +302,34 @@ class ATHLATES_1_0(AExternalHLATyping):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def parse_external_result(self, _output):
@@ -320,17 +393,34 @@ class Polysolver(AExternalHLATyping):
 
     @property
     def version(self):
+        """The version of the predictor"""
         return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def command(self):
+        """
+        Defines the commandline call for external tool
+        """
         return self.__command
 
     def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :return: str - The external version of the tool or None if tool does not support versioning
+        """
         return None
 
     def parse_external_result(self, _output):
