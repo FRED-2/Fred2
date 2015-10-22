@@ -47,6 +47,7 @@ def _incorp_snp(seq, var, transId, pos, offset, isReverse=False):
    
     ref = var.ref[::-1].translate(COMPLEMENT) if isReverse else var.ref
     obs = var.obs[::-1].translate(COMPLEMENT) if isReverse else var.obs
+
     #print transId, len(seq), var.get_transcript_position(transId)-1
     if seq[pos] != ref:
         warnings.warn("For %s bp does not match ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
