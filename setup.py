@@ -110,11 +110,11 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     # IMPORTANT: script names need to be in lower case ! ! ! (otherwise 
     # deinstallation does not work)
-    entry_points={
-        'console_scripts': [
-            'epitopeprediction=Fred2.Apps.EpitopePrediction:main',
-        ],
-    },
+    #entry_points={
+    #    'console_scripts': [
+    #        'epitopeprediction=Fred2.Apps.EpitopePrediction:main',
+    #    ],
+    #},
 
     #ext_modules=[helloworld_module],
     #ext_modules=[d2s_module],
