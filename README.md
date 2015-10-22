@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/FRED-2/Fred2.svg)](https://travis-ci.org/FRED-2/Fred2)
 
 FRED2 - A Framework for Epitope Detection
 -----------------------------------------
