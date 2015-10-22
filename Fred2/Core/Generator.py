@@ -238,7 +238,6 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                                                                                        _vars=varComb)))
     return generate_peptides_from_proteins(prots, length, peptides=peptides)
 
-
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S
 ################################################################################
