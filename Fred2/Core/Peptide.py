@@ -188,7 +188,7 @@ class Peptide(MetadataLogger, Seq):
                             fs.clear()
             for j in xrange(_protein_pos, _protein_pos+len(self)):
                 for v in p.vars.get(j, []):
-                    var.setdefault(j, []).append(v)
+                    var.setdefault(j-_protein_pos, []).append(v)
             fs.update(var)
             return fs
         except KeyError:
