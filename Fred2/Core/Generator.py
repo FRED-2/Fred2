@@ -44,7 +44,6 @@ def _incorp_snp(seq, var, transId, pos, offset):
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
 
-    #print transId, len(seq), var.get_transcript_position(transId)-1
     if seq[pos] != var.ref:
         warnings.warn("For %s bp does not match ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
         transId, str(var), pos, var.ref,
@@ -178,7 +177,6 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                 #and one transcript with current variant as we can't resolve haplotypes
                 # update the transcript variant id
                 generate_peptides_from_variants.transOff += 1
-                transOff = generate_peptides_from_variants.transOff
                 pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
                 offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
@@ -195,13 +193,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
         if vs:
             v = vs.pop()
             #find offset
-            offset = 0
-            if offset is None:
-                for uv in usedVs:
-                    if uv.genomePos < v.genomePos:
-                        offset = uv.offsets[tId]
-                    else:
-                        break
+            offset = 0 if offset is None else offset
 
             #generate combinatorial branches:
             vs_tmp = vs[:]
@@ -263,12 +255,12 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
             if vs_hetero:
                 for i in xrange(len(varSeq) + 1 - 3 * length):
                     end = i + 3 * length
-                    frac_seq = varSeq[i:end]
                     trans_id = tId.split(":FRED2_")[0]
                     offset = sum(v.get_transcript_offset() for pos, v in varComb.iteritems() if i <= pos <= end)
-                    frac_var = filter(lambda x: i <= x.coding[trans_id].tranPos+offset < end, vs_hetero)
-                    for ttId, vvarSeq, vvarComb in _generate_heterozygous(trans_id, frac_var, frac_seq, varComb):
-                        prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(vvarSeq), geneid, ttId,
+                    frac_var = sorted(filter(lambda x: i <= x.coding[trans_id].tranPos+offset < end, vs_hetero),
+                                      key=lambda x: x.coding[trans_id].tranPos)
+                    for ttId, vvarSeq, vvarComb in _generate_heterozygous(trans_id, frac_var, varSeq, varComb, offset=offset):
+                        prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(vvarSeq[i:end]), geneid, ttId,
                                                                                    _vars=vvarComb)))
             else:
                 prots = chain(prots, generate_proteins_from_transcripts(
