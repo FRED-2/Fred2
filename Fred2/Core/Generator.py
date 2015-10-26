@@ -29,7 +29,7 @@ from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
 REVERS = "-"
 
 
-def _incorp_snp(seq, var, transId, pos, offset):
+def _incorp_snp(seq, var, transId, pos, offset, isReverse=False):
     """
     Incorporates a snp into the given transcript sequence
 
@@ -39,23 +39,26 @@ def _incorp_snp(seq, var, transId, pos, offset):
     :param int pos: The position of the variant
     :param int offset: The offset which has to be added onto the transcript
                        position of the variant
+    :param bool isReverse: Defines whether current transcript is reverse oriented
     :return: int - The the modified offset
     """
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
-
+   
+    ref = var.ref[::-1].translate(COMPLEMENT) if isReverse else var.ref
+    obs = var.obs[::-1].translate(COMPLEMENT) if isReverse else var.obs
     #print transId, len(seq), var.get_transcript_position(transId)-1
-    if seq[pos] != var.ref:
+    if seq[pos] != ref:
         warnings.warn("For %s bp does not match ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
-        transId, str(var), pos, var.ref,
+        transId, str(var), pos, ref,
         seq[pos]))
 
-    seq[pos] = var.obs
+    seq[pos] = obs
 
     return offset
 
 
-def _incorp_insertion(seq, var, transId, pos, offset):
+def _incorp_insertion(seq, var, transId, pos, offset, isReverse=False):
     """
     Incorporates an insertion into the given transcript sequence
 
@@ -64,16 +67,19 @@ def _incorp_insertion(seq, var, transId, pos, offset):
     :param str transId: The transcript ID of seq
     :param int offset: The offset which has to be added onto the transcript
                        position of the variant
+    :param bool isReverse: Whether transcript is reverse oriented
     :return: int - The modified offset
     """
     if var.type not in [VariationType.INS, VariationType.FSINS]:
         raise TypeError("%s is not a insertion"%str(var))
 
-    seq[pos:pos] = var.obs
-    return offset + len(var.obs)
+    obs = var.obs[::-1].translate(COMPLEMENT) if isReverse else var.obs
+
+    seq[pos:pos] = obs
+    return offset + len(obs)
 
 
-def _incorp_deletion(seq, var, transId, pos, offset):
+def _incorp_deletion(seq, var, transId, pos, offset, isReverse=False):
     """
     Incorporates a deletion into the given transcript sequence
 
@@ -83,14 +89,17 @@ def _incorp_deletion(seq, var, transId, pos, offset):
     :param int pos: The starting position of the deletion
     :param int offset: The offset which has to be added onto the transcript
                        position of the variant
+    :param bool isReverse: Whether transcript is reverse oriented
     :return: int - The modified offset
     """
     if var.type not in [VariationType.DEL, VariationType.FSDEL]:
         raise TypeError("%s is not a deletion"%str(var))
 
-    s = slice(pos, pos+len(var.ref))
+    ref = var.ref[::-1].translate(COMPLEMENT) if isReverse else var.ref
+
+    s = slice(pos, pos+len(ref))
     del seq[s]
-    return offset - len(var.ref)
+    return offset - len(ref)
 
 
 _incorp = {
@@ -293,7 +302,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
    :invariant: Variants are considered to be annotated from forward strand, 
             regardless of the transcripts real orientation   
     """
-    def _generate_combinations(tId, vs, seq, usedVs, offset):
+    def _generate_combinations(tId, vs, seq, usedVs, offset, isReverse=False):
         """
         recursive variant combination generator
         """
@@ -304,15 +313,15 @@ def generate_transcripts_from_variants(vars, dbadapter):
             if v.isHomozygous:
                 pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
-                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
-                for s in _generate_combinations(tId, vs, seq, usedVs, offset):
+                offset = _incorp.get(v.type, lambda a, b, c, d, e, f: e)(seq, v, tId, pos, offset, isReverse)
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset, isReverse):
                     yield s
             else:
                 vs_tmp = vs[:]
                 tmp_seq = seq[:]
                 tmp_usedVs = usedVs.copy()
 
-                for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset):
+                for s in _generate_combinations(tId, vs_tmp, tmp_seq, tmp_usedVs, offset, isReverse):
                     yield s
 
                 # update the transcript variant id
@@ -320,9 +329,9 @@ def generate_transcripts_from_variants(vars, dbadapter):
                 pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
 
-                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset)
+                offset = _incorp.get(v.type, lambda a, b, c, d, e, f: e)(seq, v, tId, pos, offset, isReverse)
 
-                for s in _generate_combinations(tId, vs, seq, usedVs, offset):
+                for s in _generate_combinations(tId, vs, seq, usedVs, offset, isReverse):
                     yield s
         else:
             yield tId+":FRED2_%i"%transOff, seq, usedVs
@@ -357,10 +366,10 @@ def generate_transcripts_from_variants(vars, dbadapter):
         #TODO how to capsule access to v.ref in this initial transcript state
         # capsulation even needed? instead alter vs.copy() or something
         # needed here only for creating the mutated transcript sequence
-        if strand == REVERS:
-            for v in transToVar[tId]:
-                v.ref = v.ref[::-1].translate(COMPLEMENT)
-                v.obs = v.obs[::-1].translate(COMPLEMENT)
+        #if strand == REVERS:
+        #   for v in transToVar[tId]:
+        #       v.ref = v.ref[::-1].translate(COMPLEMENT)
+        #       v.obs = v.obs[::-1].translate(COMPLEMENT)
 
         vs.sort(key=lambda v: v.genomePos-1
                 if v.type in [VariationType.FSINS, VariationType.INS]
@@ -369,7 +378,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
         generate_transcripts_from_variants.transOff = 0
-        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), {}, 0):
+        for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), {}, 0, isReverse=strand == REVERS):
             yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
 
 
