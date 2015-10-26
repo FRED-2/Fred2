@@ -290,6 +290,8 @@ def generate_transcripts_from_variants(vars, dbadapter):
     :return: Generator(Transcripts) - A generator of transcripts with all
              possible variations determined by the given
              variant list
+   :invariant: Variants are considered to be annotated from forward strand, 
+            regardless of the transcripts real orientation   
     """
     def _generate_combinations(tId, vs, seq, usedVs, offset):
         """
@@ -352,6 +354,9 @@ def generate_transcripts_from_variants(vars, dbadapter):
         strand = query[EAdapterFields.STRAND]
 
         #if its a reverse transcript form the complement of the variants
+        #TODO how to capsule access to v.ref in this initial transcript state
+        # capsulation even needed? instead alter vs.copy() or something
+        # needed here only for creating the mutated transcript sequence
         if strand == REVERS:
             for v in transToVar[tId]:
                 v.ref = v.ref[::-1].translate(COMPLEMENT)
