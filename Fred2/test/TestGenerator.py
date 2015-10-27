@@ -234,7 +234,7 @@ class GeneratorTest(TestCase):
         dummy_vars = [var_10, var_11, var_12]
         peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(dummy_vars, 3, dummy_db)))
 
-        peps_from_prot = set(map(str, Generator.generate_peptides_from_protein(Generator.generate_proteins_from_transcripts(
+        peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(Generator.generate_proteins_from_transcripts(
                            Generator.generate_transcripts_from_variants(dummy_vars, dummy_db)), 3)))
 
         self.assertTrue(len(peps - peps_from_prot) == 0)
@@ -248,7 +248,7 @@ class GeneratorTest(TestCase):
 
         peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart)))
 
-        peps_from_prot = set(map(str, Generator.generate_peptides_from_protein(
+        peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(
             Generator.generate_proteins_from_transcripts(
             Generator.generate_transcripts_from_variants(vars, mart)),
             9)))

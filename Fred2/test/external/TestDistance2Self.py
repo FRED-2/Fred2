@@ -1,7 +1,7 @@
 """
     Unittest for Distance2Self computation
 """
-from Fred2.Core.Generator import generate_peptides_from_protein
+from Fred2.Core.Generator import generate_peptides_from_proteins
 
 __author__ = 'mohr,walzer'
 
@@ -25,11 +25,11 @@ class Distance2SelfTest(unittest.TestCase):
         with open(testsequences_file, "rU") as handle:
             records = list(SeqIO.parse(handle, "fasta"))
         prot_set = [Protein(str(r.seq)) for r in records]
-        unique_test_pep_set = generate_peptides_from_protein(prot_set, 9)
+        unique_test_pep_set = generate_peptides_from_proteins(prot_set, 9)
         self.selfpeptides = [str(x) for x in unique_test_pep_set]
 
         small_prot_set = [Protein("MKERRIDMKEKNVKAKAPNKKVLGLTTKIFIALLAGAILGIVLCYLVPDSSFKKDVIVEGILYVIGQGFIRLMKMLVVPLVFCSLVCGSMAIGDTKKLGTVGVRTLAFYLATTALAVVALGVGNLINPGVGLDMSAIQSSAASVETMEATSLTDTILNIIPDNPINSLASGSMLQVIVFALIVGVILAKMGERAETVANFFSQFNDIMMEMTMMIMSLAPIGVFCLISRTFANIGFSAFIPLAKYMIGVLLALAIQCFGVYQILLKIFTGLNPIRFIKKFFPVMAFAFSTATSNATIPMSIDTLSKKVGVSKKISSFTIPLGATINMDGTSIMQGVAVVFAAQAFGIHLTPMDYVTVIGTATLASVGTAGVPSVGLVTLTMVFNSVGLPVEAIGLIMGIDRILDMTRTAVNITGDAVCTTIVAHQNGALDKKVFNETE"), Protein("MLKVWIAGASGQIGRALNDVLDPMQIEALNTDLDELDITDTDEVINFGTVNRPDVIINCTGITDTDECEANPEHAYRVNALGARNLSIVARKCGSKIVQLSTDDVFDGQSKKPYTEFDDTNPLTVYGRSKRAGENYVKEFTHKHFVIRSNWVYGHGGHNFVNRVLAAAEAGNGLSVASDQFGSPTSAKDLAKMIMYLISTNEYGTYHVTCRGVCSRYEFAQEILKLAGKDIELRAVPTEQSDLSAVRPPYAVLDNFILRIIEVYDMPDWKESLKEYMDERTED")]
-        small_unique_test_pep_set = generate_peptides_from_protein(small_prot_set, 9)
+        small_unique_test_pep_set = generate_peptides_from_proteins(small_prot_set, 9)
         self.fewselfpeptides = [str(x) for x in small_unique_test_pep_set]
 
     def test_init_matrices(self):

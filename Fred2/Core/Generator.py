@@ -236,7 +236,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                 for ttId, varSeq, varComb in _generate_combinations(tId, vars, list(tSeq), {}, 0, strand == REVERS):
                     prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(varSeq), geneid, ttId,
                                                                                        _vars=varComb)))
-    return generate_peptides_from_protein(prots, length, peptides=peptides)
+    return generate_peptides_from_proteins(prots, length, peptides=peptides)
 
 
 ################################################################################
@@ -461,7 +461,7 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 #        P R O T E I N    = = >    P E P T I D E
 ################################################################################
 
-def generate_peptides_from_protein(proteins, window_size, peptides=None):
+def generate_peptides_from_proteins(proteins, window_size, peptides=None):
     """
     Creates all peptides for a given window size, from a given protein. The
     result is a generator.
