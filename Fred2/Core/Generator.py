@@ -152,7 +152,7 @@ def generate_peptides_from_variants2(vars, length, dbadapter, peptides=None):
         """
         recursive variant combination generator
         """
-        transOff = generate_peptides_from_variants.transOff
+        transOff = generate_peptides_from_variants2.transOff
         #print "TransOffset ", transOff, tId,usedVs
         if vs:
             v = vs.pop()
@@ -173,8 +173,7 @@ def generate_peptides_from_variants2(vars, length, dbadapter, peptides=None):
 
                 #and one transcript with current variant as we can't resolve haplotypes
                 # update the transcript variant id
-                generate_peptides_from_variants.transOff += 1
-                transOff = generate_peptides_from_variants.transOff
+                generate_peptides_from_variants2.transOff += 1
                 pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
                 offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset, isReverse)
@@ -183,8 +182,6 @@ def generate_peptides_from_variants2(vars, length, dbadapter, peptides=None):
                     yield s
         else:
             yield tId + ":FRED2_%i"%transOff, seq, usedVs
-
-
 
     if not isinstance(dbadapter, ADBAdapter):
         raise TypeError("The given dbadapter is not of type ADBAdapter")
@@ -213,6 +210,7 @@ def generate_peptides_from_variants2(vars, length, dbadapter, peptides=None):
             warnings.warn("Intersecting variants found for Transcript %s"%tId)
             continue
 
+        generate_peptides_from_variants2.transOff = 0
         for start in xrange(0, len(tSeq) + 1 - 3 * length, 3):
             end = start + 3 * length
             vars_fs_hom = filter(lambda x: (x.isHomozygous
