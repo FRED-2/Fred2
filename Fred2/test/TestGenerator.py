@@ -1,12 +1,6 @@
 from unittest import TestCase
-from Bio.Seq import Seq
 
-__author__ = 'schubert,walzer'
-
-from Fred2.Core import Variant, Transcript
-from Fred2.Core import VariationType
-from Fred2.Core import MutationSyntax
-from Fred2.IO import MartsAdapter
+from Fred2.IO import MartsAdapter, read_annovar_exonic
 from Fred2.test.DummyAdapter import DummyAdapter
 from Fred2.test.VariantsForTesting import *
 from Fred2.Core import Generator
@@ -120,7 +114,7 @@ class GeneratorTest(TestCase):
         dummy_vars = [var_9, var_4, var_8]
         trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
         self.assertEqual(str(trans), "AATTAAAGGGGGTTT")
-
+    #
     def test_heterozygous_variants(self):
         """
         Create multiple transcript variants for a transcript, given a set
@@ -240,8 +234,27 @@ class GeneratorTest(TestCase):
         dummy_vars = [var_10, var_11, var_12]
         peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(dummy_vars, 3, dummy_db)))
 
+        peps_from_prot = set(map(str, Generator.generate_peptides_from_protein(Generator.generate_proteins_from_transcripts(
+                           Generator.generate_transcripts_from_variants(dummy_vars, dummy_db)), 3)))
+
+        self.assertTrue(len(peps - peps_from_prot) == 0)
+        self.assertTrue(len(peps_from_prot - peps) == 0)
         self.assertTrue(len(peps-exp_peps) == 0)
         self.assertTrue(len(exp_peps-peps) == 0)
+
+    def test_real_life_test(self):
+        mart = MartsAdapter()
+        vars = read_annovar_exonic("../tutorials/data/test_annovar.out")
+
+        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart)))
+
+        peps_from_prot = set(map(str, Generator.generate_peptides_from_protein(
+            Generator.generate_proteins_from_transcripts(
+            Generator.generate_transcripts_from_variants(vars, mart)),
+            9)))
+
+        self.assertTrue(len(peps - peps_from_prot) == 0)
+        self.assertTrue(len(peps_from_prot - peps) == 0)
 
     def test_proteins_from_variants(self):
         """
