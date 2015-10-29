@@ -250,8 +250,7 @@ class GeneratorTest(TestCase):
 
         peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(
             Generator.generate_proteins_from_transcripts(
-            Generator.generate_transcripts_from_variants(vars, mart)),
-            9)))
+            Generator.generate_transcripts_from_variants(vars, mart)), 9)))
 
         self.assertTrue(len(peps - peps_from_prot) == 0)
         self.assertTrue(len(peps_from_prot - peps) == 0)
