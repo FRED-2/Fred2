@@ -244,7 +244,7 @@ class GeneratorTest(TestCase):
 
     def test_real_life_test(self):
         mart = MartsAdapter()
-        vars = read_annovar_exonic("./test_annovar.out")
+        vars = read_annovar_exonic("/home/travis/build/FRED-2/Fred2/Fred2/test/test_annovar.out")
 
         peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart)))
 
