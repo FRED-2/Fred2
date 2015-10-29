@@ -12,7 +12,7 @@ from Fred2.test.VariantsForTesting import *
 
 # Protein
 from Fred2.Core.Protein import Protein
-from Fred2.Core.Generator import generate_peptides_from_protein, generate_transcripts_from_tumor_variants
+from Fred2.Core.Generator import generate_peptides_from_proteins, generate_transcripts_from_tumor_variants
 from Fred2.Core.Generator import generate_proteins_from_transcripts
 
 
@@ -44,7 +44,7 @@ class TestProteinClass(unittest.TestCase):
         Here the proteins are constructed just from their sequence, having no
         transcript or variant information.
         """
-        pep_set = generate_peptides_from_protein(self.prot_set, 3)
+        pep_set = generate_peptides_from_proteins(self.prot_set, 3)
 
         # # Print peptide generator results:
         # for pep in pep_set:
@@ -62,7 +62,7 @@ class TestProteinClass(unittest.TestCase):
         unique_test_prot_set.extend(self.prot_set)
         unique_test_prot_set.extend(self.prot_set)
 
-        unique_test_pep_set = generate_peptides_from_protein(unique_test_prot_set, 3)
+        unique_test_pep_set = generate_peptides_from_proteins(unique_test_prot_set, 3)
         unique_test_pep_seqs = set([str(pep) for pep in unique_test_pep_set])
         self.assertEqual(len(unique_test_pep_set), len(unique_test_pep_seqs))
 
@@ -128,7 +128,7 @@ class TestProteinClass(unittest.TestCase):
             self.assertTrue(str(prot) > 2)
 
         ## GENERATE Peptides:
-        peptides = generate_peptides_from_protein(proteins,2)
+        peptides = generate_peptides_from_proteins(proteins,2)
 
     def test1_protein_from_tumor_variants(self):
         dummy_db = DummyAdapter()
@@ -190,7 +190,7 @@ class TestProteinClass(unittest.TestCase):
             except ValueError:
                 pass
 
-        peptides = generate_peptides_from_protein(proteins, 4)
+        peptides = generate_peptides_from_proteins(proteins, 4)
 
         sequences = [str(pep) for pep in peptides]
 
