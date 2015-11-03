@@ -11,6 +11,7 @@ Welcome to Fred2's documentation!
 
    Fred2
 
+Wellcome to the class and function documentation of FRED2. Tutorials on how to use FRED2 can be found [https://github.com/FRED-2/Fred2/tree/master/Fred2/tutorials](at our GitHub repository).
 
 Indices and tables
 ==================
