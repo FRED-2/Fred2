@@ -47,6 +47,7 @@ def _incorp_snp(seq, var, transId, pos, offset, isReverse=False):
    
     ref = var.ref[::-1].translate(COMPLEMENT) if isReverse else var.ref
     obs = var.obs[::-1].translate(COMPLEMENT) if isReverse else var.obs
+
     #print transId, len(seq), var.get_transcript_position(transId)-1
     if seq[pos] != ref:
         warnings.warn("For %s bp does not match ref of assigned variant %s. Pos %i, var ref %s, seq ref %s " % (
@@ -237,7 +238,6 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                     prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(varSeq), geneid, ttId,
                                                                                        _vars=varComb)))
     return generate_peptides_from_proteins(prots, length, peptides=peptides)
-
 
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S
