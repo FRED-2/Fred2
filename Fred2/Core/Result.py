@@ -47,7 +47,7 @@ class AResult(pandas.DataFrame):
 
 class EpitopePredictionResult(AResult):
     """
-        A AResult object is a DataFrame with with multi-indexing, where column Id are the prediction model (i.e HLA allele
+        A EpitopePredictionResult object is a DataFrame with multi-indexing, where column Ids are the prediction model (i.e HLA allele
         for epitope prediction), row ID the target of the prediction (i.e. peptide) and the second row ID the predictor
         (e.g. BIMAS)
 
@@ -136,7 +136,25 @@ class Distance2SelfResult(AResult):
 
 class CleavageSitePredictionResult(AResult):
     """
-        Cleavage site prediction result
+        A CleavageSitePredictionResult object is a DataFrame with multi-indexing, where column Ids are the prediction
+        scores fo the different prediction methods, as well as the amino acid a a specific position, row ID the protein
+        ID and the position of the sequence (starting at 0).
+
+
+
+        CleavageSitePredictionResult:
+
+        +--------------+-------------+-------------+-------------+
+        | ID           | Pos         |     Seq     | Method_name |
+        +==============+=============+=============+=============+
+        | protein_ID   |     0       |     S       |     0.56    |
+        +              +-------------+-------------+-------------+
+        |              |     1       |     Y       |      15     |
+        +              +-------------+-------------+-------------+
+        |              |     2       |     F       |     0.36    |
+        +              +-------------+-------------+-------------+
+        |              |     3       |     P       |      10     |
+        +--------------+-------------+-------------+-------------+
     """
 
     def filter_result(self, expressions):
@@ -212,7 +230,18 @@ class CleavageSitePredictionResult(AResult):
 
 class CleavageFragmentPredictionResult(AResult):
     """
-        Cleavage fragment prediction result
+        A CleavageFragmentPredictionResult object is a DataFrame with single-indexing, where column Ids are the prediction
+        scores fo the different prediction methods, and row ID the peptide object.
+
+        CleavageFragmentPredictionResult:
+
+        +--------------+-------------+
+        | Peptide Obj  | Method Name |
+        +==============+=============+
+        | Peptide1     | -15.34      |
+        +--------------+-------------+
+        | Peptide2     | 23.34       |
+        +--------------+-------------+
     """
 
     def filter_result(self, expressions):
@@ -252,7 +281,18 @@ class CleavageFragmentPredictionResult(AResult):
 
 class TAPPredictionResult(AResult):
     """
-        TAP prediction result
+        A TAPPredictionResult object is a DataFrame with single-indexing, where column Ids are the prediction
+        scores fo the different prediction methods, and row ID the peptide object.
+
+        CleavageFragmentPredictionResult:
+
+        +--------------+-------------+
+        | Peptide Obj  | Method Name |
+        +==============+=============+
+        | Peptide1     | -15.34      |
+        +--------------+-------------+
+        | Peptide2     | 23.34       |
+        +--------------+-------------+
     """
 
     def filter_result(self, expressions):
@@ -281,7 +321,7 @@ class TAPPredictionResult(AResult):
         """
         Merges results of type TAPPredictionResult and returns the merged result
 
-        :param TAPPredictionResult other: Another TAPPredictionResult object of the same class
+        :param TAPPredictionResult others: Another TAPPredictionResult object of the same class
         :return: TAPPredictionResult - A new merged TAPPredictionResult object
         """
         if type(others) == type(self):
