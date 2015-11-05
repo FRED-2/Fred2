@@ -111,6 +111,8 @@ _incorp = {
             VariationType.SNP: _incorp_snp
          }
 
+_allowed_aas = frozenset('ACDEFGHIKLMNPQRSTVWY')
+
 
 def _check_for_problematic_variants(vars):
     """
@@ -503,11 +505,11 @@ def generate_peptides_from_proteins(proteins, window_size, peptides=None):
             raise ValueError("Input does contain non protein objects.")
         # generate all peptide sequences per protein:
         for (seq, pos) in gen_peptide_info(prot):
-
-            t_id = prot.transcript_id
-            if seq not in final_peptides:
-                final_peptides[seq] = Peptide(seq)
-            final_peptides[seq].proteins[t_id] = prot
-            final_peptides[seq].proteinPos[t_id].append(pos)
+            if all(a in _allowed_aas for a in seq.upper()):
+                t_id = prot.transcript_id
+                if seq not in final_peptides:
+                    final_peptides[seq] = Peptide(seq)
+                final_peptides[seq].proteins[t_id] = prot
+                final_peptides[seq].proteinPos[t_id].append(pos)
 
     return final_peptides.values()
