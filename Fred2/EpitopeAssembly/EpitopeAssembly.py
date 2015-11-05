@@ -186,7 +186,7 @@ class EpitopeAssembly(object):
         tmp_prob.write("NAME: %s\nTYPE: ATSP\nDIMENSION: %i\nEDGE_WEIGHT_TYPE: EXPLICIT\nEDGE_WEIGHT_FORMAT: FULL_MATRIX\nEDGE_WEIGHT_SECTION\n"%(tmp_prob.name,len(self.instance.E_prime)))
         for i in self.instance.E_prime:
             epis.append(i)
-            tmp_prob.write("\t".join("99999999" if i == j else str(int(float(self.instance.w_ab[i,j])*1000000)) for j in self.instance.E_prime)+"\n")
+            tmp_prob.write("\t".join("99999999" if i == j else str(int(float(self.instance.w_ab[i,j])*10000)) for j in self.instance.E_prime)+"\n")
 
         tmp_prob.write("EOF")
         tmp_prob.close()
@@ -563,7 +563,8 @@ class EpitopeAssemblyWithSpacer(object):
             for j, v in pssm.iteritems():
                 for aa, score in v.iteritems():
                     if self.__epi_pred.name in ["SMM", "SMMPMBEC"]:
-                        epi_pssms[j, aa, a.name] = -score
+                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+                        self.__thresh = {k: 1-math.log(v, 50000) for k, v in self.__thresh.iteritems()}
                     else:
                         epi_pssms[j, aa, a.name] = score
 
