@@ -28,6 +28,7 @@ from __future__ import division
 
 import itertools as itr
 import copy
+import math
 
 from pyomo.environ import ConcreteModel, Set, Param, Var, Constraint, PositiveIntegers, \
                           Binary, NonNegativeIntegers, Objective, maximize, NonNegativeReals
@@ -124,7 +125,7 @@ class OptiTope(object):
 
         #unstack multiindex df to get normal df based on first prediction method
         #and filter for binding epitopes
-
+        method = _results.index.values[0][1]
         res_df = _results.xs(_results.index.values[0][1], level="Method")
         res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, -float("inf"))
                                                    for a in res_df.columns), axis=1)]
@@ -134,9 +135,16 @@ class OptiTope(object):
             seq = str(p)
             peps[seq] = p
             for a, s in itr.izip(res_df.columns, tup[1:]):
-                if s > self.__thresh.get(a.name, -float("inf")):
-                    alleles_I.setdefault(a.name, set()).add(seq)
-                imm[seq, a.name] = s
+                if method in ["smm", "smmpmbec", "arb", "comblibsidney"]:
+                    thr = min(1., max(0.0, 1.0 - math.log(self.__thresh.get(a.name),
+                                                          50000))) if a.name in self.__thresh else -float("inf")
+                    if s > thr:
+                        alleles_I.setdefault(a.name, set()).add(seq)
+                    imm[seq, a.name] = min(1., max(0.0, 1.0 - math.log(s, 50000)))
+                else:
+                    if s > self.__thresh.get(a.name, -float("inf")):
+                        alleles_I.setdefault(a.name, set()).add(seq)
+                    imm[seq, a.name] = s
 
             prots = set(pr for pr in p.get_all_proteins())
             cons[seq] = len(prots)
