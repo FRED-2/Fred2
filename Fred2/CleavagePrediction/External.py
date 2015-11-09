@@ -3,7 +3,7 @@
 # as part of this package.
 """
 .. module:: CleavagePrediction.ANN
-   :synopsis: ANN-based cleavage prediction methods.
+   :synopsis: This module contains all classes for external cleavage prediction methods.
 .. moduleauthor:: schubert
 
 """
@@ -30,7 +30,7 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
     @abc.abstractmethod
     def prepare_input(self, _input, _file):
         """
-        Prepares the data and writes them to _file in the special format used by the external tool
+        Prepares the data :attr:_input and writes them to :attr:_file in the special format used by the external tool
 
         :param str _input: The input data (here peptide sequences)
         :param File _file: A file handler with which the data are written to file
@@ -44,7 +44,8 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         :param list(Peptide/Protein)/Peptide/Protein _aa_seq: A list of or a single Peptide or Protein object
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
         :param str options: A string of additional options directly past to the external tool.
-        :return: CleavageSitePredictionResult - A CleavageSitePredictionResult object
+        :return: :class:`~Fred2.Core.CleavageSitePredictionResult` - A :class:`~Fred2.Core.CleavageSitePredictionResult`
+                 object
         """
         if not self.is_in_path() and "path" not in kwargs:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
@@ -158,13 +159,10 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
             l = l.strip()
             if not len(l):
                 continue
-            #print l
             if not is_new_seq % 4 and is_new_seq:
-                #print "New seq starts", l
                 count += 1
                 is_new_seq = 0
             elif l[0] == "-":
-                #print "in counter", l
                 is_new_seq += 1
             elif l[0].isdigit():
                 pos, aa, _, s, _ = l.split()

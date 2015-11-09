@@ -31,7 +31,7 @@ REVERS = "-"
 
 def _incorp_snp(seq, var, transId, pos, offset, isReverse=False):
     """
-    Incorporates a snp into the given transcript sequence
+    Incorporates a snp into the given transcript sequence (side effect!).
 
     :param list(char) seq: Transcript sequence as a list
     :param Variant var: The snp variant to incorporate
@@ -61,7 +61,7 @@ def _incorp_snp(seq, var, transId, pos, offset, isReverse=False):
 
 def _incorp_insertion(seq, var, transId, pos, offset, isReverse=False):
     """
-    Incorporates an insertion into the given transcript sequence
+    Incorporates an insertion into the given transcript sequence (side effect!).
 
     :param list(char) seq: Transcript sequence as a list
     :param Variant var: The snp variant to incorporate
@@ -82,7 +82,7 @@ def _incorp_insertion(seq, var, transId, pos, offset, isReverse=False):
 
 def _incorp_deletion(seq, var, transId, pos, offset, isReverse=False):
     """
-    Incorporates a deletion into the given transcript sequence
+    Incorporates a deletion into the given transcript sequence (side effect!).
 
     :param list(char) seq: Transcript sequence as a list
     :param Variant var: The snp variant to incorporate
@@ -116,14 +116,14 @@ _allowed_aas = frozenset('ACDEFGHIKLMNPQRSTVWY')
 
 def _check_for_problematic_variants(vars):
     """
-    Filters problematic variants, e.g. variants that coincide.
+    Tests for problematic variants, e.g. variants that coincide.
 
     :param list(Variant) vars: Initial list of variants
     :return: bool - True if no intersecting variants were found
     :invariant: list(Variant) vars: List is sorted based on genome position in descending order
     """
     def get_range(var):
-        current_range = [0,0]
+        current_range = [0, 0]
         if var.type in [VariationType.FSDEL, VariationType.DEL]:
             current_range[0] = var.genomePos
             current_range[1] = var.genomePos+len(v.ref)-1
@@ -149,18 +149,34 @@ def _check_for_problematic_variants(vars):
 
 #################################################################
 # Public transcript generator functions
-def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
+def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
+                                    table='Standard', stop_symbol='*', to_stop=True, cds=False):
     """
-    Generates peptides from variants and avoids of construction all possible combinations of heterozygious variants
+    Generates peptides from variants and avoids the construction of all possible combinations of heterozygous variants
     by considering only those within the peptide sequence window. This reduces the number of combinations from
-    2^m with m = #Heterozygious Variants to 2^k with k<<m and k = #Henterozygious Variants within peptide window
-    (and all frame-shift mutations that occurred prior to the current peptide window)
+    2^m with m = #Heterozygous Variants to 2^k with k<<m and k = #Heterozygous Variants within peptide window
+    (and all frame-shift mutations that occurred prior to the current peptide window).
+
+    The result is a generator.
 
     :param list(Variant) vars: A list of variant objects to construct peptides from
     :param int length: The length of the peptides to construct
     :param ADBAdapter dbadapter: A ADBAdapter to extract relevant transcript information
     :param list(Peptide) peptides: A list of pre existing peptides that should be updated
-    :return: list(Peptide) - A list of unique (polymorphic) peptides
+    :param string table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer),
+           or a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard' table
+    :param str stop_symbol: Single character string, what to use for any terminators, defaults to the asterisk, '*'
+    :param bool to_stop: Boolean, defaults to False meaning do a full translation continuing on past any stop codons
+           (translated as the specified stop_symbol). If True, translation is terminated at the first in frame stop
+           codon (and the stop_symbol is not appended to the returned protein sequence)
+    :param bool cds: cds - Boolean, indicates this is a complete CDS. If True, this checks the sequence starts with a
+           valid alternative start codon (which will be translated as methionine, M), that the sequence length is a
+           multiple of three, and that there is a single in frame stop codon at the end (this will be excluded from the
+           protein sequence, regardless of the to_stop option). If these tests fail, an exception is raised
+    :return: Generator(Peptide) - A list of unique (polymorphic) peptides
+    :raises ValueError: If incorrect table argument is pasted
+    :raises TranslationError: If sequence is not multiple of three, or first codon is not a start codon,
+            or last codon ist not a stop codon, or an extra stop codon was found in frame, or codon is non-valid
     """
 
     def _generate_combinations(tId, vs, seq, usedVs, offset, isReverse):
@@ -239,7 +255,8 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
                 for ttId, varSeq, varComb in _generate_combinations(tId, vars, list(tSeq), {}, 0, strand == REVERS):
                     prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(varSeq), geneid, ttId,
                                                                                        _vars=varComb)))
-    return generate_peptides_from_proteins(prots, length, peptides=peptides)
+    return generate_peptides_from_proteins(prots, length, peptides=peptides,
+                                           table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds)
 
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S
@@ -248,7 +265,9 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None):
 
 def generate_transcripts_from_variants(vars, dbadapter):
     """
-    Generates all possible transcript variations of the given variants
+    Generates all possible transcript variations based on the given variants.
+
+    The result is a generator.
 
     :param list(Variant) vars: A list of variants for which transcripts should 
                                be build
@@ -309,7 +328,6 @@ def generate_transcripts_from_variants(vars, dbadapter):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
-        #print tId
         query = dbadapter.get_transcript_information(tId)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
@@ -332,7 +350,9 @@ def generate_transcripts_from_variants(vars, dbadapter):
 
 def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
     """
-    generates all possible transcript variations of the given variants
+    Generates all possible transcript variations of the given variants.
+
+    The result is a generator.
 
     :param list(Variant) normal: A list of variants of the normal tissue
     :param list(Variant) tumor: A list of variant of the cancer tissue for which transcript should be generated
@@ -428,12 +448,28 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
 ################################################################################
 #        T R A N S C R I P T    = = >    P R O T E I N
 ################################################################################
-def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbol='*', to_stop=False, cds=False):
+def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbol='*', to_stop=True, cds=False):
         """
-        Enables the translation from a transcript to a protein instance
+        Enables the translation from a transcript to a protein instance. The result is a generator.
 
-        :param: list(Transcript)/Transcript - A list of transcripts to translate to proteins
-        :returns: Protein - the protein that corresponds to the transcript
+        The result is a generator.
+
+        :param list(Transcript)/Transcript:  A list of or a single transcripts to translate
+        :param string table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer),
+               or a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard' table
+        :param str stop_symbol: Single character string, what to use for any terminators, defaults to the asterisk, '*'
+        :param bool to_stop: Translates sequence and passes any stop codons if False (default True)(translated as the
+               specified stop_symbol). If True, translation is terminated at the first in frame stop codon
+               (and the stop_symbol is not appended to the returned protein sequence)
+        :param bool cds:  Boolean, indicates this is a complete CDS. If True, this checks the sequence starts with
+               a valid alternative start codon (which will be translated as methionine, M), that the sequence length is
+               a multiple of three, and that there is a single in frame stop codon at the end (this will be excluded
+               from the protein sequence, regardless of the to_stop option). If these tests fail, an exception is raised
+        :returns: Generator(Protein) - The protein that corresponds to the transcript
+        :raises ValueError: If incorrect table argument is pasted
+        :raises TranslationError: If sequence is not multiple of three, or first codon is not a start codon,
+                or last codon ist not a stop codon, or an extra stop codon was found in frame, or codon is non-valid
+
         """
 
         if isinstance(transcripts, Transcript):
@@ -465,15 +501,16 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 
 def generate_peptides_from_proteins(proteins, window_size, peptides=None):
     """
-    Creates all peptides for a given window size, from a given protein. The
-    result is a generator.
+    Creates all peptides for a given window size, from a given protein.
 
-    :param Protein protein: (Iterable of) protein(s) from which a list of unique
+    The result is a generator.
+
+    :param list(Protein)/Protein proteins: (Iterable of) protein(s) from which a list of unique
                             peptides should be generated
     :param int window_size: Size of peptide fragments
     :param list(Peptide) peptides: A list of peptides to update during peptide generation
                                 (usa case: Adding and updating Peptides of newly generated Proteins)
-    :return list(Peptide) - A unique list of peptides
+    :return Generator(Peptide) - A unique generator of peptides
     """
 
     def gen_peptide_info(protein):
@@ -512,4 +549,4 @@ def generate_peptides_from_proteins(proteins, window_size, peptides=None):
                 final_peptides[seq].proteins[t_id] = prot
                 final_peptides[seq].proteinPos[t_id].append(pos)
 
-    return final_peptides.values()
+    return final_peptides.itervalues()

@@ -3,7 +3,7 @@
 # as part of this package.
 """
 .. module:: Core.Allele
-   :synopsis: Allele class.
+   :synopsis: HLA Allele class.
 .. moduleauthor:: schubert, brachvogel, szolek, walzer
 
 """
@@ -14,7 +14,7 @@ from Fred2.Core.Base import MetadataLogger
 
 class Allele(MetadataLogger):
     """
-    This class represents an Allele and stores additional information
+    This class represents an HLA Allele and stores additional information
     """
 
     def __init__(self, _name, prob=None):
@@ -28,8 +28,6 @@ class Allele(MetadataLogger):
         self.locus, rest = name.split('*')
         self.supertype, self.subtype = rest.split(':')[:2]
         self.prob = prob
-
-        # TODO check semantics
 
     def __repr__(self):
         return 'HLA-%s*%s:%s' % (str(self.locus), str(self.supertype), str(self.subtype))

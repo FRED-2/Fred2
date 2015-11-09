@@ -1,9 +1,15 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+"""
+.. module:: Core.Protein
+   :synopsis: Contains the Protein class
 
-__author__ = 'schubert,brachvogel,walzer,szolek'
+   :Note: All internal indices start at 0!
 
+.. moduleauthor:: schubert,brachvogel,walzer
+
+"""
 import itertools
 
 from Bio.Seq import Seq
@@ -22,13 +28,6 @@ class Protein(MetadataLogger, Seq):
         For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq`
         (from Biopython)
 
-    :param str _gene_id: ID of the genome
-    :param str _transcript_id: ID of the corresponding transcript
-    :param Transcript _orig_transcript: Reference to the originating transcript
-    :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
-                                          assoziated with the protein. 
-                                          key=position within protein, 
-                                          value=list of variants at that pos
     """
     newid = itertools.count().next #this is evil and has no other purpose? it does not help that there may be more than one protein from one transcript - due to variants
 
@@ -42,7 +41,7 @@ class Protein(MetadataLogger, Seq):
         :param Transcript _orig_transcript: Reference to the originating 
                                             transcript object
         :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
-                                              assoziated with the protein. 
+                                              associated with the protein.
                                               key=position within protein, 
                                               value=list of variants at that pos
         """
@@ -63,14 +62,15 @@ class Protein(MetadataLogger, Seq):
 
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        returns a single letter or a sliced protein (when given a slice).
+        Returns a single letter or a sliced protein (when given a slice).
         The sliced protein does not reference to a Transcript object!
 
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position within the primary sequence or a slice
         :returns: str/Protein - A single letter at position :attr:`index`
-                  or a sliced Protein with adjusted variant positions.
+                  or a sliced Protein with adjusted variant positions
+        :raises ValueError: If start is greater than stop of index
         """
         if isinstance(index, int):
             #Return a single letter as a string

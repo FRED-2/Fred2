@@ -28,11 +28,11 @@ class MetadataLogger(object):
     """
     This class provides a simple interface for assigning additional metadata to
     any object in our data model. Examples: storing ANNOVAR columns like depth,
-    base count, dbSNP id, quality information for variants, additional prediction scores
+    base count, dbSNP id, quality information for variants, additional prediction information
     for peptides etc. This functionality is not used from core methods of FRED2.
 
-    The saved values are accessed via :meth:`~Fred2.Core.Base.log_metadata` and
-    :meth:`~Fred2.Core.Base.get_metadata`
+    The saved values are accessed via :meth:`~Fred2.Core.MetadataLogger.log_metadata` and
+    :meth:`~Fred2.Core.MetadataLogger.get_metadata`
     
     """
     def __init__(self):
@@ -135,7 +135,7 @@ class ACleavageSitePrediction(object):
         Predicts the proteasomal cleavage site of the given sequences
 
         :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
-        :return: AResult - Returns a AResult object for the specified Bio.Seq
+        :return: :class:`~Fred2.Core.AResult` - Returns a :class:`~Fred2.Core.AResult` object for the specified Bio.Seq
         """
         raise NotImplementedError
 
@@ -177,8 +177,8 @@ class ACleavageFragmentPrediction(object):
         """
         Predicts the probability that the fragment can be produced by the proteasom
 
-        :param Bio.Seq _aa_seq: The sequence to be cleaved
-        :return: AResult - Returns a AResult object for the specified Bio.Seq
+        :param Peptide _aa_seq: The sequence to be cleaved
+        :return: :class:`~Fred2.Core.AResult` - Returns a :class:`~Fred2.Core.AResult` object for the specified Bio.Seq
         """
         raise NotImplementedError
 
@@ -218,7 +218,7 @@ class AEpitopePrediction(object):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(Allele) alleles: The alleles for which the internal predictor
+        :param list(:class:`~Fred2.Core.Allele) alleles: The alleles for which the internal predictor
          representation is needed
         :return: list(str) - Returns a string representation of the input alleles
         """
@@ -231,9 +231,12 @@ class AEpitopePrediction(object):
         If alleles is not given, predictions for all valid alleles of the predictor is performed. If, however,
         a list of alleles is given, predictions for the valid allele subset is performed.
 
-        :param Peptide/list(Peptide) peptides: The peptide objects for which predictions should be performed
-        :param Allele/list(Allele) alleles: An Allele or list of Alleles for which prediction models should be used
-        :return: AResult - Returns a AResult object for the specified Peptides and Alleles
+        :param :class:`~Fred2.Core.Peptide`/list(:class:`~Fred2.Core.Peptide`) peptides: The peptide objects for which
+        predictions should be performed
+        :param :class:`~Fred2.Core.Allele/list(:class:`~Fred2.Core.Allele) alleles:
+        An :class:`~Fred2.Core.Allele` or list of Alleles for which prediction models should be used
+        :return: :class:`~Fred2.Core.AResult` - Returns a :class:`~Fred2.Core.AResult` object for the specified
+        :class:`~Fred2.Core.Peptide` and :class:`~Fred2.Core.Allele`
         """
         raise NotImplementedError
 
@@ -249,7 +252,8 @@ class ASVM(object):
         """
         Returns the feature encoding for peptides
 
-        :param List(Peptide)/Peptide peptides: List of or a single Peptide object
+        :param List(:class:`~Fred2.Core.Peptide`)/:class:`~Fred2.Core.Peptide` peptides: List of or a single
+        :class:`~Fred2.Core.Peptide` object
         :return: list(Object) - Feature encoding of the Peptide objects
         """
         raise NotImplementedError
@@ -350,8 +354,9 @@ class ATAPPrediction(object):
         """
         Predicts the TAP affinity for the given sequences
 
-        :param list(Peptide)/Peptide: Peptides for which TAP affinity should be predicted
-        :return: AResult - Returns a TAPResult object
+        :param list(:class:`~Fred2.Core.Peptide`)/:class:`~Fred2.Core.Peptide`:
+        :class:`~Fred2.Core.Peptide` for which TAP affinity should be predicted
+        :return: :class:`~Fred2.Core.TAPResult` - Returns a :class:`~Fred2.Core.TAPResult` object
         """
         raise NotImplementedError
 
@@ -380,6 +385,7 @@ class AHLATyping(object):
 
         :param str ngsFile: The path to the input file containing the NGS reads
         :param str output: The path to the output file or directory
-        :return: list(Allele) - A list of HLA alleles representing the genotype predicted by the algorithm
+        :return: list(:class:`~Fred2.Core.Allele`) - A list of HLA alleles representing the genotype
+        predicted by the algorithm
         """
         raise NotImplementedError

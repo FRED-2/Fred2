@@ -1,8 +1,15 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+"""
+.. module:: Core.Peptide
+   :synopsis: Contains the Peptide class
 
-__author__ = 'schubert,walzer'
+   :Note: All internal indices start at 0!
+
+.. moduleauthor:: schubert,walzer
+
+"""
 import collections
 
 from Bio.Seq import Seq
@@ -39,7 +46,6 @@ class Peptide(MetadataLogger, Seq):
                                                                                      protein_pos.iteritems()}
 
     def __getitem__(self, index):
-        #TODO: does not work that way! Reimplement!
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
@@ -47,8 +53,8 @@ class Peptide(MetadataLogger, Seq):
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position in the peptide sequence
-        :returns: A single letter at position :attr:`index` or a sliced Peptide.
-        :rtype: Peptide
+        :return: Peptide - A single letter at position :attr:`index` or a sliced Peptide.
+        :raises ValueError: If stop is greater than start of index
         """
         if isinstance(index, int):
             #Return a single letter as a string
@@ -117,8 +123,7 @@ class Peptide(MetadataLogger, Seq):
 
     def get_protein_positions(self, _transcript_id):
         """
-        Returns all positions of origin for a given protein
-        identified by its transcript_id
+        Returns all positions of origin for a given protein identified by its transcript_id
 
         :param str _transcript_id: The unique transcript ID of the protein in question
         :return: list(int) - A list of positions within the protein from which the peptide originated (starts at 0)
@@ -131,7 +136,7 @@ class Peptide(MetadataLogger, Seq):
 
         :param str _transcript_id: Transcript ID of the specific protein in question
         :return: list(Variant) - A list variants that influenced the peptide sequence
-        :raise KeyError: If peptide does not originate from specified protein
+        :raises KeyError: If peptide does not originate from specified protein
         """
         try:
             p = self.proteins[_transcript_id]
@@ -153,8 +158,8 @@ class Peptide(MetadataLogger, Seq):
             fs.extend(var)
             return fs
         except KeyError:
-            raise ValueError("Peptide does not origin from protein with "
-                             "transcript ID {transcript}".format(transcript=_transcript_id))
+            raise KeyError("Peptide does not origin from protein with \
+            transcript ID {transcript}".format(transcript=_transcript_id))
 
     def get_variants_by_protein_position(self, _transcript_id, _protein_pos):
         """
@@ -166,15 +171,15 @@ class Peptide(MetadataLogger, Seq):
         :return: dict(int,list(Vars)) - Dictionary of relative position of variants in peptide (starts at 0)
                                         and associated variants that influenced the peptide sequence
         :raises:
-         :ValueError: If peptides does not start at specified position
+         :ValueError: If peptide does not start at specified position
          :KeyError: If peptide does not originate from specified protein
         """
         try:
             p = self.proteins[_transcript_id]
             if _protein_pos not in self.proteinPos[_transcript_id]:
-                    raise ValueError("Peptide does not start a "
-                                     "{pos} in protein with transcript ID {transcript}".format(pos=_protein_pos,
-                                                                                               transcript=_protein_pos))
+                    raise ValueError("Peptide does not start a \
+                                     {pos} in protein with transcript ID {transcript}".format(pos=_protein_pos,
+                                                                                              transcript=_protein_pos))
             var = dict()
             fs = dict()
             shift = 0
@@ -192,8 +197,8 @@ class Peptide(MetadataLogger, Seq):
             fs.update(var)
             return fs
         except KeyError:
-            raise ValueError("Peptide does not origin from protein with "
-                             "transcript ID {transcript}".format(transcript=_transcript_id))
+            raise KeyError("Peptide does not origin from protein with \
+                             transcript ID {transcript}".format(transcript=_transcript_id))
 
     def __eq__(self, other):
         return str(self) == str(other)

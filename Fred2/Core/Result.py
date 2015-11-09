@@ -24,7 +24,7 @@ class AResult(pandas.DataFrame):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def filter_result(self, expression):
+    def filter_result(self, expressions):
         """
         Filter result based on a list of expressions
 
@@ -39,7 +39,7 @@ class AResult(pandas.DataFrame):
         """
         Merges results of the same type and returns a merged result
 
-        :param AResult other: Another AResult object of the same class
+        :param list(AResult)/AResult others: A (list of) AResult object(s) of the same class
         :return: AResult - A new merged AResult object
         """
         raise NotImplementedError()
@@ -47,9 +47,9 @@ class AResult(pandas.DataFrame):
 
 class EpitopePredictionResult(AResult):
     """
-        A EpitopePredictionResult object is a DataFrame with multi-indexing, where column Ids are the prediction model (i.e HLA allele
-        for epitope prediction), row ID the target of the prediction (i.e. peptide) and the second row ID the predictor
-        (e.g. BIMAS)
+        A EpitopePredictionResult object is a DataFrame with multi-indexing, where column Ids are the prediction model
+        (i.e HLA allele for epitope prediction), row ID the target of the prediction (i.e. peptide) and the second row
+        ID the predictor (e.g. BIMAS)
 
         Epitope prediction result
 
@@ -70,10 +70,11 @@ class EpitopePredictionResult(AResult):
     def filter_result(self, expressions):
         """
         Filters a result data frame based on a specified expression consisting
-        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
-        columns full fill the criteria the row remains.
+        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of
+        the columns fulfill the criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
+        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator,
+               threshold)
         :return: EpitopePredictionResult - Filtered result object
         """
         if isinstance(expressions, tuple):
@@ -96,7 +97,8 @@ class EpitopePredictionResult(AResult):
         """
         Merges results of type EpitopePredictionResult and returns the merged result
 
-        :param EpitopePredictionResult other: Another EpitopePredictionResult object of the same class
+        :param list(EpitopePredictionResult)/EpitopePredictionResult others: Another (list of)
+               EpitopePredictionResult(s)
         :return: EpitopePredictionResult - A new merged EpitopePredictionResult object
         """
         df = self.copy(deep=False)
@@ -160,10 +162,11 @@ class CleavageSitePredictionResult(AResult):
     def filter_result(self, expressions):
         """
         Filters a result data frame based on a specified expression consisting
-        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
-        columns full fill the criteria the row remains.
+        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of
+        the columns fulfill the criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
+        :param list((str,comparator,float)) expressions: A list of triples consisting of
+               (method_name, comparator, threshold)
         :return: CleavageSitePredictionResult - A new filtered result object
         """
         if isinstance(expressions, tuple):
@@ -184,7 +187,8 @@ class CleavageSitePredictionResult(AResult):
         """
         Merges results of type CleavageSitePredictionResult and returns the merged result
 
-        :param CleavageSitePredictionResult other: Another CleavageSitePredictionResult object of the same class
+        :param list(CleavageSitePredictionResult)/CleavageSitePredictionResult others: A (list of)
+               CleavageSitePredictionResult object(s)
         :return: CleavageSitePredictionResult - A new merged CleavageSitePredictionResult object
         """
         if type(others) == type(self):
@@ -230,8 +234,8 @@ class CleavageSitePredictionResult(AResult):
 
 class CleavageFragmentPredictionResult(AResult):
     """
-        A CleavageFragmentPredictionResult object is a DataFrame with single-indexing, where column Ids are the prediction
-        scores fo the different prediction methods, and row ID the peptide object.
+        A CleavageFragmentPredictionResult object is a DataFrame with single-indexing, where column Ids are the
+        prediction scores fo the different prediction methods, and row ID the peptide object.
 
         CleavageFragmentPredictionResult:
 
@@ -247,10 +251,11 @@ class CleavageFragmentPredictionResult(AResult):
     def filter_result(self, expressions):
         """
         Filters a result data frame based on a specified expression consisting
-        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
-        columns full fill the criteria the row remains.
+        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of
+        the columns fulfill the criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
+        :param list((str,comparator,float)) expressions: A list of triples consisting of
+               (method_name, comparator, threshold)
         :return: CleavageFragmentPredictionResult - A new filtered result object
         """
 
@@ -270,7 +275,7 @@ class CleavageFragmentPredictionResult(AResult):
         """
         Merges results of type CleavageFragmentPredictionResult and returns the merged result
 
-        :param CleavageFragmentPredictionResult other: Another CleavageFragmentPredictionResult object of the same class
+        :param CleavageFragmentPredictionResult others: A (list of) CleavageFragmentPredictionResult object(s)
         :return: CleavageFragmentPredictionResult - A new merged CleavageFragmentPredictionResult object
         """
         if type(others) == type(self):
@@ -282,7 +287,7 @@ class CleavageFragmentPredictionResult(AResult):
 class TAPPredictionResult(AResult):
     """
         A TAPPredictionResult object is a DataFrame with single-indexing, where column Ids are the prediction
-        scores fo the different prediction methods, and row ID the peptide object.
+        names of the different prediction methods, and row ID the peptide object.
 
         CleavageFragmentPredictionResult:
 
@@ -297,11 +302,12 @@ class TAPPredictionResult(AResult):
 
     def filter_result(self, expressions):
         """
-        filters a result data frame based on a specified expression consisting
-        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of the
-        columns full fill the criteria the row remains.
+        Filters a result data frame based on a specified expression consisting
+        of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of
+        the columns fulfill the criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
+        :param list((str,comparator,float)) expressions: A list of triples consisting of
+               (method_name, comparator, threshold)
         :return: TAPPredictionResult - A new filtered result object
         """
         if isinstance(expressions, tuple):
@@ -321,7 +327,7 @@ class TAPPredictionResult(AResult):
         """
         Merges results of type TAPPredictionResult and returns the merged result
 
-        :param TAPPredictionResult others: Another TAPPredictionResult object of the same class
+        :param list(TAPPredictionResult)/TAPPredictionResult others: A (list of) TAPPredictionResult object(s)
         :return: TAPPredictionResult - A new merged TAPPredictionResult object
         """
         if type(others) == type(self):

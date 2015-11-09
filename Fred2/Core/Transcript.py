@@ -18,7 +18,7 @@ from Fred2.Core.Variant import VariationType
 
 
 class Transcript(MetadataLogger, Seq):
-    """A Transcript is the mRNA sequence containing at no or several variations.
+    """A Transcript is the mRNA sequence containing no or several :class:`Fred2.Core.Variant`.
 
     .. note::
 
@@ -27,17 +27,18 @@ class Transcript(MetadataLogger, Seq):
 
     :param str gene_id: Genome ID
     :param str transcript_id: Transcript RefSeqID
-    :param dict(int,Variant) vars: Dict of Variants for specific positions in
+    :param dict(int,:class:`Fred2.Core.Variant`) vars: Dict of :class:`Fred2.Core.Variant` for specific positions in
                                    the transcript. key=position, value=Variant
     """
     newid = itertools.count().next #this is evil
 
     def __init__(self, _seq, _gene_id="unknown", _transcript_id=None, _vars=None):
         """
-        :param str _gene_id: input genome ID
-        :param str _transcript_id: input transcript RefSeqID
-        :param str _seq: Transcript RefSeq sequence
-        :param dict(int,Variant) _vars: a dict of transcript position to Variant that is specific to the transcript.
+        :param str _gene_id: Genome ID
+        :param str _transcript_id: Transcript RefSeqID
+        :param str _seq: Transcript sequence
+        :param dict(int,:class:`Fred2.Core.Variant`) _vars: A dict of transcript position to :class:`Fred2.Core.Variant`
+               that is specific to the transcript.
         """
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq.upper(), generic_rna)
