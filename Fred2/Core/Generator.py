@@ -8,7 +8,7 @@
 
    :Note: All internal indices start at 0!
 
-.. moduleauthor:: schubert,walzer
+.. moduleauthor:: schubert, walzer
 
 """
 
@@ -152,10 +152,11 @@ def _check_for_problematic_variants(vars):
 def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
                                     table='Standard', stop_symbol='*', to_stop=True, cds=False):
     """
-    Generates peptides from variants and avoids the construction of all possible combinations of heterozygous variants
-    by considering only those within the peptide sequence window. This reduces the number of combinations from
-    2^m with m = #Heterozygous Variants to 2^k with k<<m and k = #Heterozygous Variants within peptide window
-    (and all frame-shift mutations that occurred prior to the current peptide window).
+    Generates :class:`~Fred2.Core.Peptide.Peptide` from :class:`~Fred2.Core.Variant.Variant` and avoids the
+    construction of all possible combinations of heterozygous variants by considering only those within the peptide
+    sequence window. This reduces the number of combinations from 2^m with m = #Heterozygous Variants to 2^k with
+    k<<m and k = #Heterozygous Variants within peptide window (and all frame-shift mutations that occurred prior to
+    the current peptide window).
 
     The result is a generator.
 
@@ -255,7 +256,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
                 vars = vars_fs_hom+vars_in_window
                 for ttId, varSeq, varComb in _generate_combinations(tId, vars, list(tSeq), {}, 0, strand == REVERS):
                     prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(varSeq), geneid, ttId,
-                                                                                       _vars=varComb)))
+                                                                                       vars=varComb)))
     return generate_peptides_from_proteins(prots, length, peptides=peptides,
                                            table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds)
 
@@ -266,7 +267,8 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
 
 def generate_transcripts_from_variants(vars, dbadapter):
     """
-    Generates all possible transcript variations based on the given variants.
+    Generates all possible transcript :class:`~Fred2.Core.Transcript.Transcript` based on the given
+    :class:`~Fred2.Core.Variant.Variant`.
 
     The result is a generator.
 
@@ -346,12 +348,13 @@ def generate_transcripts_from_variants(vars, dbadapter):
             continue
         generate_transcripts_from_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), {}, 0, isReverse=strand == REVERS):
-            yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
+            yield Transcript("".join(varSeq), geneid, tId, vars=varComb)
 
 
 def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
     """
-    Generates all possible transcript variations of the given variants.
+    Generates all possible :class:`~Fred2.Core.Transcript.Transcript` variations of the given
+    :class:`~Fred2.Core.Variant.Variant`.
 
     The result is a generator.
 
@@ -444,7 +447,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
 
         generate_transcripts_from_tumor_variants.transOff = 0
         for tId, varSeq, varComb in _generate_combinations(tId, vs, list(tSeq), {}, 0):
-            yield Transcript("".join(varSeq), geneid, tId, _vars=varComb)
+            yield Transcript("".join(varSeq), geneid, tId, vars=varComb)
 
 
 ################################################################################
@@ -452,11 +455,13 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
 ################################################################################
 def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbol='*', to_stop=True, cds=False):
         """
-        Enables the translation from a transcript to a protein instance. The result is a generator.
+        Enables the translation from a :class:`~Fred2.Core.Transcript.Transcript` to a
+        :class:`~Fred2.Core.Protein.Protein` instance. The result is a generator.
 
         The result is a generator.
 
-        :param list(:class:`~Fred2.Core.Transcript.Transcript`)/:class:`~Fred2.Core.Transcript.Transcript`:  A list of or a single transcripts to translate
+        :param list(:class:`~Fred2.Core.Transcript.Transcript`)/:class:`~Fred2.Core.Transcript.Transcript`:  A list of
+               or a single transcripts to translate
         :param string table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer),
                or a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard' table
         :param str stop_symbol: Single character string, what to use for any terminators, defaults to the asterisk, '*'
@@ -503,7 +508,8 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 
 def generate_peptides_from_proteins(proteins, window_size, peptides=None):
     """
-    Creates all peptides for a given window size, from a given protein.
+    Creates all :class:`~Fred2.Core.Peptide.Peptide`s for a given window size, from a given
+    :class:`~Fred2.Core.Protein.Protein`.
 
     The result is a generator.
 

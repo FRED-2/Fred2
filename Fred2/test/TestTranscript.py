@@ -13,8 +13,8 @@ class TestTranscript(TestCase):
     def setUp(self):
         self.simple = Transcript("")
         self.simple_new = Transcript("")
-        self.w_gid = Transcript("", _gene_id="123")
-        self.w_tid = Transcript("", _transcript_id="tid")
+        self.w_gid = Transcript("", gene_id="123")
+        self.w_tid = Transcript("", transcript_id="tid")
         self.w_id = Transcript("", "gid", "tid")
 
         #Internal indexing starts at 0! MutationSyntax coming e.g. from ANNOVAR starts at 1!

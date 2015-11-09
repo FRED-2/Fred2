@@ -24,10 +24,12 @@ class APSSMTAPPrediction(ATAPPrediction):
 
     def predict(self, peptides, **kwargs):
         """
-        Returns predictions for given peptides.
+        Returns TAP predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
+        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :return: :class:`~Fred2.Core.Result.ATAPPredictionResult` - Returns a
+        :class:`~Fred2.Core.Result.ATAPPredictionResult` object with the prediction results
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
@@ -86,7 +88,7 @@ class TAPDoytchinova(APSSMTAPPrediction):
 
     @property
     def supportedLength(self):
-        """A list of supported peptide lengths"""
+        """A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths"""
         return self.__supported_length
 
 
@@ -117,15 +119,17 @@ class SMMTAP(APSSMTAPPrediction):
 
     @property
     def supportedLength(self):
-        """A list of supported peptide lengths"""
+        """A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths"""
         return self.__supported_length
 
     def predict(self, peptides, **kwargs):
         """
-        Returns predictions for given peptides.
+        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
+        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :return: :class:`~Fred2.Core.Result.ATAPPredictionResult` - Returns a
+        :class:`~Fred2.Core.Result.ATAPPredictionResult` object with the prediction results
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)

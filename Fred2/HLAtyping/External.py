@@ -32,7 +32,8 @@ class AExternalHLATyping(AHLATyping, AExternal):
         :param str command: The path to a alternative binary (if binary is not globally executable)
         :param str options: A string with additional options that is directly past to the tool
         :param bool delete: Boolean indicator whether generated files should be deleted afterwards
-        :return: list(Allele) - A list of Allele objects representing the most likely HLA genotype
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects
+        representing the most likely HLA genotype
         """
 
         if not self.is_in_path() and "path" not in kwargs:
@@ -128,27 +129,27 @@ class OptiType_1_0(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :param str path: - Optional specification of executable path if deviant from self.__command
         :return: str - The external version of the tool or None if tool does not support versioning
         """
         return None
 
-    def parse_external_result(self, _output):
+    def parse_external_result(self, output):
         """
         Searches within the defined dir _file for the newest dir and reads
         the prediction file from there
 
-        :param str _output: The path to the output dir
-        :return: list(Allele) - The predicted HLA genotype
+        :param str output: The path to the output dir
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
         """
-        all_subdirs = [os.path.join(_output,d) for d in os.listdir(_output) if os.path.isdir(os.path.join(_output,d))]
+        all_subdirs = [os.path.join(output,d) for d in os.listdir(output) if os.path.isdir(os.path.join(output,d))]
         latest_subdir = max(all_subdirs, key=os.path.getmtime)
         result_file = latest_subdir+"/"+os.path.basename(os.path.normpath(latest_subdir))+"_result.tsv"
         with open(result_file, "r") as f:
             row = csv.DictReader(f, delimiter="\t").next()
             return map(lambda x: Allele("HLA-"+x), [ row[k] for k in ["A1","A2","B1","B2","C1","C2"]])
 
-    def clean_up(self, _output):
+    def clean_up(self, output):
         """
         Searches within the defined dir _file for the newest dir and deletes it.
         This should be the one OptiType had created
@@ -156,9 +157,9 @@ class OptiType_1_0(AExternalHLATyping):
         This could cause some terrible site effects if someone or something also writes in that directory!!
         OptiType should change the way it writes its output!
 
-        :param str _output: The path to the output file or directory of the programme
+        :param str output: The path to the output file or directory of the programme
         """
-        all_subdirs = [os.path.join(_output, d) for d in os.listdir(_output) if os.path.isdir(os.path.join(_output, d))]
+        all_subdirs = [os.path.join(output, d) for d in os.listdir(output) if os.path.isdir(os.path.join(output, d))]
         latest_subdir = max(all_subdirs, key=os.path.getmtime)
         shutil.rmtree(latest_subdir)
 
@@ -203,7 +204,7 @@ class Seq2HLA_2_2(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :param str path: - Optional specification of executable path if deviant from self.__command
         :return: str - The external version of the tool or None if tool does not support versioning
         """
         try:
@@ -229,7 +230,8 @@ class Seq2HLA_2_2(AExternalHLATyping):
         :param str command: The path to a alternative binary (if binary is not globally executable)
         :param str options: A string with additional options that is directly past to the tool
         :param bool delete: Boolean indicator whether generated files should be deleted afterwards
-        :return: list(Allele) - A list of Allele objects representing the most likely HLA genotype
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects
+        representing the most likely HLA genotype
         """
         if "-2" not in options:
             ValueError("Seq2HLA only supports paired-end inputs. Please use the options "
@@ -237,47 +239,47 @@ class Seq2HLA_2_2(AExternalHLATyping):
         return super(Seq2HLA_2_2, self).predict(ngsFile, output, command=command,
                                                 options=options, delete=delete, **kwargs)
 
-    def parse_external_result(self, _file):
+    def parse_external_result(self, output):
         """
         Searches within the defined dir _file for the newest dir and reads
         the prediction file from there
 
-        :param str _output: The path to the output dir
-        :return: list(Allele) - The predicted HLA genotype
+        :param str output: The path to the output dir
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
         """
         alleles = []
         try:
-            with open(_file+"-ClassI.HLAgenotype4digits") as c1:
+            with open(output+"-ClassI.HLAgenotype4digits") as c1:
                 for row in csv.DictReader(c1, delimiter="\t"):
                     alleles.extend([Allele("HLA-"+row["Allele 1"]), Allele("HLA-"+row["Allele 2"])])
         except IOError as e:
             warnings.warn("Output file {c1} for HLA-I could not be found. {error}".format(
-                c1=_file + "-ClassI.HLAgenotype4digits"), error=e)
+                c1=output + "-ClassI.HLAgenotype4digits"), error=e)
 
         try:
-            with open(_file+"-ClassII.HLAgenotype4digits") as c2:
+            with open(output+"-ClassII.HLAgenotype4digits") as c2:
                 for row in csv.DictReader(c2, delimiter="\t"):
                     alleles.extend([Allele("HLA-"+row["Allele 1"]), Allele("HLA-"+row["Allele 2"])])
         except IOError as e:
             warnings.warn("Output file {c2} for HLA-I could not be found. {error}".format(
-                c2=_file + "-ClassII.HLAgenotype4digits"), error=e)
+                c2=output + "-ClassII.HLAgenotype4digits"), error=e)
 
         return alleles
 
-    def clean_up(self, _output):
+    def clean_up(self, output):
         """
         Deletes all created files.
 
-        :param str _output: The path to the output file or directory of the programme
+        :param str output: The path to the output file or directory of the programme
         """
-        if os.path.isdir(_output):
+        if os.path.isdir(output):
             #if _output was mistakenly set to a directory all seq2HLA files will start with -ClassI or -ClassII
-            for f in os.listdir(_output):
+            for f in os.listdir(output):
                 if f.startswith("-ClassI") or f.startswith("-ClassII"):
-                    os.remove(os.path.join(_output, f))
+                    os.remove(os.path.join(output, f))
         else:
-            basedir = os.path.dirname(_output)
-            prefix = os.path.basename(_output)
+            basedir = os.path.dirname(output)
+            prefix = os.path.basename(output)
             for f in os.listdir(basedir):
                 if f.startswith(prefix):
                     os.remove(os.path.join(basedir, f))
@@ -324,24 +326,24 @@ class ATHLATES_1_0(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :param str path: - Optional specification of executable path if deviant from self.__command
         :return: str - The external version of the tool or None if tool does not support versioning
         """
         return None
 
-    def parse_external_result(self, _output):
+    def parse_external_result(self, output):
         """
         Searches within the defined dir _file for the newest dir and reads
         the prediction file from there
 
-        :param str _output: The path to the output dir
-        :return: list(Allele) - The predicted HLA genotype
+        :param str output: The path to the output dir
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
         """
         alleles = []
-        if os.path.isdir(_output):
-            _file = os.path.join(_output, ".typing.txt")
+        if os.path.isdir(output):
+            _file = os.path.join(output, ".typing.txt")
         else:
-            _file = _output+".typing.txt"
+            _file = output+".typing.txt"
 
         typing = False
         with open(_file, "r") as f:
@@ -355,19 +357,19 @@ class ATHLATES_1_0(AExternalHLATyping):
                     typing = True
         return alleles
 
-    def clean_up(self, _output):
+    def clean_up(self, output):
         """
         Deletes files created by ATHLATES within _output
 
-        :param str _output: The path to the output file or directory of the programme
+        :param str output: The path to the output file or directory of the programme
         """
-        if os.path.isdir(_output):
-            for f in os.listdir(_output):
+        if os.path.isdir(output):
+            for f in os.listdir(output):
                 if f.startswith("."):
-                    os.remove(os.path.join(_output, f))
+                    os.remove(os.path.join(output, f))
         else:
-            basedir = os.path.dirname(_output)
-            prefix = os.path.basename(_output)
+            basedir = os.path.dirname(output)
+            prefix = os.path.basename(output)
             for f in os.listdir(basedir):
                 if f.startswith(prefix):
                     os.remove(os.path.join(basedir, f))
@@ -415,22 +417,22 @@ class Polysolver(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :param str path: - Optional specification of executable path if deviant from self.__command
         :return: str - The external version of the tool or None if tool does not support versioning
         """
         return None
 
-    def parse_external_result(self, _output):
+    def parse_external_result(self, output):
         """
         Searches within the defined dir _file for the newest dir and reads
         the prediction file from there
 
-        :param str _output: The path to the output dir
-        :return: list(Allele) - The predicted HLA genotype
+        :param str output: The path to the output dir
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
         """
         alleles = []
         try:
-            with open(os.path.join(_output, "winner.hla.txt"), "r") as f:
+            with open(os.path.join(output, "winner.hla.txt"), "r") as f:
                 for l in f:
                     try:
                         _, a1, a2 = l.replace("-n", "").replace("-e", "").strip().split()
@@ -445,12 +447,12 @@ class Polysolver(AExternalHLATyping):
                 return alleles
         except IOError:
             raise IOError("File {out} could not be found. Please check your specified output folder".format(
-                out=os.path.join(_output, "winner.hla.txt")))
+                out=os.path.join(output, "winner.hla.txt")))
 
-    def clean_up(self, _output):
+    def clean_up(self, output):
         """
-        Deletes files created by Polysolver within _output
+        Deletes files created by Polysolver within output
 
-        :param str _output: The path to the output file or directory of the programme
+        :param str output: The path to the output file or directory of the programme
         """
-        os.remove(os.path.join(_output, "winner.hla.txt"))
+        os.remove(os.path.join(output, "winner.hla.txt"))

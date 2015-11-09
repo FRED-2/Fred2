@@ -49,7 +49,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         """
         Overwrites AEpitopePrediction.predict
 
-        :param list(Peptide)/Peptide peptides: A list of or a single Peptide object
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` object
         :param list(Allele)/Allele alleles: A list of or a single Allele object. If no alleles are provided,
                                             predictions are made for all alleles supported by the prediction method
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
@@ -232,7 +232,7 @@ class NetMHC_3_4(AExternalEpitopePrediction):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -337,7 +337,7 @@ class NetMHC_3_0(NetMHC_3_4):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -751,7 +751,7 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -807,7 +807,7 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
 
         NO return value!
 
-        :param: list(str) _input: The peptide sequences to write into _file
+        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into _file
         :param File _file: File-handler to input file for external tool
         """
         _file.write("\n".join(_input))
@@ -1196,7 +1196,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -1222,7 +1222,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
 
         NO return value!
 
-        :param: list(str) _input: The peptide sequences to write into _file
+        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into _file
         :param File _file: File-handler to input file for external tool
         """
         _file.write("\n".join(_input))
@@ -1281,7 +1281,7 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -1350,7 +1350,7 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
 
         NO return value!
 
-        :param: list(str) _input: The peptide sequences to write into _file
+        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into _file
         :param File _file: File-handler to input file for external tool
         """
         _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_input)))
@@ -1482,7 +1482,7 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -1547,7 +1547,7 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
 
         NO return value!
 
-        :param: list(str) _input: The peptide sequences to write into _file
+        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into _file
         :param File _file: File-handler to input file for external tool
         """
         _file.write("\n".join(_input))
@@ -1679,7 +1679,7 @@ class NetMHCIIpan_3_1(NetMHCIIpan_3_0):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -2023,14 +2023,14 @@ class PickPocket_1_1(AExternalEpitopePrediction):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
     @property
     def supportedAlleles(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_alleles
 
@@ -2089,7 +2089,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
 
         NO return value!
 
-        :param: list(str) _input: The peptide sequences to write into _file
+        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into _file
         :param File _file: File-handler to input file for external tool
         """
         _file.write("\n".join(_input))
@@ -2452,7 +2452,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
     @property
     def supportedAlleles(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__alleles
 
@@ -2471,7 +2471,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
     @property
     def supportedLength(self):
         """
-        A list of supported peptide lengths
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
         """
         return self.__supported_length
 
@@ -2517,7 +2517,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
 
         NO return value!
 
-        :param: list(str) _input: The peptide sequences to write into _file
+        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into _file
         :param File _file: File-handler to input file for external tool
         """
         _file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(_input)))

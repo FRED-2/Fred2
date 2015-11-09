@@ -22,7 +22,8 @@ from Fred2.Core.Variant import VariationType
 
 class Peptide(MetadataLogger, Seq):
     """
-    This class encapsulates a :class:`~Fred2.Core.Peptide.Peptide`, belonging to one or several Proteins.
+    This class encapsulates a :class:`~Fred2.Core.Peptide.Peptide`, belonging to one or several
+    :class:`~Fred2.Core.Protein.Protein`s.
 
     .. note:: For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq` (from Biopython)
     """
@@ -87,7 +88,8 @@ class Peptide(MetadataLogger, Seq):
 
     def get_all_proteins(self):
         """
-        Returns all protein objects associated with the peptide
+        Returns all :class:`~Fred2.Core.Protein.Protein` objects associated with the
+        :class:`~Fred2.Core.Peptide.Peptide`
 
         :return: list(:class:`~Fred2.Core.Protein.Protein`) - A list of :class:`~Fred2.Core.Protein.Protein`
         """
@@ -105,15 +107,17 @@ class Peptide(MetadataLogger, Seq):
 
     def get_all_transcripts(self):
         """
-        Returns a list of transcript objects that are associated with the peptide
+        Returns a list of :class:`~Fred2.Core.Transcript.Transcript` objects that are associated with the
+        :class:`~Fred2.Core.Peptide.Peptide`
 
-        :return: list(:class:`~Fred2.Core.Transcript.Transcript`) - A list of :class:`~Fred2.Core.Transcript.Transcript`s
+        :return: list(:class:`~Fred2.Core.Transcript.Transcript`) - A list of
+        :class:`~Fred2.Core.Transcript.Transcript`s
         """
         return [p.orig_transcript for p in self.proteins.itervalues()]
 
     def get_transcript(self, transcript_id):
         """
-        Returns a specific transcript object identified by a unique transcript-ID
+        Returns a specific :class:`~Fred2.Core.Transcript.Transcript` object identified by a unique transcript-ID
 
         :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID
         :return: :class:`~Fred2.Core.Transcript.Transcript` - A :class:`~Fred2.Core.Transcript.Transcript`
@@ -125,20 +129,22 @@ class Peptide(MetadataLogger, Seq):
 
     def get_protein_positions(self, transcript_id):
         """
-        Returns all positions of origin for a given protein identified by its transcript-ID
+        Returns all positions of origin for a given :class:`~Fred2.Core.Protein.Protein` identified by its transcript-ID
 
-        :param str transcript_id: The unique transcript ID of the protein in question
-        :return: list(int) - A list of positions within the protein from which the peptide originated (starts at 0)
+        :param str transcript_id: The unique transcript ID of the :class:`~Fred2.Core.Protein.Protein` in question
+        :return: list(int) - A list of positions within the protein from which the :class:`~Fred2.Core.Peptide.Peptide`
+        originated (starts at 0)
         """
         return self.proteinPos.get(transcript_id, [])
 
     def get_variants_by_protein(self, transcript_id):
         """
-        Returns all variants of a protein that have influenced the peptide sequence
+        Returns all :class:`~Fred2.Core.Variant.Variant` of a :class:`~Fred2.Core.Protein.Protein` that have influenced
+        the :class:`~Fred2.Core.Peptide.Peptide` sequence
 
         :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
         :return: list(:class:`~Fred2.Core.Variant.Variant`) - A list variants that influenced the peptide sequence
-        :raises KeyError: If peptide does not originate from specified protein
+        :raises KeyError: If peptide does not originate from specified :class:`~Fred2.Core.Protein.Protein`
         """
         try:
             p = self.proteins[transcript_id]
@@ -165,17 +171,18 @@ class Peptide(MetadataLogger, Seq):
 
     def get_variants_by_protein_position(self, transcript_id, protein_pos):
         """
-        Returns all variants and their relative position to the peptide sequence of a given protein
-        and protein position
+        Returns all :class:`~Fred2.Core.Variant.Variant` and their relative position to the peptide sequence of a given
+        :class:`~Fred2.Core.Protein.Protein` and protein position
 
         :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
         :param int protein_pos: The :class:`~Fred2.Core.Protein.Protein` position at which the peptides sequence starts
         in the protein
         :return: dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) - Dictionary of relative position of variants in
-        peptide (starts at 0)and associated variants that influenced the peptide sequence
+        peptide (starts at 0) and associated variants that influenced the peptide sequence
         :raises:
-         :ValueError: If peptide does not start at specified position
-         :KeyError: If peptide does not originate from specified protein
+         :ValueError: If :class:`~Fred2.Core.Peptide.Peptide` does not start at specified position
+         :KeyError: If :class:`~Fred2.Core.Peptide.Peptide` does not originate from specified
+         :class:`~Fred2.Core.Protein.Protein`
         """
         try:
             p = self.proteins[transcript_id]

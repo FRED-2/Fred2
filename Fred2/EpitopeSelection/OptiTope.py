@@ -55,23 +55,24 @@ class OptiTope(object):
         2009, 37, W617-W622
         [2] Pyomo - Optimization Modeling in Python. William E. Hart, Carl Laird,
         Jean-Paul Watson and David L. Woodruff. Springer, 2012.
-
-    :param EpitopePredictionResult _result: Epitope prediction result object from which the epitope selection should be
-                                            performed
-    :param dict(str,float) threshold: A dictionary scoring the binding thresholds for each HLA allele. Key = allele name;
-                                      value = the threshold
-    :param int k: The number of epitopes to select
-    :param str solver: The solver to be used (default glpk)
-    :pram int verbosity: Integer defining whether additional debugg prints are made >0 => debug mode
     """
 
-    def __init__(self, _results,  threshold=None, k=10, solver="glpk", verbosity=0):
+    def __init__(self, results,  threshold=None, k=10, solver="glpk", verbosity=0):
+        """
+        :param :class:`~Fred2.Core.Result.EpitopePredictionResult` result: Epitope prediction result object from which
+        the epitope selection should be performed
+        :param dict(str,float) threshold: A dictionary scoring the binding thresholds for each HLA
+        :class:`~Fred2.Core.Allele.Allele` key = allele name; value = the threshold
+        :param int k: The number of epitopes to select
+        :param str solver: The solver to be used (default glpk)
+        :param int verbosity: Integer defining whether additional debugg prints are made >0 => debug mode
+        """
 
         #check input data
-        if not isinstance(_results, EpitopePredictionResult):
+        if not isinstance(results, EpitopePredictionResult):
             raise ValueError("first input parameter is not of type EpitopePredictionResult")
 
-        _alleles = copy.deepcopy(_results.columns.values.tolist())
+        _alleles = copy.deepcopy(results.columns.values.tolist())
 
         #test if allele prob is set, if not set allele prob uniform
         #if only partly set infer missing values (assuming uniformity of missing value)
@@ -125,8 +126,8 @@ class OptiTope(object):
 
         #unstack multiindex df to get normal df based on first prediction method
         #and filter for binding epitopes
-        method = _results.index.values[0][1]
-        res_df = _results.xs(_results.index.values[0][1], level="Method")
+        method = results.index.values[0][1]
+        res_df = results.xs(results.index.values[0][1], level="Method")
         res_df = res_df[res_df.apply(lambda x: any(x[a] > self.__thresh.get(a.name, -float("inf"))
                                                    for a in res_df.columns), axis=1)]
 
@@ -335,8 +336,9 @@ class OptiTope(object):
             Activates the epitope conservation constraint
 
             :param float t_c: The percentage of conservation an epitope has to have [0.0,1.0].
-            :param: dict(Peptide,float) Conservation: A dict with key=Peptide specifying a different conservation score
-                                                    for each peptide
+            :param: dict(:class:`~Fred2.Core.Peptide.Peptide`,float) Conservation: A dict with
+            key=:class:`~Fred2.Core.Peptide.Peptide` specifying a different conservation score for each
+            :class:`~Fred2.Core.Peptide.Peptide`
             :raises ValueError: If the input variable is not in the same domain as the parameter
         """
         if t_c < 0 or t_c > 1:
@@ -367,10 +369,11 @@ class OptiTope(object):
 
     def solve(self, options=None):
         """
-            Invokes the selected solver and solves the problem.
+            Invokes the selected solver and solves the problem
 
-            :param dict(str:str) options: A dictionary of solver specific options as keys and their parameters as values.
-            :return list(Peptide) - Returns the optimal epitopes as list of Peptide objectives
+            :param dict(str:str) options: A dictionary of solver specific options as keys and their parameters as values
+            :return list(:class:`~Fred2.Core.Peptide.Peptide`) - Returns the optimal epitopes as list of
+            :class:`~Fred2.Core.Peptide.Peptide` objectives
             :raise RuntimeError: If the solver raised a problem or the solver is not accessible via the
                                  PATH environmental variable.
         """

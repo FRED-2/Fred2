@@ -21,7 +21,7 @@ from Fred2.Core.Variant import VariationType
 
 class Protein(MetadataLogger, Seq):
     """
-    Protein corresponding to exactly one transcript.
+    :class:`~Fred2.Core.Protein.Protein` corresponding to exactly one transcript.
 
     .. note::
 
@@ -62,8 +62,9 @@ class Protein(MetadataLogger, Seq):
 
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        Returns a single letter or a sliced protein (when given a slice).
-        The sliced protein does not reference to a :class:`~Fred2.Core.Transcript.Transcript` object
+        Returns a single letter or a sliced :class:`~Fred2.Core.Protein.Protein` (when given a slice).
+        The sliced :class:`~Fred2.Core.Protein.Protein` does not reference to a
+        :class:`~Fred2.Core.Transcript.Transcript` object
 
         Allows only simple slicing (i.e. start < stop)
 
