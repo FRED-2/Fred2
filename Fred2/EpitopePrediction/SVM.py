@@ -34,11 +34,11 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
         are made.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
-        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+                :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`
         :param kwargs: optional parameter (not used yet)
-        :return::class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
-       :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
+                :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
@@ -162,7 +162,7 @@ class SVMHC(ASVMEpitopePrediction):
         representation of the predictor and returns a string representation
 
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which
-        the internal predictor representation is needed
+                the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
         """
         return ["%s_%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -438,7 +438,7 @@ class UniTope(ASVMEpitopePrediction):
         representation of the predictor and returns a string representation
 
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for
-        which the internal predictor representation is needed
+                which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
         """
         return ["%s_%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -450,8 +450,8 @@ class UniTope(ASVMEpitopePrediction):
         :param str peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` sequences
         :param str allele: The HLA :class:`~Fred2.Core.Allele.Allele` represented by a string
         :return: dict(:class:`~Fred2.Core.Peptide.Peptide`, (tuple(int, list(tuple(int,float)))) - dictionary with
-        :class:`~Fred2.Core.Peptide.Peptide` as key and feature encoding as value
-        (see svmlight encoding scheme http://svmlight.joachims.org/)
+                 :class:`~Fred2.Core.Peptide.Peptide` as key and feature encoding as value
+                 (see svmlight encoding scheme http://svmlight.joachims.org/)
         """
         pca = [{'A': 0.008, 'C': -0.132, 'E': 0.221, 'D': 0.303, 'G': 0.218, 'F': -0.329, 'I': -0.353, 'H': 0.023,
                 'K': 0.243, 'M': -0.239, 'L': -0.267, 'N': 0.255, 'Q': 0.149, 'P': 0.173, 'S': 0.199, 'R': 0.171,
@@ -489,11 +489,11 @@ class UniTope(ASVMEpitopePrediction):
         If no :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
-        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+                :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
         :param kwargs: optional parameter (not used yet)
         :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+                 :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}

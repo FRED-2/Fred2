@@ -31,7 +31,7 @@ def read_fasta(files, type=Peptide, id_position=1):
 
     :param List(str)/str files: A (list) of file names to read in
     :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Transcript.Transcript`/
-    :class:`~Fred2.Core.Protein.Protein` type: The type to read in
+            :class:`~Fred2.Core.Protein.Protein` type: The type to read in
     :param int id_position: the position of the id specified counted by |
     :returns: (list(SequenceType)) - a list of the specified sequence type derived from the FASTA file sequences.
     :raises ValueError: if a file is not readable
@@ -76,10 +76,10 @@ def read_lines(files, type=Peptide):
 
     :param list(str)/str files: a list of strings of absolute file names that are to be read.
     :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`/
-    :class:`~Fred2.Core.Transcript.Transcript`/:class:`~Fred2.Core.Allele.Allele` type: Possible types are
-    :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`,
-    :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
-    :returns: (list(:attr:type)) -- a list of the specified objects
+            :class:`~Fred2.Core.Transcript.Transcript`/:class:`~Fred2.Core.Allele.Allele` type: Possible types are
+            :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`,
+            :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
+    :returns: (list(:attr:`type`)) -- a list of the specified objects
     :raises IOError: if a file is not readable
     """
 

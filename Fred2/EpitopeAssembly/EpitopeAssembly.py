@@ -39,9 +39,9 @@ class EpitopeAssembly(object):
             sequence conservation. Vaccine 2011;29(47):8745-8753.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which
-         shell be arranged
+                shell be arranged
         :param :class:`~Fred2.Core.Base.ACleavageSitePredictor` pred: A
-        :class:`~Fred2.Core.Base.ACleavageSitePrediction`
+                :class:`~Fred2.Core.Base.ACleavageSitePrediction`
         :param str solver: Specifies the solver to use (mused by callable by pyomo)
         :param float weight: Specifies how strong unwanted cleavage sites should be punished [0,1],
                              where 0 means they will be ignored, and 1 the sum of all unwanted cleave sites is
@@ -153,7 +153,7 @@ class EpitopeAssembly(object):
 
         :param str options: Solver specific options as string (will not be checked for correctness)
         :return: list(:class:`~Fred2.Core.Peptide.Peptide`) - An order list of the :class:`~Fred2.Core.Peptide.Peptide`
-        (based on the string-of-beads ordering)
+                 (based on the string-of-beads ordering)
         """
 
         options = dict() if options is None else options
@@ -175,7 +175,7 @@ class EpitopeAssembly(object):
             http://www.akira.ruc.dk/~keld/research/LKH/
 
         :return: list(:class:`~Fred2.Core.Peptide.Peptide`) - An order list of the :class:`~Fred2.Core.Peptide.Peptide`
-        (based on the sting-of-beads ordering)
+                 (based on the sting-of-beads ordering)
         """
         tmp_conf = NamedTemporaryFile(delete=False)
         tmp_prob = NamedTemporaryFile(delete=False)
@@ -443,17 +443,17 @@ class EpitopeAssemblyWithSpacer(object):
         The ILP model is implemented. So be reasonable with the size of epitope to be arranged.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide`
-        which shell be arranged
+                which shell be arranged
         :param :class:`~Fred2.Core.Base.ACleavageSitePredictor` cleav_pred: A
-        :class:`~Fred2.CleavagePrediction.PSSM.APSSMCleavageSitePredictor` (PSSM only)
+                :class:`~Fred2.CleavagePrediction.PSSM.APSSMCleavageSitePredictor` (PSSM only)
         :param :class:`~Fred2.Core.Base.AEpitopePredictor epi_pred: A
-        :class:`~Fred2.EpitopePrediction.PSSM.APSSMEpitopePrediction` (PSSM only)
+                :class:`~Fred2.EpitopePrediction.PSSM.APSSMEpitopePrediction` (PSSM only)
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele` for
-        which predictions should be made
+                which predictions should be made
         :param int k: The maximal length of a spacer
         :param int en: Length of epitopes
         :param dict(str,float) threshold: A dictionary specifying the epitope prediction threshold for each
-        :class:`~Fred2.Core.Allele.Allele`
+                :class:`~Fred2.Core.Allele.Allele`
         :param str solver: Specifies the solver to use (must be callable by pyomo)
         :param float alpha: Specifies how how much junction-cleavage score can be sacrificed /
                             to gain lower neo-immunogenicity

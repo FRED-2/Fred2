@@ -341,10 +341,9 @@ class TAPPredictionResult(AResult):
         Merges results of type :class:`~Fred2.Core.Result.TAPPredictionResult and returns the merged result
 
         :param list(:class:`~Fred2.Core.Result.TAPPredictionResult`)/
-        :class:`~Fred2.Core.Result.TAPPredictionResult` others: A (list of)
-        :class:`~Fred2.Core.Result.TAPPredictionResult` object(s)
+                :class:`~Fred2.Core.Result.TAPPredictionResult` others: A (list of) :class:`~Fred2.Core.Result.TAPPredictionResult` object(s)
         :return: :class:`~Fred2.Core.Result.TAPPredictionResult` - A new merged
-        :class:`~Fred2.Core.Result.TAPPredictionResult` object
+                 :class:`~Fred2.Core.Result.TAPPredictionResult` object
         """
         if type(others) == type(self):
             others = [others]

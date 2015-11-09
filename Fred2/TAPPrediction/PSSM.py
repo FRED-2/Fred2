@@ -27,9 +27,9 @@ class APSSMTAPPrediction(ATAPPrediction):
         Returns TAP predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
-        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+                :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :return: :class:`~Fred2.Core.Result.TAPPredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+                 :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
@@ -127,9 +127,9 @@ class SMMTAP(APSSMTAPPrediction):
         Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
-        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+                :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :return: :class:`~Fred2.Core.Result.TAPPredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+                 :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)

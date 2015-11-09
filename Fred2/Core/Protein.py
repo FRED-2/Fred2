@@ -36,10 +36,8 @@ class Protein(MetadataLogger, Seq):
         :param str _seq: String of an IUPACProtein alphabet, representing the
                          protein
         :param str gene_id: ID of the genome the protein originated from
-        :param str transcript_id: ID of the transcript the protein originated
-                                   from
-        :param :class:`~Fred2.Core.Transcript.Transcript` orig_transcript: Reference to the originating transcript
-        object
+        :param str transcript_id: ID of the transcript the protein originated from
+        :param :class:`~Fred2.Core.Transcript.Transcript` orig_transcript: Reference to the originating transcript object
         :param dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) vars: Nonsynonymous variants that are
                                               associated with the protein.
                                               key=position within protein, 

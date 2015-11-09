@@ -32,7 +32,7 @@ class Peptide(MetadataLogger, Seq):
         """
         :param str seq: Sequence of the peptide in one letter amino acid code
         :param dict(:class:`~Fred2.Core.Protein.Protein`,list(int)) protein_pos: Dict of transcript_IDs to position of `
-        origin in protein
+                origin in protein
 
         """
         MetadataLogger.__init__(self)
@@ -56,7 +56,7 @@ class Peptide(MetadataLogger, Seq):
 
         :param int/Slice index: position in the peptide sequence
         :return: :class:`~Fred2.Core.Peptide.Peptide` - A single letter at position :attr:`index` or a sliced
-        :class:`~Fred2.Core.Peptide.Peptide`.
+                 :class:`~Fred2.Core.Peptide.Peptide`.
         :raises ValueError: If stop is greater than start of index
         """
         if isinstance(index, int):
@@ -111,7 +111,7 @@ class Peptide(MetadataLogger, Seq):
         :class:`~Fred2.Core.Peptide.Peptide`
 
         :return: list(:class:`~Fred2.Core.Transcript.Transcript`) - A list of
-        :class:`~Fred2.Core.Transcript.Transcript`s
+                 :class:`~Fred2.Core.Transcript.Transcript`s
         """
         return [p.orig_transcript for p in self.proteins.itervalues()]
 
@@ -133,7 +133,7 @@ class Peptide(MetadataLogger, Seq):
 
         :param str transcript_id: The unique transcript ID of the :class:`~Fred2.Core.Protein.Protein` in question
         :return: list(int) - A list of positions within the protein from which the :class:`~Fred2.Core.Peptide.Peptide`
-        originated (starts at 0)
+                 originated (starts at 0)
         """
         return self.proteinPos.get(transcript_id, [])
 
@@ -176,13 +176,12 @@ class Peptide(MetadataLogger, Seq):
 
         :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
         :param int protein_pos: The :class:`~Fred2.Core.Protein.Protein` position at which the peptides sequence starts
-        in the protein
+                in the protein
         :return: dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) - Dictionary of relative position of variants in
-        peptide (starts at 0) and associated variants that influenced the peptide sequence
+                 peptide (starts at 0) and associated variants that influenced the peptide sequence
         :raises:
          :ValueError: If :class:`~Fred2.Core.Peptide.Peptide` does not start at specified position
-         :KeyError: If :class:`~Fred2.Core.Peptide.Peptide` does not originate from specified
-         :class:`~Fred2.Core.Protein.Protein`
+         :KeyError: If :class:`~Fred2.Core.Peptide.Peptide` does not originate from specified :class:`~Fred2.Core.Protein.Protein`
         """
         try:
             p = self.proteins[transcript_id]

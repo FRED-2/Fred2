@@ -32,9 +32,9 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         Returns predictions for given peptides.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-        /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
-        A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-        :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
+                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
+                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
         :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
                  :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
@@ -149,9 +149,9 @@ class PCM(APSSMCleavageSitePredictor):
         Returns predictions for given peptides.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-        /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
-        A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-        :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
+                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
+                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
         :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
                  :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
@@ -211,9 +211,9 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
         Returns predictions for given peptides.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-        /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
-        A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-        :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
+                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
+                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
         :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
                  :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
@@ -274,9 +274,9 @@ class ProteaSMMImmuno(APSSMCleavageSitePredictor):
         Returns predictions for given peptides.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-        /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
-        A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-        :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s peptides:
+                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
+                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
         :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
                  :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
@@ -314,7 +314,7 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of
-        peptide objects or a single peptide object
+               peptide objects or a single peptide object
         :return: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` - Returns a
                  :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
         """
@@ -418,7 +418,7 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
         the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of
-        peptide objects or a single peptide object
+               peptide objects or a single peptide object
         :return: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` - Returns a
                  :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
         """

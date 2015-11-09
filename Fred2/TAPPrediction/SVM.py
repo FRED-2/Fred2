@@ -26,9 +26,9 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
         Returns TAP predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
-        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+                :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :return: :class:`~Fred2.Core.Result.TAPPredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+                 :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
         """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
@@ -99,8 +99,8 @@ class SVMTAP(ASVMTAPPrediction):
 
         :param list(str) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide`s
         :return: dict(:class:`~Fred2.Core.Peptide.Peptide`, (tuple(int, list(tuple(int,float)))) - dictionary with
-        :class:`~Fred2.Core.Peptide.Peptide` as key and feature encoding as value (see svmlight encoding scheme
-        http://svmlight.joachims.org/)
+                 :class:`~Fred2.Core.Peptide.Peptide` as key and feature encoding as value (see svmlight encoding scheme
+                 http://svmlight.joachims.org/)
         """
         AA = {'A': 1, 'C': 2, 'E': 4, 'D': 3, 'G': 6, 'F': 5, 'I': 8, 'H': 7, 'K': 9, 'M': 11, 'L': 10, 'N': 12,
               'Q': 14, 'P': 13, 'S': 16, 'R': 15, 'T': 17, 'W': 19, 'V': 18, 'Y': 20}
@@ -124,8 +124,8 @@ class SVMTAP(ASVMTAPPrediction):
         Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s.
 
         :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single
-        :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+                :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :return: :class:`~Fred2.Core.Result.TAPPredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+                 :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
         """
         return super(SVMTAP, self).predict(peptides, **kwargs)
