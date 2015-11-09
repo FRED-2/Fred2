@@ -37,8 +37,8 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
         :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.AEpitopePredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.AEpitopePredictionResult` object with the prediction results
+        :return::class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
+       :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
@@ -492,8 +492,8 @@ class UniTope(ASVMEpitopePrediction):
         :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.AEpitopePredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.AEpitopePredictionResult` object with the prediction results
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
+        :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}

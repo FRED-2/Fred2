@@ -34,8 +34,8 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.AEpitopePredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.AEpitopePredictionResult` object with the prediction results
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
+        :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         def __load_allele_model(allele,length):
             allele_model = "%s_%i"%(allele, length)
@@ -209,8 +209,8 @@ class BIMAS(APSSMEpitopePrediction):
         A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`s) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.AEpitopePredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.AEpitopePredictionResult` object with the prediction results
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
+        :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         return EpitopePredictionResult(
             super(BIMAS, self).predict(peptides, alleles=alleles,
@@ -396,8 +396,8 @@ class SMM(APSSMEpitopePrediction):
         :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.AEpitopePredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.AEpitopePredictionResult` object with the prediction results
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
+        :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         return EpitopePredictionResult(
             super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
@@ -472,8 +472,8 @@ class SMMPMBEC(APSSMEpitopePrediction):
         :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.AEpitopePredictionResult` - Returns a
-        :class:`~Fred2.Core.Result.AEpitopePredictionResult` object with the prediction results
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a
+        :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         return EpitopePredictionResult(
             super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
@@ -671,8 +671,8 @@ class ComblibSidney2008(APSSMEpitopePrediction):
         :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
         :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.AEpitopePredictionResult` - Returns a 
-        :class:`~Fred2.Core.Result.AEpitopePredictionResult` object with the prediction results
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a 
+        :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         """
         return EpitopePredictionResult(
             super(ComblibSidney2008, self).predict(peptides,
