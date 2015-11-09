@@ -31,13 +31,9 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         """
         Returns predictions for given peptides.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
-                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)/:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
-        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
-                 :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
@@ -148,13 +144,9 @@ class PCM(APSSMCleavageSitePredictor):
         """
         Returns predictions for given peptides.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
-                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`) /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
-        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
-                 :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
         """
         return super(PCM, self).predict(peptides, lenght=length, **kwargs)
 
@@ -210,13 +202,9 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
         """
         Returns predictions for given peptides.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq:
-                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`) /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s aa_seq: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
-        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
-                 :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
         """
         return super(ProteaSMMConsecutive, self).predict(peptides, length=length **kwargs)
 
@@ -273,13 +261,9 @@ class ProteaSMMImmuno(APSSMCleavageSitePredictor):
         """
         Returns predictions for given peptides.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
-                /:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s peptides:
-                A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)/:class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`s peptides: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
-        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a
-                 :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
         """
         return super(ProteaSMMImmuno, self).predict(peptides, length=length, **kwargs)
 
@@ -313,10 +297,8 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         the probability that this n-mer was produced by proteasomal cleavage. It returns the score and
         the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of
-               peptide objects or a single peptide object
-        :return: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` - Returns a
-                 :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of peptide objects or a single peptide object
+        :return: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` - Returns a :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
         """
         def __load_model(length):
             allele_model = "%%s_%i"%(self.name, length)
@@ -417,10 +399,8 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
         the probability that this n-mer was produced by proteasomal cleavage. It returns the score and
         the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of
-               peptide objects or a single peptide object
-        :return: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` - Returns a
-                 :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of peptide objects or a single peptide object
+        :return: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` - Returns a :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
         """
         def __load_model(length):
             allele_model = "%s_%i"%(self.name, length)

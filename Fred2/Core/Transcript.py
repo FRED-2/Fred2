@@ -27,8 +27,7 @@ class Transcript(MetadataLogger, Seq):
 
     :param str gene_id: Genome ID
     :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` RefSeqID
-    :param dict(int,:class:`Fred2.Core.Variant.Variant`) vars: Dict of :class:`Fred2.Core.Variant.Variant` for specific
-    positions in the :class:`~Fred2.Core.Transcript.Transcript`. key=position, value=Variant
+    :param dict(int,:class:`Fred2.Core.Variant.Variant`) vars: Dict of :class:`Fred2.Core.Variant.Variant` for specific positions in the :class:`~Fred2.Core.Transcript.Transcript`. key=position, value=Variant
     """
     newid = itertools.count().next #this is evil
 
@@ -37,9 +36,7 @@ class Transcript(MetadataLogger, Seq):
         :param str gene_id: Genome ID
         :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` RefSeqID
         :param str seq: :class:`~Fred2.Core.Transcript.Transcript` sequence
-        :param dict(int,:class:`Fred2.Core.Variant.Variant`) _vars: A dict of :class:`~Fred2.Core.Transcript.Transcript`
-                position to :class:`Fred2.Core.Variant.Variant` that is specific to the
-                :class:`~Fred2.Core.Transcript.Transcript`.
+        :param dict(int,:class:`Fred2.Core.Variant.Variant`) _vars: A dict of :class:`~Fred2.Core.Transcript.Transcript` position to :class:`Fred2.Core.Variant.Variant` that is specific to the :class:`~Fred2.Core.Transcript.Transcript`.
         """
         MetadataLogger.__init__(self)
         Seq.__init__(self, seq.upper(), generic_rna)
@@ -54,9 +51,7 @@ class Transcript(MetadataLogger, Seq):
          Allows only simple slicing (i.e. start < stop)
 
         :param int index: position 
-        :returns: :class:`~Fred2.Core.Transcript.Transcript` - A :class:`~Fred2.Core.Transcript.Transcript`
-                  consisting of the single letter at position :attr:`index` or a new sliced
-                  :class:`~Fred2.Core.Transcript.Transcript` (following :mod:`Bio.Seq.Seq` definition)
+        :returns: :class:`~Fred2.Core.Transcript.Transcript` - A :class:`~Fred2.Core.Transcript.Transcript` consisting of the single letter at position :attr:`index` or a new sliced :class:`~Fred2.Core.Transcript.Transcript` (following :mod:`Bio.Seq.Seq` definition)
         """
         if isinstance(index, int):
             #Return a single letter as a string

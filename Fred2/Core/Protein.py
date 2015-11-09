@@ -33,15 +33,11 @@ class Protein(MetadataLogger, Seq):
 
     def __init__(self, _seq, gene_id="unknown", transcript_id=None, orig_transcript=None, vars=None):
         """
-        :param str _seq: String of an IUPACProtein alphabet, representing the
-                         protein
+        :param str _seq: String of an IUPACProtein alphabet, representing the protein
         :param str gene_id: ID of the genome the protein originated from
         :param str transcript_id: ID of the transcript the protein originated from
         :param :class:`~Fred2.Core.Transcript.Transcript` orig_transcript: Reference to the originating transcript object
-        :param dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) vars: Nonsynonymous variants that are
-                                              associated with the protein.
-                                              key=position within protein, 
-                                              value=list of variants at that pos
+        :param dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) vars: Nonsynonymous variants that are associated with the protein. key=position within protein, value=list of variants at that pos
         """
         # Init parent type:
         MetadataLogger.__init__(self)
@@ -67,8 +63,7 @@ class Protein(MetadataLogger, Seq):
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position within the primary sequence or a slice
-        :returns: str/:class:`~Fred2.Core.Protein.Protein` - A single letter at position :attr:`index`
-                  or a sliced :class:`~Fred2.Core.Protein.Protein` with adjusted variant positions
+        :returns: str/:class:`~Fred2.Core.Protein.Protein` - A single letter at position :attr:`index` or a sliced :class:`~Fred2.Core.Protein.Protein` with adjusted variant positions
         :raises ValueError: If start is greater than stop of index
         """
         if isinstance(index, int):

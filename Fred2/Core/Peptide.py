@@ -31,8 +31,7 @@ class Peptide(MetadataLogger, Seq):
     def __init__(self, seq, protein_pos=None):
         """
         :param str seq: Sequence of the peptide in one letter amino acid code
-        :param dict(:class:`~Fred2.Core.Protein.Protein`,list(int)) protein_pos: Dict of transcript_IDs to position of `
-                origin in protein
+        :param dict(:class:`~Fred2.Core.Protein.Protein`,list(int)) protein_pos: Dict of transcript_IDs to position of origin in protein
 
         """
         MetadataLogger.__init__(self)
@@ -55,8 +54,7 @@ class Peptide(MetadataLogger, Seq):
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position in the peptide sequence
-        :return: :class:`~Fred2.Core.Peptide.Peptide` - A single letter at position :attr:`index` or a sliced
-                 :class:`~Fred2.Core.Peptide.Peptide`.
+        :return: :class:`~Fred2.Core.Peptide.Peptide` - A single letter at position :attr:`index` or a sliced :class:`~Fred2.Core.Peptide.Peptide`.
         :raises ValueError: If stop is greater than start of index
         """
         if isinstance(index, int):
@@ -175,10 +173,8 @@ class Peptide(MetadataLogger, Seq):
         :class:`~Fred2.Core.Protein.Protein` and protein position
 
         :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
-        :param int protein_pos: The :class:`~Fred2.Core.Protein.Protein` position at which the peptides sequence starts
-                in the protein
-        :return: dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) - Dictionary of relative position of variants in
-                 peptide (starts at 0) and associated variants that influenced the peptide sequence
+        :param int protein_pos: The :class:`~Fred2.Core.Protein.Protein` position at which the peptides sequence starts in the protein
+        :return: dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) - Dictionary of relative position of variants in peptide (starts at 0) and associated variants that influenced the peptide sequence
         :raises:
          :ValueError: If :class:`~Fred2.Core.Peptide.Peptide` does not start at specified position
          :KeyError: If :class:`~Fred2.Core.Peptide.Peptide` does not originate from specified :class:`~Fred2.Core.Protein.Protein`

@@ -59,10 +59,8 @@ class OptiTope(object):
 
     def __init__(self, results,  threshold=None, k=10, solver="glpk", verbosity=0):
         """
-        :param :class:`~Fred2.Core.Result.EpitopePredictionResult` result: Epitope prediction result object from which
-                the epitope selection should be performed
-        :param dict(str,float) threshold: A dictionary scoring the binding thresholds for each HLA
-                :class:`~Fred2.Core.Allele.Allele` key = allele name; value = the threshold
+        :param :class:`~Fred2.Core.Result.EpitopePredictionResult` result: Epitope prediction result object from which the epitope selection should be performed
+        :param dict(str,float) threshold: A dictionary scoring the binding thresholds for each HLA :class:`~Fred2.Core.Allele.Allele` key = allele name; value = the threshold
         :param int k: The number of epitopes to select
         :param str solver: The solver to be used (default glpk)
         :param int verbosity: Integer defining whether additional debugg prints are made >0 => debug mode
@@ -336,9 +334,7 @@ class OptiTope(object):
             Activates the epitope conservation constraint
 
             :param float t_c: The percentage of conservation an epitope has to have [0.0,1.0].
-            :param: dict(:class:`~Fred2.Core.Peptide.Peptide`,float) Conservation: A dict with
-                    key=:class:`~Fred2.Core.Peptide.Peptide` specifying a different conservation score for each
-                    :class:`~Fred2.Core.Peptide.Peptide`
+            :param: dict(:class:`~Fred2.Core.Peptide.Peptide`,float) Conservation: A dict with key=:class:`~Fred2.Core.Peptide.Peptide` specifying a different conservation score for each :class:`~Fred2.Core.Peptide.Peptide`
             :raises ValueError: If the input variable is not in the same domain as the parameter
         """
         if t_c < 0 or t_c > 1:
@@ -372,10 +368,8 @@ class OptiTope(object):
             Invokes the selected solver and solves the problem
 
             :param dict(str:str) options: A dictionary of solver specific options as keys and their parameters as values
-            :return list(:class:`~Fred2.Core.Peptide.Peptide`) - Returns the optimal epitopes as list of
-                    :class:`~Fred2.Core.Peptide.Peptide` objectives
-            :raise RuntimeError: If the solver raised a problem or the solver is not accessible via the
-                   PATH environmental variable.
+            :return list(:class:`~Fred2.Core.Peptide.Peptide`) - Returns the optimal epitopes as list of :class:`~Fred2.Core.Peptide.Peptide` objectives
+            :raise RuntimeError: If the solver raised a problem or the solver is not accessible via the PATH environmental variable.
         """
         options = dict() if options is None else options
 

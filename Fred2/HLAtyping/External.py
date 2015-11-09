@@ -32,8 +32,7 @@ class AExternalHLATyping(AHLATyping, AExternal):
         :param str command: The path to a alternative binary (if binary is not globally executable)
         :param str options: A string with additional options that is directly past to the tool
         :param bool delete: Boolean indicator whether generated files should be deleted afterwards
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects
-                 representing the most likely HLA genotype
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects representing the most likely HLA genotype
         """
 
         if not self.is_in_path() and "path" not in kwargs:
@@ -230,8 +229,7 @@ class Seq2HLA_2_2(AExternalHLATyping):
         :param str command: The path to a alternative binary (if binary is not globally executable)
         :param str options: A string with additional options that is directly past to the tool
         :param bool delete: Boolean indicator whether generated files should be deleted afterwards
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects
-                 representing the most likely HLA genotype
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects representing the most likely HLA genotype
         """
         if "-2" not in options:
             ValueError("Seq2HLA only supports paired-end inputs. Please use the options "

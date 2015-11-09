@@ -30,8 +30,7 @@ def read_fasta(files, type=Peptide, id_position=1):
     either be: Peptide, Protein or Transcript (for RNA).
 
     :param List(str)/str files: A (list) of file names to read in
-    :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Transcript.Transcript`/
-            :class:`~Fred2.Core.Protein.Protein` type: The type to read in
+    :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Transcript.Transcript`/:class:`~Fred2.Core.Protein.Protein` type: The type to read in
     :param int id_position: the position of the id specified counted by |
     :returns: (list(SequenceType)) - a list of the specified sequence type derived from the FASTA file sequences.
     :raises ValueError: if a file is not readable
@@ -75,10 +74,7 @@ def read_lines(files, type=Peptide):
     Peptide, Protein or Transcript, Allele.
 
     :param list(str)/str files: a list of strings of absolute file names that are to be read.
-    :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`/
-            :class:`~Fred2.Core.Transcript.Transcript`/:class:`~Fred2.Core.Allele.Allele` type: Possible types are
-            :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`,
-            :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
+    :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`/:class:`~Fred2.Core.Transcript.Transcript`/:class:`~Fred2.Core.Allele.Allele` type: Possible types are :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`, :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
     :returns: (list(:attr:`type`)) -- a list of the specified objects
     :raises IOError: if a file is not readable
     """
@@ -109,8 +105,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
     all annotated :class:`~Fred2.Core.Transcript.Transcript` ids an outputs a list :class:`~Fred2.Core.Variant.Variant`.
 
     :param str annovar_file: The path ot the ANNOVAR file
-    :param list(str) gene_filter: A list of gene names of interest (only variants associated
-                                  with these genes are generated)
+    :param list(str) gene_filter: A list of gene names of interest (only variants associated with these genes are generated)
     :return: list(:class:`~Fred2.Core.Variant.Variant`) - List of :class:`~Fred2.Core.Variant.Variant`s fully annotated
     """
 

@@ -49,15 +49,11 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         """
         Overwrites AEpitopePrediction.predict
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of or a
-               single :class:`~Fred2.Core.Peptide.Peptide` object
-        :param list(:class:`~Fred2.Core.Allele.Allele`)/:class:`~Fred2.Core.Allele.Allele` alleles: A list of or a
-                single :class:`~Fred2.Core.Allele.Allele` object. If no :class:`~Fred2.Core.Allele.Allele`s are provided,
-                predictions are made for all :class:`~Fred2.Core.Allele.Allele`s supported by the prediction method
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` object
+        :param list(:class:`~Fred2.Core.Allele.Allele`)/:class:`~Fred2.Core.Allele.Allele` alleles: A list of or a single :class:`~Fred2.Core.Allele.Allele` object. If no :class:`~Fred2.Core.Allele.Allele`s are provided, predictions are made for all :class:`~Fred2.Core.Allele.Allele`s supported by the prediction method
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
         :param str options: A string of additional options directly past to the external tool.
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - A
-                 :class:`~Fred2.Core.Result.EpitopePredictionResult` object
+        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - A :class:`~Fred2.Core.Result.EpitopePredictionResult` object
         """
 
         if not self.is_in_path() and command is None:
@@ -208,8 +204,7 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor
-                representation is needed
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -350,8 +345,7 @@ class NetMHC_3_0(NetMHC_3_4):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-                internal predictor representation is needed
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         """
         return ["%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -1175,8 +1169,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-               internal predictor representation is needed
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -1305,8 +1298,7 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-               internal predictor representation is needed
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         """
         return ["HLA-%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -1507,8 +1499,7 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-               internal predictor representation is needed
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input alleles
         """
         return ["%s_%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -2348,8 +2339,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The alleles for which the internal predictor
-               representation is needed
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The alleles for which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input alleles
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -2755,8 +2745,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-               internal predictor representation is needed
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
         :return: list(str) - Returns a string representation of the input alleles
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
