@@ -41,7 +41,9 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         """
         Overwrites ACleavageSitePrediction.predict
 
-        :param list(Peptide/Protein)/Peptide/Protein _aa_seq: A list of or a single Peptide or Protein object
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)
+        /:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein` _aa_seq: A list of or a single
+        :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` object
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
         :param str options: A string of additional options directly past to the external tool.
         :return: :class:`~Fred2.Core.CleavageSitePredictionResult` - A :class:`~Fred2.Core.CleavageSitePredictionResult`
@@ -183,7 +185,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param (str) path: - Optional specification of executable path if deviant from self.__command
+        :param str path: - Optional specification of executable path if deviant from :attr:self.__command
         :return: str - The external version of the tool or None if tool does not support versioning
         """
         #cannot be determined method does not support --version or something similar

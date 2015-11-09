@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 '''
 :Contract:
 
-Transcript sequences are always only coding region! First coding base has index i=1
+Transcript sequences are always only coding region! First coding base has index i=0
 Variant position start at conding region of the transcript
 Strands are always encoded with + and -
 '''

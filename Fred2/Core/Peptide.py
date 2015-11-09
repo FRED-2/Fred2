@@ -22,19 +22,20 @@ from Fred2.Core.Variant import VariationType
 
 class Peptide(MetadataLogger, Seq):
     """
-    This class encapsulates a Peptide, belonging to one or several Proteins.
+    This class encapsulates a :class:`~Fred2.Core.Peptide.Peptide`, belonging to one or several Proteins.
 
     .. note:: For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq` (from Biopython)
     """
 
-    def __init__(self, _seq, protein_pos=None):
+    def __init__(self, seq, protein_pos=None):
         """
-        :param str _seq: Sequence of the peptide in one letter amino acid code
-        :param dict(Protein,list(int)) protein_pos: Dict of transcript_IDs to position of origin in protein
+        :param str seq: Sequence of the peptide in one letter amino acid code
+        :param dict(:class:`~Fred2.Core.Protein.Protein`,list(int)) protein_pos: Dict of transcript_IDs to position of `
+        origin in protein
 
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq.upper(), IUPAC.IUPACProtein)
+        Seq.__init__(self, seq.upper(), IUPAC.IUPACProtein)
 
         # Enforce dict storage
         if protein_pos and \
@@ -49,11 +50,12 @@ class Peptide(MetadataLogger, Seq):
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        Returns a single letter or a sliced Peptide.
+        Returns a single letter or a sliced :class:`~Fred2.Core.Peptide.Peptide`.
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position in the peptide sequence
-        :return: Peptide - A single letter at position :attr:`index` or a sliced Peptide.
+        :return: :class:`~Fred2.Core.Peptide.Peptide` - A single letter at position :attr:`index` or a sliced
+        :class:`~Fred2.Core.Peptide.Peptide`.
         :raises ValueError: If stop is greater than start of index
         """
         if isinstance(index, int):
@@ -87,63 +89,63 @@ class Peptide(MetadataLogger, Seq):
         """
         Returns all protein objects associated with the peptide
 
-        :return: list(Protein) - A list of Proteins
+        :return: list(:class:`~Fred2.Core.Protein.Protein`) - A list of :class:`~Fred2.Core.Protein.Protein`
         """
         return self.proteins.values()
 
-    def get_protein(self, _transcript_id):
+    def get_protein(self, transcript_id):
         """
         Returns a specific protein object identified by a unique transcript-ID
 
-        :param str _transcript_id: A transcript ID
-        :return: Protein - A Protein
+        :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID
+        :return: :class:`~Fred2.Core.Protein.Protein` - A :class:`~Fred2.Core.Protein.Protein`
         """
         #Default return value None if peptide does not origin from protein?
-        return self.proteins.get(_transcript_id, None)
+        return self.proteins.get(transcript_id, None)
 
     def get_all_transcripts(self):
         """
         Returns a list of transcript objects that are associated with the peptide
 
-        :return: list(Transcript) - A list of Transcripts
+        :return: list(:class:`~Fred2.Core.Transcript.Transcript`) - A list of :class:`~Fred2.Core.Transcript.Transcript`s
         """
         return [p.orig_transcript for p in self.proteins.itervalues()]
 
-    def get_transcript(self, _transcript_id):
+    def get_transcript(self, transcript_id):
         """
         Returns a specific transcript object identified by a unique transcript-ID
 
-        :param str _transcript_id: A transcript ID
-        :return: Transcript - A Transcript
+        :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID
+        :return: :class:`~Fred2.Core.Transcript.Transcript` - A :class:`~Fred2.Core.Transcript.Transcript`
         """
         try:
-            return self.proteins[_transcript_id].orig_transcript
+            return self.proteins[transcript_id].orig_transcript
         except KeyError:
             return None
 
-    def get_protein_positions(self, _transcript_id):
+    def get_protein_positions(self, transcript_id):
         """
-        Returns all positions of origin for a given protein identified by its transcript_id
+        Returns all positions of origin for a given protein identified by its transcript-ID
 
-        :param str _transcript_id: The unique transcript ID of the protein in question
+        :param str transcript_id: The unique transcript ID of the protein in question
         :return: list(int) - A list of positions within the protein from which the peptide originated (starts at 0)
         """
-        return self.proteinPos.get(_transcript_id, [])
+        return self.proteinPos.get(transcript_id, [])
 
-    def get_variants_by_protein(self, _transcript_id):
+    def get_variants_by_protein(self, transcript_id):
         """
         Returns all variants of a protein that have influenced the peptide sequence
 
-        :param str _transcript_id: Transcript ID of the specific protein in question
-        :return: list(Variant) - A list variants that influenced the peptide sequence
+        :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
+        :return: list(:class:`~Fred2.Core.Variant.Variant`) - A list variants that influenced the peptide sequence
         :raises KeyError: If peptide does not originate from specified protein
         """
         try:
-            p = self.proteins[_transcript_id]
+            p = self.proteins[transcript_id]
             var = []
             fs = []
             shift = 0
-            for start_pos in self.proteinPos[_transcript_id]:
+            for start_pos in self.proteinPos[transcript_id]:
                 for i in xrange(start_pos):
                     for v in p.vars.get(i, []):
                         if v.type in [VariationType.FSDEL, VariationType.FSINS]:
@@ -159,46 +161,47 @@ class Peptide(MetadataLogger, Seq):
             return fs
         except KeyError:
             raise KeyError("Peptide does not origin from protein with \
-            transcript ID {transcript}".format(transcript=_transcript_id))
+            transcript ID {transcript}".format(transcript=transcript_id))
 
-    def get_variants_by_protein_position(self, _transcript_id, _protein_pos):
+    def get_variants_by_protein_position(self, transcript_id, protein_pos):
         """
         Returns all variants and their relative position to the peptide sequence of a given protein
-        and protein protein position
+        and protein position
 
-        :param str _transcript_id: A transcript ID of the specific protein in question
-        :param int _protein_pos: The protein position at which the peptides sequence starts in the protein
-        :return: dict(int,list(Vars)) - Dictionary of relative position of variants in peptide (starts at 0)
-                                        and associated variants that influenced the peptide sequence
+        :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
+        :param int protein_pos: The :class:`~Fred2.Core.Protein.Protein` position at which the peptides sequence starts
+        in the protein
+        :return: dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) - Dictionary of relative position of variants in
+        peptide (starts at 0)and associated variants that influenced the peptide sequence
         :raises:
          :ValueError: If peptide does not start at specified position
          :KeyError: If peptide does not originate from specified protein
         """
         try:
-            p = self.proteins[_transcript_id]
-            if _protein_pos not in self.proteinPos[_transcript_id]:
+            p = self.proteins[transcript_id]
+            if protein_pos not in self.proteinPos[transcript_id]:
                     raise ValueError("Peptide does not start a \
-                                     {pos} in protein with transcript ID {transcript}".format(pos=_protein_pos,
-                                                                                              transcript=_protein_pos))
+                                     {pos} in protein with transcript ID {transcript}".format(pos=protein_pos,
+                                                                                              transcript=protein_pos))
             var = dict()
             fs = dict()
             shift = 0
-            for i in xrange(_protein_pos):
+            for i in xrange(protein_pos):
                 for v in p.vars.get(i, []):
                     if v.type in [VariationType.FSDEL, VariationType.FSINS]:
                         shift = (v.get_shift()+shift) % 3
                         if shift:
-                            fs.setdefault(i-_protein_pos, []).append(v)
+                            fs.setdefault(i - protein_pos, []).append(v)
                         else:
                             fs.clear()
-            for j in xrange(_protein_pos, _protein_pos+len(self)):
+            for j in xrange(protein_pos, protein_pos+len(self)):
                 for v in p.vars.get(j, []):
-                    var.setdefault(j-_protein_pos, []).append(v)
+                    var.setdefault(j - protein_pos, []).append(v)
             fs.update(var)
             return fs
         except KeyError:
             raise KeyError("Peptide does not origin from protein with \
-                             transcript ID {transcript}".format(transcript=_transcript_id))
+                             transcript ID {transcript}".format(transcript=transcript_id))
 
     def __eq__(self, other):
         return str(self) == str(other)

@@ -17,13 +17,13 @@ class Allele(MetadataLogger):
     This class represents an HLA Allele and stores additional information
     """
 
-    def __init__(self, _name, prob=None):
+    def __init__(self, name, prob=None):
         """
-        :param str _name: input name in new nomenclature (A*01:01)
+        :param str name: input name in new nomenclature (A*01:01)
         :param float prob: optional population frequency of allele in [0,1]
         """
         MetadataLogger.__init__(self)
-        name = _name.split("-")[-1].replace("HLA-", "")
+        name = name.split("-")[-1].replace("HLA-", "")
         self.name = name
         self.locus, rest = name.split('*')
         self.supertype, self.subtype = rest.split(':')[:2]

@@ -130,12 +130,13 @@ class ACleavageSitePrediction(object):
 
 
     @abc.abstractmethod
-    def predict(self, _aa_seq, **kwargs):
+    def predict(self, aa_seq, **kwargs):
         """
         Predicts the proteasomal cleavage site of the given sequences
 
-        :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
-        :return: :class:`~Fred2.Core.AResult` - Returns a :class:`~Fred2.Core.AResult` object for the specified Bio.Seq
+        :param Bio.Seq aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
+        :return: :class:`~Fred2.Core.Result.AResult` - Returns a :class:`~Fred2.Core.Result.AResult` object for the 
+        specified Bio.Seq
         """
         raise NotImplementedError
 
@@ -173,12 +174,13 @@ class ACleavageFragmentPrediction(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def predict(self, _aa_seq, **kwargs):
+    def predict(self, aa_seq, **kwargs):
         """
         Predicts the probability that the fragment can be produced by the proteasom
 
-        :param Peptide _aa_seq: The sequence to be cleaved
-        :return: :class:`~Fred2.Core.AResult` - Returns a :class:`~Fred2.Core.AResult` object for the specified Bio.Seq
+        :param Peptide aa_seq: The sequence to be cleaved
+        :return: :class:`~Fred2.Core.Result.AResult` - Returns a :class:`~Fred2.Core.Result.AResult` object for the 
+        specified Bio.Seq
         """
         raise NotImplementedError
 
@@ -218,7 +220,7 @@ class AEpitopePrediction(object):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele) alleles: The alleles for which the internal predictor
+        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The alleles for which the internal predictor
          representation is needed
         :return: list(str) - Returns a string representation of the input alleles
         """
@@ -231,12 +233,13 @@ class AEpitopePrediction(object):
         If alleles is not given, predictions for all valid alleles of the predictor is performed. If, however,
         a list of alleles is given, predictions for the valid allele subset is performed.
 
-        :param :class:`~Fred2.Core.Peptide`/list(:class:`~Fred2.Core.Peptide`) peptides: The peptide objects for which
-        predictions should be performed
-        :param :class:`~Fred2.Core.Allele/list(:class:`~Fred2.Core.Allele) alleles:
-        An :class:`~Fred2.Core.Allele` or list of Alleles for which prediction models should be used
-        :return: :class:`~Fred2.Core.AResult` - Returns a :class:`~Fred2.Core.AResult` object for the specified
-        :class:`~Fred2.Core.Peptide` and :class:`~Fred2.Core.Allele`
+        :param :class:`~Fred2.Core.Peptide.Peptide`/list(:class:`~Fred2.Core.Peptide.Peptide`) peptides: The peptide
+        objects for which predictions should be performed
+        :param :class:`~Fred2.Core.Allele.Allele`/list(:class:`~Fred2.Core.Allele.Allele`) alleles:
+        An :class:`~Fred2.Core.Allele.Allele` or list of :class:`~Fred2.Core.Allele.Allele` for which prediction models
+        should be used
+        :return: :class:`~Fred2.Core.Result.AResult` - Returns a :class:`~Fred2.Core.Result.AResult` object for the
+        specified :class:`~Fred2.Core.Peptide.Peptide` and :class:`~Fred2.Core.Allele.Allele`
         """
         raise NotImplementedError
 
@@ -252,8 +255,8 @@ class ASVM(object):
         """
         Returns the feature encoding for peptides
 
-        :param List(:class:`~Fred2.Core.Peptide`)/:class:`~Fred2.Core.Peptide` peptides: List of or a single
-        :class:`~Fred2.Core.Peptide` object
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: List of or a
+        single :class:`~Fred2.Core.Peptide.Peptide` object
         :return: list(Object) - Feature encoding of the Peptide objects
         """
         raise NotImplementedError
@@ -273,11 +276,11 @@ class AExternal(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def parse_external_result(self, _file):
+    def parse_external_result(self, file):
         """
         Parses external results and returns the result
 
-        :param str _file: The file path or the external prediction results
+        :param str file: The file path or the external prediction results
         :return: dict - A dictionary containing the prediction results
         """
         raise NotImplementedError
@@ -354,9 +357,9 @@ class ATAPPrediction(object):
         """
         Predicts the TAP affinity for the given sequences
 
-        :param list(:class:`~Fred2.Core.Peptide`)/:class:`~Fred2.Core.Peptide`:
-        :class:`~Fred2.Core.Peptide` for which TAP affinity should be predicted
-        :return: :class:`~Fred2.Core.TAPResult` - Returns a :class:`~Fred2.Core.TAPResult` object
+        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide`:
+        :class:`~Fred2.Core.Peptide.Peptide` for which TAP affinity should be predicted
+        :return: :class:`~Fred2.Core.Result.TAPResult` - Returns a :class:`~Fred2.Core.Result.TAPResult` object
         """
         raise NotImplementedError
 
@@ -385,7 +388,7 @@ class AHLATyping(object):
 
         :param str ngsFile: The path to the input file containing the NGS reads
         :param str output: The path to the output file or directory
-        :return: list(:class:`~Fred2.Core.Allele`) - A list of HLA alleles representing the genotype
+        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of HLA alleles representing the genotype
         predicted by the algorithm
         """
         raise NotImplementedError
