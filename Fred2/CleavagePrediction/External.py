@@ -41,10 +41,12 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         """
         Overwrites ACleavageSitePrediction.predict
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`)/:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein` aa_seq: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` object
+        :param aa_seq: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` object
+        :type: aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`) or :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
-        :param str options: A string of additional options directly past to the external tool.
-        :return: :class:`~Fred2.Core.CleavageSitePredictionResult` - A :class:`~Fred2.Core.CleavageSitePredictionResult` object
+        :param str options: A string of additional options directly past to the external tool
+        :return: A :class:`~Fred2.Core.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.CleavageSitePredictionResult`
         """
         if not self.is_in_path() and "path" not in kwargs:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
