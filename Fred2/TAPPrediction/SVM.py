@@ -33,9 +33,11 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         #group peptides by length and
 
@@ -115,11 +117,11 @@ class SVMTAP(ASVMTAPPrediction):
             return 0, encoding
 
         if isinstance(peptides, collections.Iterable):
-            return {p:__encode(p) for p in peptides}
+            return {p: __encode(p) for p in peptides}
         else:
-            return {peptides:__encode(peptides)}
+            return {peptides: __encode(peptides)}
 
-    def predict(self, peptides,  **kwargs):
+    def predict(self, peptides, **kwargs):
         """
         Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 

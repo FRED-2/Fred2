@@ -269,8 +269,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
                 for ttId, varSeq, varComb in _generate_combinations(tId, vars, list(tSeq), {}, 0, strand == REVERS):
                     prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(varSeq), geneid, ttId,
                                                                                        vars=varComb)))
-    return generate_peptides_from_proteins(prots, length, peptides=peptides,
-                                           table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds)
+    return generate_peptides_from_proteins(prots, length, peptides=peptides)
 
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S
@@ -556,10 +555,13 @@ def generate_peptides_from_proteins(proteins, window_size, peptides=None):
     if isinstance(peptides, Peptide):
         peptides = [peptides]
 
-    if peptides and any(not isinstance(p, Peptide) for p in peptides):
-        raise ValueError("Specified list of Peptides contain non peptide objects")
+    final_peptides = {}
 
-    final_peptides = {} if peptides is None else {str(p):p for p in peptides}
+    if peptides:
+        for p in peptides:
+            if not isinstance(p, Peptide):
+                raise ValueError("Specified list of Peptides contain non peptide objects")
+            final_peptides[str(p)] = p
 
     if isinstance(proteins, Protein):
         proteins = [proteins]

@@ -47,10 +47,11 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
             pep_seqs = {str(aa_seq): aa_seq}
         else:
-            if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in aa_seq):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in aa_seq}
-
+            pep_seqs = {}
+            for p in aa_seq:
+                if not isinstance(p, Peptide) and not isinstance(p, Protein):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         length = min(self.supportedLength) if length is None else length
         if length not in self.supportedLength:
@@ -66,7 +67,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
         diff = length - self.cleavagePos
         for j,seq in enumerate(pep_seqs.iterkeys()):
-
 
             seq_id = "seq_%i"%j
             p = pep_seqs[seq]
@@ -103,7 +103,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         df_result = CleavageSitePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, j)) for i, j in df_result.index],
                                                         names=['ID', 'Pos'])
-
         return df_result
 
 
@@ -218,7 +217,7 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
         :return: Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
         :rtype: :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
         """
-        return super(ProteaSMMConsecutive, self).predict(peptides, length=length **kwargs)
+        return super(ProteaSMMConsecutive, self).predict(peptides, length=length, **kwargs)
 
 
 class ProteaSMMImmuno(APSSMCleavageSitePredictor):
@@ -326,9 +325,11 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name:{}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -430,9 +431,11 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide) and not isinstance(p, Protein):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):

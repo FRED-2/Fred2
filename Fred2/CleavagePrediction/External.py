@@ -32,7 +32,7 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         """
         Prepares the data :attr:_input and writes them to :attr:_file in the special format used by the external tool
 
-        :param str input: The input data (here peptide sequences)
+        :param list(str) input: The input data (here peptide sequences)
         :param File file: A file handler with which the data are written to file
         """
         raise NotImplementedError
@@ -60,9 +60,11 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
             pep_seqs = {str(aa_seq): aa_seq}
         else:
-            if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in aa_seq):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in aa_seq}
+            pep_seqs = {}
+            for p in aa_seq:
+                if not isinstance(p, Peptide) and not isinstance(p, Protein):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         tmp_out = NamedTemporaryFile(delete=False)
         tmp_file = NamedTemporaryFile(delete=False)
@@ -196,7 +198,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         """
         Prepares the data and writes them to _file in the special format used by the external tool
 
-        :param str input: The input data (here peptide sequences)
+        :param list(str) input: The input data (here peptide sequences)
         :param File file: A file handler with which the data are written to file
         """
         file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(input)))

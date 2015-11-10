@@ -22,7 +22,7 @@ class TestTranscript(TestCase):
                          {"NM_002054.4": MutationSyntax("NM_002054.4", 343, 114, "c.344C>A", "p.A115D")}, False, False)
 
         self.gcg_ts = "gcatagaatgcagatgagcaaagtgagtgggagagggaagtcatttgtaacaaaaactcattatttacagatgagaaatttatattgtcagcgtaatatctgtgaggctaaacagagctggagagtatataaaagcagtgcgccttggtgcagaagtacagagcttaggacacagagcacatcaaaagttcccaaagagggcttgctctctcttcacctgctctgttctacagcacactaccagaagacagcagaaatgaaaagcatttactttgtggctggattatttgtaatgctggtacaaggcagctggcaacgttcccttcaagacacagaggagaaatccagatcattctcagcttcccaggcagacccactcagtgatcctgatcagatgaacgaggacaagcgccattcacagggcacattcaccagtgactacagcaagtatctggactccaggcgtgcccaagattttgtgcagtggttgatgaataccaagaggaacaggaataacattgccaaacgtcacgatgaatttgagagacatgctgaagggacctttaccagtgatgtaagttcttatttggaaggccaagctgccaaggaattcattgcttggctggtgaaaggccgaggaaggcgagatttcccagaagaggtcgccattgttgaagaacttggccgcagacatgctgatggttctttctctgatgagatgaacaccattcttgataatcttgccgccagggactttataaactggttgattcagaccaaaatcactgacaggaaataactatatcactattcaagatcatcttcacaacatcacctgctagccacgtgggatgtttgaaatgttaagtcctgtaaatttaagaggtgtattctgaggccacattgctttgcatgccaataaataaattttcttttagtgttgtgtagccaaaaattacaaatggaataaagttttatcaaaatattgctaaaatatcagctttaaaatatgaaagtgctagattctgttattttcttcttattttggatgaagtaccccaacctgtttacatttagcgataaaattatttttctatgatataatttgtaaatgtaaattattccgatctgacatatctgcattataataataggagaatagaagaactggtagccacagtggtgaaattggaaagagaactttcttcctgaaacctttgtcttaaaaatactcagctttcaatgtatcaaagatacaattaaataaaattttcaagcttctttaccattgtct"
-        self.w_v = Transcript(self.gcg_ts, 'GLUC_HUMAN', "NM_002054.4", {343:self.gcg_v1})
+        self.w_v = Transcript(self.gcg_ts, 'GLUC_HUMAN', "NM_002054.4", {343: self.gcg_v1})
 
     def test_consistency(self):
         self.assertTrue(repr(self.simple) == "TRANSCRIPT: 0\n\tVARIANTS:\n\tSEQUENCE:  (mRNA)")
@@ -35,7 +35,7 @@ class TestTranscript(TestCase):
 
     def test_translate(self):
         gcg_var = "A*NADEQSEWEREVICNKNSLFTDEKFILSA*YL*G*TELESI*KQCALVQKYRA*DTEHIKSSQRGLALSSPALFYSTLPEDSRNEKHLLCGWIICNAGTRQLATFPSRHRGEIQIILSFPGRPTQ*S*SDERGQAPFTGHIHQ*LQQVSGLQACPRFCAVVDEYQEEQE*HCQTSR*I*ETC*RDLYQ*CKFLFGRPSCQGIHCLAGERPRKARFPRRGRHC*RTWPQTC*WFFL**DEHHS**SCRQGLYKLVDSDQNH*QEITISLFKIIFTTSPASHVGCLKC*VL*I*EVYSEATLLCMPINKFSFSVV*PKITNGIKFYQNIAKISALKYESARFCYFLLILDEVPQPVYI*R*NYFSMI*FVNVNYSDLTYLHYNNRRIEELVATVVKLERELSS*NLCLKNTQLSMYQRYN*IKFSSFFTIV"
-        self.assertTrue(str(generate_proteins_from_transcripts(self.w_v).next()) == gcg_var)
+        self.assertTrue(str(generate_proteins_from_transcripts(self.w_v, to_stop=False).next()) == gcg_var)
         # http://stackoverflow.com/questions/3892218/how-to-test-with-pythons-unittest-that-a-warning-has-been-thrown
 
     def test_indexing(self):

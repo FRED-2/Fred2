@@ -73,9 +73,11 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         if alleles is None:
             al = [Allele("HLA-" + a) for a in self.supportedAlleles]

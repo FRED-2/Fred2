@@ -38,7 +38,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
         :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
-        def __load_allele_model(allele,length):
+        def __load_allele_model(allele, length):
             allele_model = "%s_%i"%(allele, length)
             return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),
                            allele_model)
@@ -46,9 +46,11 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]
@@ -569,9 +571,11 @@ class ARB(APSSMEpitopePrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         if alleles is None:
             al = [Allele("HLA-"+a) for a in self.supportedAlleles]

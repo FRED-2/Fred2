@@ -97,11 +97,11 @@ class EpitopeAssembly(object):
                 edge_matrix[(start, stop)] = -1.0 * (cleave_pred.loc[(i, len(str(start)) - 1), pred.name] - weight * sum(
                     cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1,cleav_pos+4,1) if j != cleav_pos))
 
-                self.neo_cleavage[(start, stop)] = sum(cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1,cleav_pos+4,1) if j != cleav_pos)
+                self.neo_cleavage[(start, stop)] = sum(cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1, cleav_pos+4,1) if j != cleav_pos)
                 self.good_cleavage[(start, stop)] = cleave_pred.loc[(i, len(str(start)) - 1), pred.name]
         else:
             edge_matrix = matrix
-            seq_to_pep = {str(p):p for p in pep_tmp}
+            seq_to_pep = {str(p): p for p in pep_tmp}
             for p in seq_to_pep.iterkeys():
                 if p != "Dummy":
                     edge_matrix[(p,"Dummy")] = 0
@@ -247,14 +247,14 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         :param int k: length of spacer
         :param int en: epitope length
         :param int cn: cleavage-site string length
-        :param dict(int:dict(string:float)) cl_pssm: a cleavage site prediction PSSM as dict-of-dicts
-        :param dict(int:dict(string:float)) epi_pssm: a epitope prediction PSSM as dict-of-dicts
+        :param dict(int,dict(string,float)) cl_pssm: a cleavage site prediction PSSM as dict-of-dicts
+        :param dict(int,dict(string,float)) epi_pssm: a epitope prediction PSSM as dict-of-dicts
         :param int cleav_pos: integer specifying at which AA within the epitope of length cn the cleave is predicted
-        :param dict(string:float) allele_prob: a dict of HLA alleles as string (i.e. A*02:01) and probabilities [0,1]
+        :param dict(strin,float) allele_prob: a dict of HLA alleles as string (i.e. A*02:01) and probabilities [0,1]
         :param float alpha: specifies the first-order influence on the objectives [0,1]
         :param float thresh: specifies at which score a peptide is considered as epitope
         :param string solver: string specifying which ILP solver should be used
-        :param dict(str:str) options: solver specific options as keys and parameters as values
+        :param dict(str,str) options: solver specific options as keys and parameters as values
         :return: Tuple of ei, ej, spacer (str), cleavage score, immunogenicity score
     """
     options = dict() if options is None else options
@@ -528,14 +528,14 @@ class EpitopeAssemblyWithSpacer(object):
         self.__changed = True
         self.__k = k
         self.__result = None
-        self.__thresh = {a.name:0 for a in alleles} if threshold is None else threshold
+        self.__thresh = {a.name: 0 for a in alleles} if threshold is None else threshold
         self.__alleles = _alleles
         self.__epi_pred = epi_pred
         self.__clev_pred = cleav_pred
         self.__en = en
         self.__alpha = alpha
         self.__beta = beta
-        self.__peptides = peptides
+        self.__peptides = list(peptides)
         #model construction for spacer design
 
     def solve(self, start=0, threads=None, options=None):

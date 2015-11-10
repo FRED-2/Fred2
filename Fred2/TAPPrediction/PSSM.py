@@ -38,9 +38,11 @@ class APSSMTAPPrediction(ATAPPrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -138,9 +140,11 @@ class SMMTAP(APSSMTAPPrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):

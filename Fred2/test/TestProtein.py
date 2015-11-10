@@ -62,7 +62,7 @@ class TestProteinClass(unittest.TestCase):
         unique_test_prot_set.extend(self.prot_set)
         unique_test_prot_set.extend(self.prot_set)
 
-        unique_test_pep_set = generate_peptides_from_proteins(unique_test_prot_set, 3)
+        unique_test_pep_set = set(generate_peptides_from_proteins(unique_test_prot_set, 3))
         unique_test_pep_seqs = set([str(pep) for pep in unique_test_pep_set])
         self.assertEqual(len(unique_test_pep_set), len(unique_test_pep_seqs))
 
@@ -190,7 +190,7 @@ class TestProteinClass(unittest.TestCase):
             except ValueError:
                 pass
 
-        peptides = generate_peptides_from_proteins(proteins, 4)
+        peptides = list(generate_peptides_from_proteins(proteins, 4))
 
         sequences = [str(pep) for pep in peptides]
 
@@ -217,8 +217,7 @@ class TestProteinClass(unittest.TestCase):
                     print repr(p)
                     print repr(prot)
                     self.assertTrue(all(var in expected_vars for var in vars_))
-                except ValueError:
-
+                except KeyError:
                     pass
 
 
