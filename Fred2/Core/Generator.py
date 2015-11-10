@@ -525,7 +525,7 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 
 def generate_peptides_from_proteins(proteins, window_size, peptides=None):
     """
-    Creates all :class:`~Fred2.Core.Peptide.Peptide`s for a given window size, from a given
+    Creates all :class:`~Fred2.Core.Peptide.Peptide` for a given window size, from a given
     :class:`~Fred2.Core.Protein.Protein`.
 
     The result is a generator.

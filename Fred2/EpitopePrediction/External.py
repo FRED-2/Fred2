@@ -52,8 +52,8 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         :param peptides: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` object
         :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
         :param alleles: A list of or a single :class:`~Fred2.Core.Allele.Allele` object. If no
-                        :class:`~Fred2.Core.Allele.Allele`s are provided, predictions are made for all
-                        :class:`~Fred2.Core.Allele.Allele`s supported by the prediction method
+                        :class:`~Fred2.Core.Allele.Allele` are provided, predictions are made for all
+                        :class:`~Fred2.Core.Allele.Allele` supported by the prediction method
         :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)/:class:`~Fred2.Core.Allele.Allele`
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
         :param str options: A string of additional options directly past to the external tool.
@@ -206,13 +206,13 @@ class NetMHC_3_4(AExternalEpitopePrediction):
 
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
         of the predictor and returns a string representation
 
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
                         needed
         :type alleles: :class:`~Fred2.Core.Allele.Allele`
-        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -298,6 +298,8 @@ class NetMHC_3_0(NetMHC_3_4):
     """
     Implements the NetMHC binding (for netMHC3.0)::
 
+
+    .. note::
 
         NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides
         of length 8-11. Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M.
@@ -2354,7 +2356,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
     @property
     def supportedAlleles(self):
         """
-        A list of supported :class:`~Fred2.Core.Allele.Allele`s
+        A list of supported :class:`~Fred2.Core.Allele.Allele`
         """
         return self.__supported_alleles
 
@@ -2789,7 +2791,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
     @property
     def supportedAlleles(self):
         """
-        A list of supported :class:`~Fred2.Core.Allele.Allele`s
+        A list of supported :class:`~Fred2.Core.Allele.Allele`
         """
         return self.__alleles
 

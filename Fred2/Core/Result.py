@@ -349,7 +349,7 @@ class TAPPredictionResult(AResult):
         :type others: list(:class:`~Fred2.Core.Result.TAPPredictionResult`) or
                       :class:`~Fred2.Core.Result.TAPPredictionResult`
         :return: A new merged :class:`~Fred2.Core.Result.TAPPredictionResult` object
-        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
+        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult``
         """
         if type(others) == type(self):
             others = [others]

@@ -23,7 +23,7 @@ from Fred2.Core.Variant import VariationType
 class Peptide(MetadataLogger, Seq):
     """
     This class encapsulates a :class:`~Fred2.Core.Peptide.Peptide`, belonging to one or several
-    :class:`~Fred2.Core.Protein.Protein`s.
+    :class:`~Fred2.Core.Protein.Protein`.
 
     .. note:: For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq` (from Biopython)
     """
@@ -32,7 +32,7 @@ class Peptide(MetadataLogger, Seq):
         """
         :param str seq: Sequence of the peptide in one letter amino acid code
         :param protein_pos: Dict of transcript_IDs to position of origin in protein
-        :type protein_pos: dict(:class:`~Fred2.Core.Protein.Protein`,list(int))
+        :type protein_pos: dict(:class:`~Fred2.Core.Protein.Protein`,list(int))`
 
         """
         MetadataLogger.__init__(self)
@@ -112,7 +112,7 @@ class Peptide(MetadataLogger, Seq):
         Returns a list of :class:`~Fred2.Core.Transcript.Transcript` objects that are associated with the
         :class:`~Fred2.Core.Peptide.Peptide`
 
-        :return: A list of :class:`~Fred2.Core.Transcript.Transcript`s
+        :return: A list of :class:`~Fred2.Core.Transcript.Transcript`
         :rtype: list(:class:`~Fred2.Core.Transcript.Transcript`)
         """
         return [p.orig_transcript for p in self.proteins.itervalues()]

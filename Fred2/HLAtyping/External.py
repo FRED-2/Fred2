@@ -451,7 +451,7 @@ class Polysolver(AExternalHLATyping):
                     except ValueError:
                         IOError(
                             "Output format seems incorrect:\n{line}\n. Please check if Polysolver ran correctly.".format(
-                                lines=l))
+                                lines=l)) 
                 return alleles
         except IOError:
             raise IOError("File {out} could not be found. Please check your specified output folder".format(

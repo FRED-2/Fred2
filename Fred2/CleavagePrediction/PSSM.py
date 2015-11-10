@@ -31,8 +31,8 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         """
         Returns predictions for given peptides.
 
-        :param aa_seq: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                       :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+        :param aa_seq: A single `~Fred2.Core.Peptide.Peptide` or `~Fred2.Core.Protein.Protein` or a list of
+                       :class:`~Fred2.Core.Peptide` or :class:`~Fred2.Core.Protein.Protein`
         :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
                       or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
@@ -149,7 +149,7 @@ class PCM(APSSMCleavageSitePredictor):
         Returns predictions for given peptides.
 
         :param aa_seq: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                       :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+                       :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
                       or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
@@ -211,7 +211,7 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
         Returns predictions for given peptides.
 
         :param aa_seq: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                       :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+                       :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
                       or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :param int length: The peptide length of the cleavage site model. If None the default value is used.
@@ -274,7 +274,7 @@ class ProteaSMMImmuno(APSSMCleavageSitePredictor):
         Returns predictions for given peptides.
 
         :param aa_seq: A single `~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
-                       :class:`~Fred2.Core.Peptide`s/:class:`~Fred2.Core.Protein.Protein`s
+                       :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
                       or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :param int length: The peptide length of the cleavage site model. If None the default value is used.

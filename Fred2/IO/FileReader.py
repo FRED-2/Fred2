@@ -116,7 +116,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
     :param str annovar_file: The path ot the ANNOVAR file
     :param list(str) gene_filter: A list of gene names of interest (only variants associated with these genes
                                   are generated)
-    :return: List of :class:`~Fred2.Core.Variant.Variant`s fully annotated
+    :return: List of :class:`~Fred2.Core.Variant.Variants fully annotated
     :rtype: list(:class:`~Fred2.Core.Variant.Variant`)
     """
 

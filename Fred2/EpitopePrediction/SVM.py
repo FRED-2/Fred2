@@ -33,7 +33,7 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
         Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
         are made.
 
-        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
         :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
         :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`
         :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or :class:`~Fred2.Core.Allele.Allele`
@@ -163,9 +163,9 @@ class SVMHC(ASVMEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele`
         representation of the predictor and returns a string representation
 
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
         :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
-        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
         return ["%s_%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -437,12 +437,12 @@ class UniTope(ASVMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele`
         representation of the predictor and returns a string representation
 
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
         :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
-        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
         return ["%s_%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
@@ -455,7 +455,7 @@ class UniTope(ASVMEpitopePrediction):
         :param str allele: The HLA :class:`~Fred2.Core.Allele.Allele` represented by a string
         :return: Dictionary with :class:`~Fred2.Core.Peptide.Peptide` as key and feature encoding as value (see svmlight
                  encoding scheme http://svmlight.joachims.org/)
-        :rtype: dict(:class:`~Fred2.Core.Peptide.Peptide`, (tuple(int, list(tuple(int,float))))
+        :rtype: dict(:class:`~Fred2.Core.Peptide.Peptide`, (tuple(int, list(tuple(int,float))))`
         """
         pca = [{'A': 0.008, 'C': -0.132, 'E': 0.221, 'D': 0.303, 'G': 0.218, 'F': -0.329, 'I': -0.353, 'H': 0.023,
                 'K': 0.243, 'M': -0.239, 'L': -0.267, 'N': 0.255, 'Q': 0.149, 'P': 0.173, 'S': 0.199, 'R': 0.171,
@@ -492,7 +492,7 @@ class UniTope(ASVMEpitopePrediction):
         Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
         are made.
 
-        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
         :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
         :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`
         :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or :class:`~Fred2.Core.Allele.Allele`

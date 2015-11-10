@@ -25,7 +25,7 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
         """
         Returns TAP predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
-        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
         :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
         :return: Returns a :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
         :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
@@ -95,9 +95,9 @@ class SVMTAP(ASVMTAPPrediction):
 
     def encode(self, peptides):
         """
-        Encodes the :class:`~Fred2.Core.Peptide.Peptide`s with a binary sparse encoding
+        Encodes the :class:`~Fred2.Core.Peptide.Peptide` with a binary sparse encoding
 
-        :param list(str) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :param list(str) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide`
         :return: Dictionary with :class:`~Fred2.Core.Peptide.Peptide` as key and feature encoding as value (see svmlight
                  encoding scheme http://svmlight.joachims.org/)
         :rtype: dict(:class:`~Fred2.Core.Peptide.Peptide`, (tuple(int, list(tuple(int,float))))
@@ -121,9 +121,9 @@ class SVMTAP(ASVMTAPPrediction):
 
     def predict(self, peptides,  **kwargs):
         """
-        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s.
+        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
-        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
         :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
         :return: Returns a :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
         :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
