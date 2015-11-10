@@ -238,7 +238,7 @@ class AEpitopePrediction(object):
         :type peptides: :class:`~Fred2.Core.Peptide.Peptide` or list(:class:`~Fred2.Core.Peptide.Peptide`)
         :param alleles: An :class:`~Fred2.Core.Allele.Allele` or list of :class:`~Fred2.Core.Allele.Allele` for which
                         prediction models should be used
-        :type: alleles: :class:`~Fred2.Core.Allele.Allele`/list(:class:`~Fred2.Core.Allele.Allele`)
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`/list(:class:`~Fred2.Core.Allele.Allele`)
         :return: Returns a :class:`~Fred2.Core.Result.AResult` object for the specified
                  :class:`~Fred2.Core.Peptide.Peptide` and :class:`~Fred2.Core.Allele.Allele`
         :rtype: :class:`~Fred2.Core.Result.AResult`
