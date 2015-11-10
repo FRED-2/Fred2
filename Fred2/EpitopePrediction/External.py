@@ -299,7 +299,7 @@ class NetMHC_3_0(NetMHC_3_4):
     Implements the NetMHC binding (for netMHC3.0)::
 
 
-    .. note::
+   .. note::
 
         NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides
         of length 8-11. Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M.

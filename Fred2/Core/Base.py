@@ -293,7 +293,8 @@ class AExternal(object):
         """
         Checks whether the specified execution command can be found in PATH
 
-        :return: bool - Whether or not command could be found in PATH
+        :return: Whether or not command could be found in PATH
+        :rtype: bool
         """
         exe = self.command.split()[0]
         for try_path in os.environ["PATH"].split(os.pathsep):

@@ -371,7 +371,7 @@ class OptiTope(object):
         """
             Invokes the selected solver and solves the problem
 
-            :param dict(str:str) options: A dictionary of solver specific options as keys and their parameters as values
+            :param dict(str,str) options: A dictionary of solver specific options as keys and their parameters as values
             :return Returns the optimal epitopes as list of :class:`~Fred2.Core.Peptide.Peptide` objectives
             :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
             :raise RuntimeError: If the solver raised a problem or the solver is not accessible via the PATH

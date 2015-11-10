@@ -550,7 +550,7 @@ class EpitopeAssemblyWithSpacer(object):
         :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
                             Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
-        :param dict(str, str) options: Solver specific options as keys and parameters as values
+        :param dict(str,str) options: Solver specific options as keys and parameters as values
         :return: A list of ordered :class:`~Fred2.Core.Peptide.Peptide`
         :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
@@ -628,7 +628,7 @@ class EpitopeAssemblyWithSpacer(object):
         :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design. Be careful, if options contain solver threads it
                             will allocate threads*solver_threads cores!
-        :param dict(str, str) options: Solver specific options (threads for example)
+        :param dict(str,str) options: Solver specific options (threads for example)
         :return: A list of ordered :class:`~Fred2.Core.Peptide.Peptide`
         :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
