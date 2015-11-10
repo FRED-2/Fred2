@@ -30,8 +30,10 @@ class MutationSyntax():
     transcript and protein position
 
     :param str transID: The :class:`~Fred2.Core.Transcript.Transcript` id
-    :param int transPos: The position of the :class:`~Fred2.Core.Variant.Variant` within the :class:`~Fred2.Core.Transcript.Transcript`
-    :param int protPos: The :class:`~Fred2.Core.Protein.Protein` position of the :class:`~Fred2.Core.Variant.Variant` within the :class:`~Fred2.Core.Transcript.Transcript`
+    :param int transPos: The position of the :class:`~Fred2.Core.Variant.Variant` within the
+                         :class:`~Fred2.Core.Transcript.Transcript`
+    :param int protPos: The :class:`~Fred2.Core.Protein.Protein` position of the :class:`~Fred2.Core.Variant.Variant`
+                        within the :class:`~Fred2.Core.Transcript.Transcript`
     :param str cds: The complete cds_mutation_syntax string
     :param str aas: The complete protein_mutation_syntax string
     """
@@ -56,12 +58,15 @@ class Variant(MetadataLogger):
         Constructor for a variant, see init-types in class parameters
 
         :param str id: :class:`~Fred2.Core.Variant.Variant` id
-        :param :func:`~Fred2.Core.Variant.VariationType` type: An Enum type of the :class:`~Fred2.Core.Variant.Variant` either SNP, DEL, or INS
+        :param type: An Enum type of the :class:`~Fred2.Core.Variant.Variant` either SNP, DEL, or INS
+        :type type: :func:`~Fred2.Core.Variant.VariationType`
         :param str chrom: The chromosome on which the variant lies
         :param int genomePos: The genomic position of the :class:`~Fred2.Core.Variant.Variant`
         :param str ref: The reference seq at the genomic position
         :param str obs: The observed variation at the genomic position
-        :param dict(str,:class:`~Fred2.Core.Variant.MutationSyntax`) coding: A dictionary of associated transcripts. Key=transcript_id, value=:class:`~Fred2.Core.Variant.MutationSyntax`
+        :param coding: A dictionary of associated transcripts. Key=transcript_id,
+                       value=:class:`~Fred2.Core.Variant.MutationSyntax`
+        :type coding: dict(str,:class:`~Fred2.Core.Variant.MutationSyntax`)
         :param bool isHomozygous: Defines if variant is homozygous or not
         :param bool isSynonymous: Defines if variant is a synonymous mutation or not
         :param str experimentalDesign: String specifying the experimental condition (e.g. tumor)
@@ -92,7 +97,8 @@ class Variant(MetadataLogger):
         """
         Returns the sequence offset caused by the mutation
 
-        :return: int - The sequence offset
+        :return: The sequence offset
+        :rtype: int
         """
         return len(self.obs) - len(self.ref)
 
@@ -100,7 +106,8 @@ class Variant(MetadataLogger):
         """
         Returns the frameshift offset caused by the mutation in {0,1,2}
 
-        :return: int - The frameshift caused by mutation
+        :return: The frameshift caused by mutation
+        :rtype: int
         """
         return self.get_transcript_offset() % 3
 
@@ -108,8 +115,10 @@ class Variant(MetadataLogger):
         """
         Returns the annotated :class:`~Fred2.Core.Transcript.Transcript` position
 
-        :param (str) transID: The :class:`~Fred2.Core.Transcript.Transcript` ID of interest
-        :return: int - The annotated :class:`~Fred2.Core.Transcript.Transcript` position of the given :class:`~Fred2.Core.Transcript.Transcript` ID
+        :param str transID: The :class:`~Fred2.Core.Transcript.Transcript` ID of interest
+        :return: The annotated :class:`~Fred2.Core.Transcript.Transcript` position of the given
+                 :class:`~Fred2.Core.Transcript.Transcript` ID
+        :rtype: int
         :raises KeyError: If variant is not annotated to the given :class:`~Fred2.Core.Transcript.Transcript` ID
         """
         trID = transID.split(":FRED_")[0]
@@ -122,9 +131,12 @@ class Variant(MetadataLogger):
         """
         Returns the annotated protein position
 
-        :param (str) transID: The :class:`~Fred2.Core.Transcript.Transcript` ID of interest
-        :return: int - The annotated :class:`~Fred2.Core.Protein.Protein` position of the given :class:`~Fred2.Core.Transcript.Transcript` ID
-        :raise KeyError: If :class:`~Fred2.Core.Variant.Variant` is not annotated to the given :class:`~Fred2.Core.Transcript.Transcript` ID
+        :param str transID: The :class:`~Fred2.Core.Transcript.Transcript` ID of interest
+        :return: The annotated :class:`~Fred2.Core.Protein.Protein` position of the given
+                 :class:`~Fred2.Core.Transcript.Transcript` ID
+        :rtype: int
+        :raise KeyError: If :class:`~Fred2.Core.Variant.Variant` is not annotated to the given
+                         :class:`~Fred2.Core.Transcript.Transcript` ID
         """
         trID = transID.split(":FRED_")[0]
         try:

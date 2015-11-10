@@ -30,10 +30,13 @@ class APSSMEpitopePrediction(AEpitopePrediction):
         Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`s. If no
         :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or class:`~Fred2.Core.Allele.Allele`
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         def __load_allele_model(allele,length):
             allele_model = "%s_%i"%(allele, length)
@@ -135,8 +138,10 @@ class Syfpeithi(APSSMEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
         representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -191,20 +196,25 @@ class BIMAS(APSSMEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
         representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
         """
-        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s an :class:`~Fred2.Core.Allele.Allele`s.
-        If no :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
+        Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`s. If no
+        :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
-        :param list(:class:`~Fred2.Core.Allele.Allele`s) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or class:`~Fred2.Core.Allele.Allele`
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         return EpitopePredictionResult(
             super(BIMAS, self).predict(peptides, alleles=alleles,
@@ -256,8 +266,10 @@ class Epidemix(APSSMEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
         representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -310,11 +322,13 @@ class Hammer(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation of the predictor
-        and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
+        representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -370,23 +384,28 @@ class SMM(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation
-        of the predictor and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
+        representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s_%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
         """
-        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s an :class:`~Fred2.Core.Allele.Allele`s.
-        If no :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
+        Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`s. If no
+        :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or class:`~Fred2.Core.Allele.Allele`
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         return EpitopePredictionResult(
             super(SMM, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
@@ -443,23 +462,28 @@ class SMMPMBEC(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation
-        of the predictor and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
+        representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s_%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
         """
-        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s an :class:`~Fred2.Core.Allele.Allele`s. If
-        no :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
+        Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`s. If no
+        :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or class:`~Fred2.Core.Allele.Allele`
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         return EpitopePredictionResult(
             super(SMMPMBEC, self).predict(peptides, alleles=alleles, **kwargs).applymap(lambda x: math.pow(10, x)))
@@ -514,22 +538,28 @@ class ARB(APSSMEpitopePrediction):
 
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation
-        of the predictor and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
+        representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
         """
-        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s an :class:`~Fred2.Core.Allele.Allele`s. If
-        no :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
+        Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`s. If no
+        :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult - Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult object with the prediction results
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or class:`~Fred2.Core.Allele.Allele`
+        :param kwargs: optional parameter (not used yet)
+        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         def __load_allele_model(allele, length):
             allele_model = "%s_%i"%(allele, length)
@@ -623,7 +653,7 @@ class ComblibSidney2008(APSSMEpitopePrediction):
     @property
     def supportedAlleles(self):
         """
-        A list of supported :class:`~Fred2.Core.Allele.Allele` lengths
+        A list of supported :class:`~Fred2.Core.Allele.Allele`s
         """
         return self.__alleles
 
@@ -639,20 +669,25 @@ class ComblibSidney2008(APSSMEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
         representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
 
     def predict(self, peptides, alleles=None, **kwargs):
         """
-        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`s an :class:`~Fred2.Core.Allele.Allele`s. If
-        no :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
+        Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`s. If no
+        :class:`~Fred2.Core.Allele.Allele`s are given, predictions for all available models are made.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`s
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele`s
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`) or class:`~Fred2.Core.Allele.Allele`
         :param kwargs: optional parameter (not used yet)
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         return EpitopePredictionResult(
             super(ComblibSidney2008, self).predict(peptides,
@@ -809,7 +844,9 @@ class TEPITOPEpan(APSSMEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele`
         representation of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]

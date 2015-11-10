@@ -29,10 +29,14 @@ def read_fasta(files, type=Peptide, id_position=1):
     User needs to specify the correct type of the underlying sequences. It can
     either be: Peptide, Protein or Transcript (for RNA).
 
-    :param List(str)/str files: A (list) of file names to read in
-    :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Transcript.Transcript`/:class:`~Fred2.Core.Protein.Protein` type: The type to read in
+    :param files: A (list) of file names to read in
+    :type files: list(str) or str
+    :param type: The type to read in
+    :type type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Transcript.Transcript`
+                or :class:`~Fred2.Core.Protein.Protein`
     :param int id_position: the position of the id specified counted by |
-    :returns: (list(SequenceType)) - a list of the specified sequence type derived from the FASTA file sequences.
+    :returns: a list of the specified sequence type derived from the FASTA file sequences.
+    :rtype: (list(:attr:`type`))
     :raises ValueError: if a file is not readable
     """
 
@@ -73,9 +77,14 @@ def read_lines(files, type=Peptide):
     correct type of the underlying data. It can either be:
     Peptide, Protein or Transcript, Allele.
 
-    :param list(str)/str files: a list of strings of absolute file names that are to be read.
-    :param :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`/:class:`~Fred2.Core.Transcript.Transcript`/:class:`~Fred2.Core.Allele.Allele` type: Possible types are :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`, :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
-    :returns: (list(:attr:`type`)) -- a list of the specified objects
+    :param files: a list of strings of absolute file names that are to be read.
+    :type files: list(str) or str
+    :param type: Possible types are :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`,
+                 :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
+    :type type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` or
+                :class:`~Fred2.Core.Transcript.Transcript` or :class:`~Fred2.Core.Allele.Allele`
+    :returns: A list of the specified objects
+    :rtype: (list(:attr:`type`))
     :raises IOError: if a file is not readable
     """
 
@@ -105,8 +114,10 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
     all annotated :class:`~Fred2.Core.Transcript.Transcript` ids an outputs a list :class:`~Fred2.Core.Variant.Variant`.
 
     :param str annovar_file: The path ot the ANNOVAR file
-    :param list(str) gene_filter: A list of gene names of interest (only variants associated with these genes are generated)
-    :return: list(:class:`~Fred2.Core.Variant.Variant`) - List of :class:`~Fred2.Core.Variant.Variant`s fully annotated
+    :param list(str) gene_filter: A list of gene names of interest (only variants associated with these genes
+                                  are generated)
+    :return: List of :class:`~Fred2.Core.Variant.Variant`s fully annotated
+    :rtype: list(:class:`~Fred2.Core.Variant.Variant`)
     """
 
     vars = []

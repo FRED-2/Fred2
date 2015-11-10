@@ -32,7 +32,8 @@ class AExternalHLATyping(AHLATyping, AExternal):
         :param str command: The path to a alternative binary (if binary is not globally executable)
         :param str options: A string with additional options that is directly past to the tool
         :param bool delete: Boolean indicator whether generated files should be deleted afterwards
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects representing the most likely HLA genotype
+        :return: A list of :class:`~Fred2.Core.Allele.Allele` objects representing the most likely HLA genotype
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
 
         if not self.is_in_path() and "path" not in kwargs:
@@ -128,8 +129,9 @@ class OptiType_1_0(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from self.__command
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`self.command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -139,7 +141,8 @@ class OptiType_1_0(AExternalHLATyping):
         the prediction file from there
 
         :param str output: The path to the output dir
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
+        :return: The predicted HLA genotype
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
         all_subdirs = [os.path.join(output,d) for d in os.listdir(output) if os.path.isdir(os.path.join(output,d))]
         latest_subdir = max(all_subdirs, key=os.path.getmtime)
@@ -203,8 +206,9 @@ class Seq2HLA_2_2(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from self.__command
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from self.__command
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         try:
             stdo = None
@@ -229,7 +233,8 @@ class Seq2HLA_2_2(AExternalHLATyping):
         :param str command: The path to a alternative binary (if binary is not globally executable)
         :param str options: A string with additional options that is directly past to the tool
         :param bool delete: Boolean indicator whether generated files should be deleted afterwards
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - A list of :class:`~Fred2.Core.Allele.Allele` objects representing the most likely HLA genotype
+        :return: A list of :class:`~Fred2.Core.Allele.Allele` objects representing the most likely HLA genotype
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
         if "-2" not in options:
             ValueError("Seq2HLA only supports paired-end inputs. Please use the options "
@@ -243,7 +248,8 @@ class Seq2HLA_2_2(AExternalHLATyping):
         the prediction file from there
 
         :param str output: The path to the output dir
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
+        :return: The predicted HLA genotype
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
         alleles = []
         try:
@@ -324,8 +330,9 @@ class ATHLATES_1_0(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from self.__command
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from self.__command
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -335,7 +342,8 @@ class ATHLATES_1_0(AExternalHLATyping):
         the prediction file from there
 
         :param str output: The path to the output dir
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
+        :return: The predicted HLA genotype
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
         alleles = []
         if os.path.isdir(output):
@@ -415,8 +423,9 @@ class Polysolver(AExternalHLATyping):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from self.__command
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from self.__command
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -426,7 +435,8 @@ class Polysolver(AExternalHLATyping):
         the prediction file from there
 
         :param str output: The path to the output dir
-        :return: list(:class:`~Fred2.Core.Allele.Allele`) - The predicted HLA genotype
+        :return: The predicted HLA genotype
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
         alleles = []
         try:

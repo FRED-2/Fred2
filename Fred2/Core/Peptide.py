@@ -31,7 +31,8 @@ class Peptide(MetadataLogger, Seq):
     def __init__(self, seq, protein_pos=None):
         """
         :param str seq: Sequence of the peptide in one letter amino acid code
-        :param dict(:class:`~Fred2.Core.Protein.Protein`,list(int)) protein_pos: Dict of transcript_IDs to position of origin in protein
+        :param protein_pos: Dict of transcript_IDs to position of origin in protein
+        :type protein_pos: dict(:class:`~Fred2.Core.Protein.Protein`,list(int))
 
         """
         MetadataLogger.__init__(self)
@@ -54,7 +55,8 @@ class Peptide(MetadataLogger, Seq):
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position in the peptide sequence
-        :return: :class:`~Fred2.Core.Peptide.Peptide` - A single letter at position :attr:`index` or a sliced :class:`~Fred2.Core.Peptide.Peptide`.
+        :return: A single letter at position :attr:`index` or a sliced :class:`~Fred2.Core.Peptide.Peptide`
+        :rtype: :class:`~Fred2.Core.Peptide.Peptide`
         :raises ValueError: If stop is greater than start of index
         """
         if isinstance(index, int):
@@ -89,7 +91,8 @@ class Peptide(MetadataLogger, Seq):
         Returns all :class:`~Fred2.Core.Protein.Protein` objects associated with the
         :class:`~Fred2.Core.Peptide.Peptide`
 
-        :return: list(:class:`~Fred2.Core.Protein.Protein`) - A list of :class:`~Fred2.Core.Protein.Protein`
+        :return: A list of :class:`~Fred2.Core.Protein.Protein`
+        :rtype: list(:class:`~Fred2.Core.Protein.Protein`)
         """
         return self.proteins.values()
 
@@ -98,7 +101,8 @@ class Peptide(MetadataLogger, Seq):
         Returns a specific protein object identified by a unique transcript-ID
 
         :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID
-        :return: :class:`~Fred2.Core.Protein.Protein` - A :class:`~Fred2.Core.Protein.Protein`
+        :return: A :class:`~Fred2.Core.Protein.Protein`
+        :rtype: :class:`~Fred2.Core.Protein.Protein`
         """
         #Default return value None if peptide does not origin from protein?
         return self.proteins.get(transcript_id, None)
@@ -108,8 +112,8 @@ class Peptide(MetadataLogger, Seq):
         Returns a list of :class:`~Fred2.Core.Transcript.Transcript` objects that are associated with the
         :class:`~Fred2.Core.Peptide.Peptide`
 
-        :return: list(:class:`~Fred2.Core.Transcript.Transcript`) - A list of
-                 :class:`~Fred2.Core.Transcript.Transcript`s
+        :return: A list of :class:`~Fred2.Core.Transcript.Transcript`s
+        :rtype: list(:class:`~Fred2.Core.Transcript.Transcript`)
         """
         return [p.orig_transcript for p in self.proteins.itervalues()]
 
@@ -118,7 +122,8 @@ class Peptide(MetadataLogger, Seq):
         Returns a specific :class:`~Fred2.Core.Transcript.Transcript` object identified by a unique transcript-ID
 
         :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID
-        :return: :class:`~Fred2.Core.Transcript.Transcript` - A :class:`~Fred2.Core.Transcript.Transcript`
+        :return: A :class:`~Fred2.Core.Transcript.Transcript`
+        :rtype: :class:`~Fred2.Core.Transcript.Transcript`
         """
         try:
             return self.proteins[transcript_id].orig_transcript
@@ -130,8 +135,9 @@ class Peptide(MetadataLogger, Seq):
         Returns all positions of origin for a given :class:`~Fred2.Core.Protein.Protein` identified by its transcript-ID
 
         :param str transcript_id: The unique transcript ID of the :class:`~Fred2.Core.Protein.Protein` in question
-        :return: list(int) - A list of positions within the protein from which the :class:`~Fred2.Core.Peptide.Peptide`
+        :return: A list of positions within the protein from which the :class:`~Fred2.Core.Peptide.Peptide`
                  originated (starts at 0)
+        :rtype:  list(int)
         """
         return self.proteinPos.get(transcript_id, [])
 
@@ -141,7 +147,8 @@ class Peptide(MetadataLogger, Seq):
         the :class:`~Fred2.Core.Peptide.Peptide` sequence
 
         :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
-        :return: list(:class:`~Fred2.Core.Variant.Variant`) - A list variants that influenced the peptide sequence
+        :return: A list variants that influenced the peptide sequence
+        :rtype: list(:class:`~Fred2.Core.Variant.Variant`)
         :raises KeyError: If peptide does not originate from specified :class:`~Fred2.Core.Protein.Protein`
         """
         try:
@@ -173,11 +180,15 @@ class Peptide(MetadataLogger, Seq):
         :class:`~Fred2.Core.Protein.Protein` and protein position
 
         :param str transcript_id: A :class:`~Fred2.Core.Transcript.Transcript` ID of the specific protein in question
-        :param int protein_pos: The :class:`~Fred2.Core.Protein.Protein` position at which the peptides sequence starts in the protein
-        :return: dict(int,list(:class:`~Fred2.Core.Variant.Variant`)) - Dictionary of relative position of variants in peptide (starts at 0) and associated variants that influenced the peptide sequence
+        :param int protein_pos: The :class:`~Fred2.Core.Protein.Protein` position at which the peptides sequence starts
+                                in the protein
+        :return: Dictionary of relative position of variants in peptide (starts at 0) and associated variants that
+                 influenced the peptide sequence
+        :rtype: dict(int,list(:class:`~Fred2.Core.Variant.Variant`))
         :raises:
          :ValueError: If :class:`~Fred2.Core.Peptide.Peptide` does not start at specified position
-         :KeyError: If :class:`~Fred2.Core.Peptide.Peptide` does not originate from specified :class:`~Fred2.Core.Protein.Protein`
+         :KeyError: If :class:`~Fred2.Core.Peptide.Peptide` does not originate from specified
+                    :class:`~Fred2.Core.Protein.Protein`
         """
         try:
             p = self.proteins[transcript_id]

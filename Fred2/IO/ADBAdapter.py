@@ -29,8 +29,9 @@ class ADBAdapter:
         """
         fetches product sequence for the given id
 
-        :param product_refseq: given refseq id
-        :return: list of dictionaries of the requested sequence, the respective strand and the associated gene name
+        :param product_refseq: Given refseq id
+        :return: List of dictionaries of the requested sequence, the respective strand and the associated gene name
+        :rtype: list(dict)
         """
         pass
 
@@ -39,8 +40,9 @@ class ADBAdapter:
         """
         Fetches transcript sequence for the given id
         
-        :param transcript_refseq:
+        :param transcript_refseq: A transcript RefSeq ID
         :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
+        :rtype: list(dict)
         """
         pass
 

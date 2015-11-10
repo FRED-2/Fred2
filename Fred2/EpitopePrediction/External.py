@@ -49,11 +49,16 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         """
         Overwrites AEpitopePrediction.predict
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide` peptides: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` object
-        :param list(:class:`~Fred2.Core.Allele.Allele`)/:class:`~Fred2.Core.Allele.Allele` alleles: A list of or a single :class:`~Fred2.Core.Allele.Allele` object. If no :class:`~Fred2.Core.Allele.Allele`s are provided, predictions are made for all :class:`~Fred2.Core.Allele.Allele`s supported by the prediction method
+        :param peptides: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` object
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param alleles: A list of or a single :class:`~Fred2.Core.Allele.Allele` object. If no
+                        :class:`~Fred2.Core.Allele.Allele`s are provided, predictions are made for all
+                        :class:`~Fred2.Core.Allele.Allele`s supported by the prediction method
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)/:class:`~Fred2.Core.Allele.Allele`
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
         :param str options: A string of additional options directly past to the external tool.
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - A :class:`~Fred2.Core.Result.EpitopePredictionResult` object
+        :return: A :class:`~Fred2.Core.Result.EpitopePredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
 
         if not self.is_in_path() and command is None:
@@ -201,11 +206,14 @@ class NetMHC_3_4(AExternalEpitopePrediction):
 
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation of the predictor
-        and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele`s into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele`s for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`s
+        :rtype: list(str)
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -240,7 +248,8 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
@@ -266,8 +275,9 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from :attr:`self.__command`
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`self.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: dict
         """
         return super(NetMHC_3_4, self).get_external_version()
 
@@ -345,8 +355,10 @@ class NetMHC_3_0(NetMHC_3_4):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :rtype: list(str)
         """
         return ["%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -355,7 +367,8 @@ class NetMHC_3_0(NetMHC_3_4):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(dict)
         with open(file, 'r') as f:
@@ -759,9 +772,11 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-               internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :param  alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
+                         internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :rtype: list(str)
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -770,7 +785,8 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(dict)
         with open(file, "r") as f:
@@ -793,8 +809,9 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from :attr:`self.__command`
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`self.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         # can not be determined netmhcpan does not support --version or similar
         return None
@@ -1169,8 +1186,10 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :rtype: list(str)
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -1208,8 +1227,9 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from :attr:`self.__command`
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`self.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -1230,7 +1250,8 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
@@ -1298,8 +1319,10 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :rtype: list(str)
         """
         return ["HLA-%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -1308,7 +1331,8 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
@@ -1335,8 +1359,9 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from :attr:`self.__command`
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`self.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -1499,8 +1524,10 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input alleles
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input alleles
+        :rtype: list(str)
         """
         return ["%s_%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -1509,7 +1536,8 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
@@ -1532,8 +1560,9 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from :attr:`self.__command`
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`self.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -1544,7 +1573,7 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
 
         No return value!
 
-        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into file
+        :param: list(str) input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into file
         :param File file: File-handler to input file for external tool
         """
         file.write("\n".join(input))
@@ -2339,8 +2368,10 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The alleles for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input alleles
+        :param alleles: The alleles for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input alleles
+        :rtype: list(str)
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -2349,7 +2380,8 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(defaultdict)
         with open(file, "r") as f:
@@ -2371,8 +2403,9 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from :attr:`elf.__command`
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`elf.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -2745,8 +2778,11 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :return: list(str) - Returns a string representation of the input alleles
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
+                        internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input alleles
+        :rtype: list(str)
         """
         return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
@@ -2781,7 +2817,8 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         result = defaultdict(defaultdict)
         with open(file, "r") as f:
@@ -2806,8 +2843,9 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param str path: - Optional specification of executable path if deviant from :attr:`self.__command`
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: Optional specification of executable path if deviant from :attr:`self.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         return None
 
@@ -2817,7 +2855,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
 
         No return value!
 
-        :param: list(str) _input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into file
+        :param: list(str) input: The :class:`~Fred2.Core.Peptide.Peptide` sequences to write into file
         :param File file: File-handler to input file for external tool
         """
         file.write("\n".join(">pepe_%i\n%s" % (i, p) for i, p in enumerate(input)))

@@ -150,7 +150,8 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
-        :return: dict(str,dict((str,int),float)) - Returns a dictionary with the prediction results
+        :return: Returns a dictionary with the prediction results
+        :rtype: dict(str,dict((str,int),float))
         """
         result = {"Seq": {}, self.name: {}}
         count = 0
@@ -185,7 +186,8 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         with super()
 
         :param str path: - Optional specification of executable path if deviant from :attr:self.__command
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         #cannot be determined method does not support --version or something similar
         return None

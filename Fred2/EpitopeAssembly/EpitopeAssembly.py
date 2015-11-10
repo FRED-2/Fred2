@@ -38,10 +38,14 @@ class EpitopeAssembly(object):
             Toussaint, N.C., et al. Universal peptide vaccines - Optimal peptide vaccine design based on viral
             sequence conservation. Vaccine 2011;29(47):8745-8753.
 
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
-        :param :class:`~Fred2.Core.Base.ACleavageSitePredictor` pred: A :class:`~Fred2.Core.Base.ACleavageSitePrediction`
+        :param peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
+        :param pred: A :class:`~Fred2.Core.Base.ACleavageSitePrediction`
+        :type pred: :class:`~Fred2.Core.Base.ACleavageSitePredictor`
         :param str solver: Specifies the solver to use (mused by callable by pyomo)
-        :param float weight: Specifies how strong unwanted cleavage sites should be punished [0,1], where 0 means they will be ignored, and 1 the sum of all unwanted cleave sites is subtracted from the cleave site between two epitopes
+        :param float weight: Specifies how strong unwanted cleavage sites should be punished [0,1], where 0 means they
+                             will be ignored, and 1 the sum of all unwanted cleave sites is subtracted from the cleave
+                             site between two epitopes
         :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
@@ -148,7 +152,8 @@ class EpitopeAssembly(object):
             This can take quite long and should not be done for more and 30 epitopes max!
 
         :param str options: Solver specific options as string (will not be checked for correctness)
-        :return: list(:class:`~Fred2.Core.Peptide.Peptide`) - An order list of the :class:`~Fred2.Core.Peptide.Peptide` (based on the string-of-beads ordering)
+        :return: An order list of the :class:`~Fred2.Core.Peptide.Peptide` (based on the string-of-beads ordering)
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
 
         options = dict() if options is None else options
@@ -169,7 +174,8 @@ class EpitopeAssembly(object):
             Source code can be found here:
             http://www.akira.ruc.dk/~keld/research/LKH/
 
-        :return: list(:class:`~Fred2.Core.Peptide.Peptide`) - An order list of the :class:`~Fred2.Core.Peptide.Peptide` (based on the sting-of-beads ordering)
+        :return: An order list of the :class:`~Fred2.Core.Peptide.Peptide` (based on the sting-of-beads ordering)
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
         tmp_conf = NamedTemporaryFile(delete=False)
         tmp_prob = NamedTemporaryFile(delete=False)
@@ -435,22 +441,31 @@ class EpitopeAssemblyWithSpacer(object):
         (currently only allowed with PSSM cleavage site and epitope prediction)
 
         The ILP model is implemented. So be reasonable with the size of epitope to be arranged.
-
-        :param list(:class:`~Fred2.Core.Peptide.Peptide`) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
-        :param :class:`~Fred2.Core.Base.ACleavageSitePredictor` cleav_pred: A :class:`~Fred2.CleavagePrediction.PSSM.APSSMCleavageSitePredictor` (PSSM only)
-        :param :class:`~Fred2.Core.Base.AEpitopePredictor epi_pred: A :class:`~Fred2.EpitopePrediction.PSSM.APSSMEpitopePrediction` (PSSM only)
-        :param list(:class:`~Fred2.Core.Allele.Allele`) alleles: A list of :class:`~Fred2.Core.Allele.Allele` for which predictions should be made
-        :param int k: The maximal length of a spacer
-        :param int en: Length of epitopes
-        :param dict(str,float) threshold: A dictionary specifying the epitope prediction threshold for each :class:`~Fred2.Core.Allele.Allele`
-        :param str solver: Specifies the solver to use (must be callable by pyomo)
-        :param float alpha: Specifies how how much junction-cleavage score can be sacrificed  to gain lower neo-immunogenicity
-        :param float beta: Specifies how how much noe-immunogenicity score can be sacrificed to gain lower non-junction cleavage score
-        :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
     def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", alpha=0.99,
                  beta=0, verbosity=0):
+        """
+
+        :param peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
+        :param cleav_pred: A :class:`~Fred2.CleavagePrediction.PSSM.APSSMCleavageSitePredictor` (PSSM only)
+        :type: :class:`~Fred2.Core.Base.ACleavageSitePredictor`
+        :param epi_pred: A :class:`~Fred2.EpitopePrediction.PSSM.APSSMEpitopePrediction` (PSSM only)
+        :type: :class:`~Fred2.Core.Base.AEpitopePredictor`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele` for which predictions should be made
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :param int k: The maximal length of a spacer
+        :param int en: Length of epitopes
+        :param dict(str,float) threshold: A dictionary specifying the epitope prediction threshold for each
+                                          :class:`~Fred2.Core.Allele.Allele`
+        :param str solver: Specifies the solver to use (must be callable by pyomo)
+        :param float alpha: Specifies how how much junction-cleavage score can be sacrificed  to gain lower
+                            neo-immunogenicity
+        :param float beta: Specifies how how much noe-immunogenicity score can be sacrificed to gain lower non-junction
+                           cleavage score
+        :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
+        """
 
         #test input
         if not isinstance(cleav_pred, APSSMCleavageSitePredictor):
@@ -534,9 +549,10 @@ class EpitopeAssemblyWithSpacer(object):
 
         :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
-                Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
+                            Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
         :param dict(str, str) options: Solver specific options as keys and parameters as values
-        :return: list(:class:`~Fred2.Core.Peptide.Peptide`) - a list of ordered :class:`~Fred2.Core.Peptide.Peptide`
+        :return: A list of ordered :class:`~Fred2.Core.Peptide.Peptide`
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
         def __load_model(name, model):
             return getattr(__import__("Fred2.Data.pssms."+name+".mat."+model, fromlist=[model]), model)
@@ -610,9 +626,11 @@ class EpitopeAssemblyWithSpacer(object):
         http://www.akira.ruc.dk/~keld/research/LKH/
 
         :param int start: Start length for spacers (default 0).
-        :param int threads: Number of threads used for spacer design. Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
+        :param int threads: Number of threads used for spacer design. Be careful, if options contain solver threads it
+                            will allocate threads*solver_threads cores!
         :param dict(str, str) options: Solver specific options (threads for example)
-        :return: list(:class:`~Fred2.Core.Peptide.Peptide`) -- a list of ordered :class:`~Fred2.Core.Peptide.Peptide`
+        :return: A list of ordered :class:`~Fred2.Core.Peptide.Peptide`
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
         def __load_model(data, name, length):
             model = "%s_%s"%(name, str(length))

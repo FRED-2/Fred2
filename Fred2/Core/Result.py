@@ -28,8 +28,10 @@ class AResult(pandas.DataFrame):
         """
         Filter result based on a list of expressions
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: :class:`~Fred2.Core.Result.AResult` - A new filtered AResult object
+        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator,
+                                                         threshold)
+        :return: A new filtered AResult object
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError()
 
@@ -38,8 +40,10 @@ class AResult(pandas.DataFrame):
         """
         Merges results of the same type and returns a merged result
 
-        :param list(:class:`~Fred2.Core.Result.AResult`)/:class:`~Fred2.Core.Result.AResult` others: A (list of) :class:`~Fred2.Core.Result.AResult` object(s) of the same class
-        :return: :class:`~Fred2.Core.Result.AResult` - A new merged :class:`~Fred2.Core.Result.AResult` object
+        :param others: A (list of) :class:`~Fred2.Core.Result.AResult` object(s) of the same class
+        :type others: list(:class:`~Fred2.Core.Result.AResult`)/:class:`~Fred2.Core.Result.AResult`
+        :return: A new merged :class:`~Fred2.Core.Result.AResult` object
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError()
 
@@ -73,8 +77,10 @@ class EpitopePredictionResult(AResult):
         (method_name, comparator, threshold). The expression is applied to each row. If any of the columns fulfill
         the criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - Filtered result object
+        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator,
+                                                        threshold)
+        :return: Filtered result object
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         if isinstance(expressions, tuple):
             expressions = [expressions]
@@ -96,8 +102,10 @@ class EpitopePredictionResult(AResult):
         """
         Merges results of type :class:`~Fred2.Core.Result.EpitopePredictionResult` and returns the merged result
 
-        :param list(:class:`~Fred2.Core.Result.EpitopePredictionResult`)/:class:`~Fred2.Core.Result.EpitopePredictionResult` others: Another (list of) :class:`~Fred2.Core.Result.EpitopePredictionResult`(s)
-        :return: :class:`~Fred2.Core.Result.EpitopePredictionResult` - A new merged :class:`~Fred2.Core.Result.EpitopePredictionResult` object
+        :param others: Another (list of) :class:`~Fred2.Core.Result.EpitopePredictionResult`(s)
+        :type others: list(:class:`~Fred2.Core.Result.EpitopePredictionResult`)/:class:`~Fred2.Core.Result.EpitopePredictionResult`
+        :return: A new merged :class:`~Fred2.Core.Result.EpitopePredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
         df = self.copy(deep=False)
 
@@ -164,8 +172,10 @@ class CleavageSitePredictionResult(AResult):
         of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of
         the columns fulfill the criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - A new filtered result object
+        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator,
+                                                         threshold)
+        :return: A new filtered result object
+        :rtype: :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
         """
         if isinstance(expressions, tuple):
             expressions = [expressions]
@@ -185,8 +195,11 @@ class CleavageSitePredictionResult(AResult):
         """
         Merges results of type :class:`~Fred2.Core.Result.CleavageSitePredictionResult` and returns the merged result
 
-        :param list(:class:`~Fred2.Core.Result.CleavageSitePredictionResult`)/:class:`~Fred2.Core.Result.CleavageSitePredictionResult` others: A (list of) :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object(s)
-        :return: :class:`~Fred2.Core.Result.CleavageSitePredictionResult` - A new merged :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :param others: A (list of) :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object(s)
+        :type others: list(:class:`~Fred2.Core.Result.CleavageSitePredictionResult`) or
+                      :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
+        :return: A new merged :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
         """
         if type(others) == type(self):
             others = [others]
@@ -252,8 +265,10 @@ class CleavageFragmentPredictionResult(AResult):
         (method_name, comparator, threshold). The expression is applied to each row. If any of the columns fulfill the
         criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` - A new filtered result object
+        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator,
+                                                         threshold)
+        :return: A new filtered result object
+        :rtype: :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult`
         """
 
         if isinstance(expressions, tuple):
@@ -273,8 +288,11 @@ class CleavageFragmentPredictionResult(AResult):
         Merges results of type :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` and returns the merged
         result
 
-        :param list(:class:`~Fred2.Core.Result.CleavageFragmentPredictionResult`)/:class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` others: A (list of) :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` object(s)
-        :return: :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` - A new merged :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` object
+        :param others: A (list of) :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` object(s)
+        :type others: list(:class:`~Fred2.Core.Result.CleavageFragmentPredictionResult`) or
+                      :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult`
+        :return: new merged :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.CleavageFragmentPredictionResult`
         """
         if type(others) == type(self):
             others = [others]
@@ -305,8 +323,10 @@ class TAPPredictionResult(AResult):
         of a list of triple with (method_name, comparator, threshold). The expression is applied to each row. If any of
         the columns fulfill the criteria the row remains.
 
-        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator, threshold)
-        :return: :class:`~Fred2.Core.Result.TAPPredictionResult` - A new filtered result object
+        :param list((str,comparator,float)) expressions: A list of triples consisting of (method_name, comparator,
+                                                         threshold)
+        :return: A new filtered result object
+        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
         """
         if isinstance(expressions, tuple):
             expressions = [expressions]
@@ -325,8 +345,11 @@ class TAPPredictionResult(AResult):
         """
         Merges results of type :class:`~Fred2.Core.Result.TAPPredictionResult and returns the merged result
 
-        :param list(:class:`~Fred2.Core.Result.TAPPredictionResult`)/:class:`~Fred2.Core.Result.TAPPredictionResult` others: A (list of) :class:`~Fred2.Core.Result.TAPPredictionResult` object(s)
-        :return: :class:`~Fred2.Core.Result.TAPPredictionResult` - A new merged :class:`~Fred2.Core.Result.TAPPredictionResult` object
+        :param others: A (list of) :class:`~Fred2.Core.Result.TAPPredictionResult` object(s)
+        :type others: list(:class:`~Fred2.Core.Result.TAPPredictionResult`) or
+                      :class:`~Fred2.Core.Result.TAPPredictionResult`
+        :return: A new merged :class:`~Fred2.Core.Result.TAPPredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
         """
         if type(others) == type(self):
             others = [others]

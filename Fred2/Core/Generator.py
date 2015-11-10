@@ -34,12 +34,15 @@ def _incorp_snp(seq, var, transId, pos, offset, isReverse=False):
     Incorporates a snp into the given :class:`~Fred2.Core.Transcript.Transcript` sequence (side effect!).
 
     :param list(char) seq: :class:`~Fred2.Core.Transcript.Transcript` sequence as a list
-    :param :class:`~Fred2.Core.Variant.Variant` var: The snp variant to incorporate
+    :param  var: The snp variant to incorporate
+    :type: :class:`~Fred2.Core.Variant.Variant`
     :param str transId: The transcript ID of seq
     :param int pos: The position of the variant
-    :param int offset: The offset which has to be added onto the :class:`~Fred2.Core.Transcript.Transcript` position of the :class:`~Fred2.Core.Variant.Variant`
+    :param int offset: The offset which has to be added onto the :class:`~Fred2.Core.Transcript.Transcript` position of
+                       the :class:`~Fred2.Core.Variant.Variant`
     :param bool isReverse: Defines whether current transcript is reverse oriented
-    :return: int - The the modified offset
+    :return: The the modified offset
+    :rtype: int
     """
     if VariationType.SNP != var.type:
         raise TypeError("%s is not a SNP"%str(var))
@@ -63,11 +66,14 @@ def _incorp_insertion(seq, var, transId, pos, offset, isReverse=False):
     Incorporates an insertion into the given :class:`~Fred2.Core.Transcript.Transcript` sequence (side effect!).
 
     :param list(char) seq: :class:`~Fred2.Core.Transcript.Transcript` sequence as a list
-    :param :class:`~Fred2.Core.Variant.Variant` var: The snp variant to incorporate
+    :param var: The snp variant to incorporate
+    :type var: :class:`~Fred2.Core.Variant.Variant`
     :param str transId: The :class:`~Fred2.Core.Transcript.Transcript` ID of seq
-    :param int offset: The offset which has to be added onto the :class:`~Fred2.Core.Transcript.Transcript` position of the :class:`~Fred2.Core.Variant.Variant`
+    :param int offset: The offset which has to be added onto the :class:`~Fred2.Core.Transcript.Transcript` position of
+                       the :class:`~Fred2.Core.Variant.Variant`
     :param bool isReverse: Whether transcript is reverse oriented
-    :return: int - The modified offset
+    :return: The modified offset
+    :rtype: int
     """
     if var.type not in [VariationType.INS, VariationType.FSINS]:
         raise TypeError("%s is not a insertion"%str(var))
@@ -83,12 +89,14 @@ def _incorp_deletion(seq, var, transId, pos, offset, isReverse=False):
     Incorporates a deletion into the given transcript sequence (side effect!).
 
     :param list(char) seq: :class:`~Fred2.Core.Transcript.Transcript` sequence as a list
-    :param :class:`~Fred2.Core.Variant.Variant` var: The snp variant to incorporate
-    :param str transId: The transcript ID of seq
-    :param int pos: The starting position of the deletion
-    :param int offset: The offset which has to be added onto the transcript position of the variant
+    :param var: The snp variant to incorporate
+    :type var: :class:`~Fred2.Core.Variant.Variant`
+    :param str transId: The :class:`~Fred2.Core.Transcript.Transcript` ID of seq
+    :param int offset: The offset which has to be added onto the :class:`~Fred2.Core.Transcript.Transcript` position of
+                       the :class:`~Fred2.Core.Variant.Variant`
     :param bool isReverse: Whether transcript is reverse oriented
-    :return: int - The modified offset
+    :return: The modified offset
+    :rtype: int
     """
     if var.type not in [VariationType.DEL, VariationType.FSDEL]:
         raise TypeError("%s is not a deletion"%str(var))
@@ -115,9 +123,12 @@ def _check_for_problematic_variants(vars):
     """
     Tests for problematic variants, e.g. variants that coincide.
 
-    :param list(:class:`~Fred2.Core.Variant.Variant`) vars: Initial list of variants
-    :return: bool - True if no intersecting variants were found
-    :invariant: list(:class:`~Fred2.Core.Variant.Variant`) vars: List is sorted based on genome position in descending order
+    :param vars: Initial list of variants
+    :type vars:  list(:class:`~Fred2.Core.Variant.Variant`)
+    :return: True if no intersecting variants were found
+    :rtype: bool
+    :invariant: list(:class:`~Fred2.Core.Variant.Variant`) vars: List is sorted based on genome position in descending
+                                                                 order
     """
     def get_range(var):
         current_range = [0, 0]
@@ -157,17 +168,29 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
 
     The result is a generator.
 
-    :param list(:class:`~Fred2.Core.Variant.Variant`) vars: A list of variant objects to construct peptides from
+    :param vars: A list of variant objects to construct peptides from
+    :type vars: list(:class:`~Fred2.Core.Variant.Variant`)
     :param int length: The length of the peptides to construct
-    :param :class:`~Fred2.IO.ADBAdapter.ADBAdapter` dbadapter: A :class:`~Fred2.IO.ADBAdapter.ADBAdapter` to extract relevant transcript information
-    :param list(:class:`~Fred2.Core.Peptide.Peptide`) peptides: A list of pre existing peptides that should be updated
-    :param string table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer), or a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard' table
+    :param dbadapter: A :class:`~Fred2.IO.ADBAdapter.ADBAdapter` to extract relevant transcript information
+    :type dbadapter: :class:`~Fred2.IO.ADBAdapter.ADBAdapter`
+    :param peptides: A list of pre existing peptides that should be updated
+    :type: list(:class:`~Fred2.Core.Peptide.Peptide`)
+    :param str table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer), or
+                         a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard' table
     :param str stop_symbol: Single character string, what to use for any terminators, defaults to the asterisk, '*'
-    :param bool to_stop: Boolean, defaults to False meaning do a full translation continuing on past any stop codons (translated as the specified stop_symbol). If True, translation is terminated at the first in frame stop codon (and the stop_symbol is not appended to the returned protein sequence)
-    :param bool cds: cds - Boolean, indicates this is a complete CDS. If True, this checks the sequence starts with a valid alternative start codon (which will be translated as methionine, M), that the sequence length is a multiple of three, and that there is a single in frame stop codon at the end (this will be excluded from the protein sequence, regardless of the to_stop option). If these tests fail, an exception is raised
-    :return: Generator(:class:`~Fred2.Core.Peptide.Peptide`) - A list of unique (polymorphic) peptides
+    :param bool to_stop: Boolean, defaults to False meaning do a full translation continuing on past any stop codons
+                        (translated as the specified stop_symbol). If True, translation is terminated at the first in
+                        frame stop codon (and the stop_symbol is not appended to the returned protein sequence)
+    :param bool cds: cds - Boolean, indicates this is a complete CDS. If True, this checks the sequence starts with a
+                     valid alternative start codon (which will be translated as methionine, M),
+                     that the sequence length is a multiple of three, and that there is a single in frame stop codon at
+                     the end (this will be excluded from the protein sequence, regardless of the to_stop option). If
+                     these tests fail, an exception is raised
+    :return: A list of unique (polymorphic) peptides
+    :rtype: Generator(:class:`~Fred2.Core.Peptide.Peptide`)
     :raises ValueError: If incorrect table argument is pasted
-    :raises TranslationError: If sequence is not multiple of three, or first codon is not a start codon, or last codon ist not a stop codon, or an extra stop codon was found in frame, or codon is non-valid
+    :raises TranslationError: If sequence is not multiple of three, or first codon is not a start codon, or last codon
+                              is not a stop codon, or an extra stop codon was found in frame, or codon is non-valid
     """
 
     def _generate_combinations(tId, vs, seq, usedVs, offset, isReverse):
@@ -261,11 +284,14 @@ def generate_transcripts_from_variants(vars, dbadapter):
 
     The result is a generator.
 
-    :param list(:class:`~Fred2.Core.Variant.Variant`) vars: A list of variants for which transcripts should
-                               be build
-    :param :class:`~Fred2.IO.ADBAdapter.ADBAdapter` dbadapter: a DBAdapter to fetch the transcript sequences
-    :return: Generator(:class:`~Fred2.Core.Transcript.Transcript) - A generator of transcripts with all possible variations determined by the given variant list
-    :invariant: Variants are considered to be annotated from forward strand, regardless of the transcripts real orientation
+    :param vars: A list of variants for which transcripts should be build
+    :type vars: list(:class:`~Fred2.Core.Variant.Variant`)
+    :param: dbadapter: a DBAdapter to fetch the transcript sequences
+    :type dbadapter: class:`~Fred2.IO.ADBAdapter.ADBAdapter`
+    :return: A generator of transcripts with all possible variations determined by the given variant list
+    :rtype: Generator(:class:`~Fred2.Core.Transcript.Transcript)
+    :invariant: Variants are considered to be annotated from forward strand, regardless of the transcripts real
+                orientation
     """
     def _generate_combinations(tId, vs, seq, usedVs, offset, isReverse=False):
         """
@@ -344,10 +370,14 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
 
     The result is a generator.
 
-    :param list(:class:`~Fred2.Core.Variant.Variant`) normal: A list of variants of the normal tissue
-    :param list(:class:`~Fred2.Core.Variant.Variant`) tumor: A list of variant of the cancer tissue for which transcript should be generated
-    :param :class:`~Fred2.IO.ADBAdapter.ADBAdapter` dbadapter: a DBAdapter to fetch the transcript sequences
-    :return: Generator(:class:`~Fred2.Core.Transcript.Transcript`) - A generator of transcripts with all possible variations determined by the given variant list
+    :param normal: A list of variants of the normal tissue
+    :type normal: list(:class:`~Fred2.Core.Variant.Variant`)
+    :param tumor: A list of variant of the cancer tissue for which transcript should be generated
+    :type tumor: list(:class:`~Fred2.Core.Variant.Variant`)
+    :param dbadapter: a DBAdapter to fetch the transcript sequences
+    :type dbadapter: :class:`~Fred2.IO.ADBAdapter.ADBAdapter`
+    :return: A generator of transcripts with all possible variations determined by the given variant list
+    :rtype: Generator(:class:`~Fred2.Core.Transcript.Transcript`)
     """
     def _generate_combinations(tId, vs, seq, usedVs, offset):
         """
@@ -443,14 +473,26 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
 
         The result is a generator.
 
-        :param list(:class:`~Fred2.Core.Transcript.Transcript`)/:class:`~Fred2.Core.Transcript.Transcript`:  A list of or a single transcripts to translate
-        :param string table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer), or a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard' table
+        :param transcripts:  A list of or a single transcripts to translate
+        :type transcripts: list(:class:`~Fred2.Core.Transcript.Transcript`) or :class:`~Fred2.Core.Transcript.Transcript`
+        :param str table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer),
+                          or a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard'
+                          table
         :param str stop_symbol: Single character string, what to use for any terminators, defaults to the asterisk, '*'
-        :param bool to_stop: Translates sequence and passes any stop codons if False (default True)(translated as the specified stop_symbol). If True, translation is terminated at the first in frame stop codon (and the stop_symbol is not appended to the returned protein sequence)
-        :param bool cds:  Boolean, indicates this is a complete CDS. If True, this checks the sequence starts with a valid alternative start codon (which will be translated as methionine, M), that the sequence length is a multiple of three, and that there is a single in frame stop codon at the end (this will be excluded from the protein sequence, regardless of the to_stop option). If these tests fail, an exception is raised
-        :returns: Generator(:class:`~Fred2.Core.Protein.Protein`) - The protein that corresponds to the transcript
+        :param bool to_stop: Translates sequence and passes any stop codons if False (default True)(translated as the
+                             specified stop_symbol). If True, translation is terminated at the first in frame stop
+                             codon (and the stop_symbol is not appended to the returned protein sequence)
+        :param bool cds: Boolean, indicates this is a complete CDS. If True, this checks the sequence starts with a
+                         valid alternative start codon (which will be translated as methionine, M), that the sequence
+                         length is a multiple of three, and that there is a single in frame stop codon at the end
+                         (this will be excluded from the protein sequence, regardless of the to_stop option).
+                         If these tests fail, an exception is raised
+        :returns: The protein that corresponds to the transcript
+        :rtype: Generator(:class:`~Fred2.Core.Protein.Protein`)
         :raises ValueError: If incorrect table argument is pasted
-        :raises TranslationError: If sequence is not multiple of three, or first codon is not a start codon, or last codon ist not a stop codon, or an extra stop codon was found in frame, or codon is non-valid
+        :raises TranslationError: If sequence is not multiple of three, or first codon is not a start codon, or last
+                                  codon ist not a stop codon, or an extra stop codon was found in frame, or codon is
+                                  non-valid
 
         """
 
@@ -488,10 +530,14 @@ def generate_peptides_from_proteins(proteins, window_size, peptides=None):
 
     The result is a generator.
 
-    :param list(:class:`~Fred2.Core.Protein.Protein`)/:class:`~Fred2.Core.Protein.Protein` proteins: (Iterable of) protein(s) from which a list of unique peptides should be generated
+    :param proteins: (Iterable of) protein(s) from which a list of unique peptides should be generated
+    :type proteins: list(:class:`~Fred2.Core.Protein.Protein`) or :class:`~Fred2.Core.Protein.Protein`
     :param int window_size: Size of peptide fragments
-    :param list(:class:`~Fred2.Core.Peptide.Peptide`) peptides: A list of peptides to update during peptide generation (usa case: Adding and updating Peptides of newly generated Proteins)
-    :return Generator(:class:`~Fred2.Core.Peptide.Peptide`) - A unique generator of peptides
+    :param peptides: A list of peptides to update during peptide generation (usa case: Adding and updating Peptides of
+                     newly generated Proteins)
+    :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
+    :return: A unique generator of peptides
+    :rtype: Generator(:class:`~Fred2.Core.Peptide.Peptide`)
     """
 
     def gen_peptide_info(protein):
