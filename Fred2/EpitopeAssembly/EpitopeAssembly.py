@@ -450,9 +450,9 @@ class EpitopeAssemblyWithSpacer(object):
         :param peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
         :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
         :param cleav_pred: A :class:`~Fred2.CleavagePrediction.PSSM.APSSMCleavageSitePredictor` (PSSM only)
-        :type: :class:`~Fred2.Core.Base.ACleavageSitePredictor`
+        :type cleav_pred: :class:`~Fred2.Core.Base.ACleavageSitePredictor`
         :param epi_pred: A :class:`~Fred2.EpitopePrediction.PSSM.APSSMEpitopePrediction` (PSSM only)
-        :type: :class:`~Fred2.Core.Base.AEpitopePredictor`
+        :type epi_pred: :class:`~Fred2.Core.Base.AEpitopePredictor`
         :param alleles: A list of :class:`~Fred2.Core.Allele.Allele` for which predictions should be made
         :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
         :param int k: The maximal length of a spacer

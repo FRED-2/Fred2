@@ -35,7 +35,7 @@ def _incorp_snp(seq, var, transId, pos, offset, isReverse=False):
 
     :param list(char) seq: :class:`~Fred2.Core.Transcript.Transcript` sequence as a list
     :param  var: The snp variant to incorporate
-    :type: :class:`~Fred2.Core.Variant.Variant`
+    :type var: :class:`~Fred2.Core.Variant.Variant`
     :param str transId: The transcript ID of seq
     :param int pos: The position of the variant
     :param int offset: The offset which has to be added onto the :class:`~Fred2.Core.Transcript.Transcript` position of
@@ -174,7 +174,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
     :param dbadapter: A :class:`~Fred2.IO.ADBAdapter.ADBAdapter` to extract relevant transcript information
     :type dbadapter: :class:`~Fred2.IO.ADBAdapter.ADBAdapter`
     :param peptides: A list of pre existing peptides that should be updated
-    :type: list(:class:`~Fred2.Core.Peptide.Peptide`)
+    :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
     :param str table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer), or
                          a CodonTable object (useful for non-standard genetic codes). Defaults to the 'Standard' table
     :param str stop_symbol: Single character string, what to use for any terminators, defaults to the asterisk, '*'
