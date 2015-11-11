@@ -18,6 +18,7 @@ Strands are always encoded with + and -
 '''
 
 EAdapterFields = (lambda **enums: type('Enum', (), enums))(GENE=0, STRAND=1, SEQ=2, TRANSID=3, PROTID=4)
+EIdentifierTypes = (lambda **enums: type('Enum', (), enums))(ENSEMBL=0, REFSEQ=1, PREDREFSEQ=2, UNIPROT=3, GENENAME=4, HGNC=4)
 
 
 class ADBAdapter:
@@ -25,34 +26,31 @@ class ADBAdapter:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_product_sequence(self, **kwargs):
+    def get_product_sequence(self, product_id, **kwargs):
         """
         fetches the product sequence for the given id
-        :keyword unknown: given product id, implement other keywords as well if you DBAdapter is supposed to
-        support different id types
+        :keyword type: given id, is in the form of this type,found in EIdentifierTypes. It is to be documented if an ADBAdapter implementation overrides these types.
         :return: the requested sequence
 
         """
         pass
 
     @abstractmethod
-    def get_transcript_sequence(self, **kwargs):
+    def get_transcript_sequence(self, transcript_id, **kwargs):
         """
         Fetches transcript sequence for the given id
 
-        :keyword unknown: given transcript id, implement other keywords as well if you DBAdapter is supposed to
-        support different id types
+        :keyword type: given id, is in the form of this type,found in EIdentifierTypes. It is to be documented if an ADBAdapter implementation overrides these types.
         :return: the requested sequence
 
         """
         pass
 
     @abstractmethod
-    def get_transcript_information(self, **kwargs):
+    def get_transcript_information(self, transcript_id, **kwargs):
         """
         Fetches transcript sequence for the given id
-        :keyword unknown: given transcript id, implement other keywords as well if you DBAdapter is supposed to
-        support different id types
+        :keyword type: given id, is in the form of this type,found in EIdentifierTypes. It is to be documented if an ADBAdapter implementation overrides these types.
         :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
         """
         pass
