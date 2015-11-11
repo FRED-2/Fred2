@@ -28,11 +28,11 @@ class MetadataLogger(object):
     """
     This class provides a simple interface for assigning additional metadata to
     any object in our data model. Examples: storing ANNOVAR columns like depth,
-    base count, dbSNP id, quality information for variants, additional prediction scores
+    base count, dbSNP id, quality information for variants, additional prediction information
     for peptides etc. This functionality is not used from core methods of FRED2.
 
-    The saved values are accessed via :meth:`~Fred2.Core.Base.log_metadata` and
-    :meth:`~Fred2.Core.Base.get_metadata`
+    The saved values are accessed via :meth:`~Fred2.Core.MetadataLogger.log_metadata` and
+    :meth:`~Fred2.Core.MetadataLogger.get_metadata`
     
     """
     def __init__(self):
@@ -45,8 +45,7 @@ class MetadataLogger(object):
         Inserts a new metadata
 
         :param str label: key for the metadata that will be added
-        :param list(object) value: any kindy of additional value that should be
-                                   kept
+        :param list(object) value: any kindy of additional value that should be kept
         """
         self.__metadata[label].append(value)
 
@@ -55,8 +54,7 @@ class MetadataLogger(object):
         Getter for the saved metadata with the key :attr:`label`
 
         :param str label: key for the metadata that is inferred
-        :param bool only_first: true if only the the first element of the 
-                                matadata list is to be returned
+        :param bool only_first: true if only the the first element of the matadata list is to be returned
         """
         # although defaultdict *would* return [] if it didn't find label in 
         # self.metadata, it would come with the side effect of adding label as 
@@ -130,12 +128,14 @@ class ACleavageSitePrediction(object):
 
 
     @abc.abstractmethod
-    def predict(self, _aa_seq, **kwargs):
+    def predict(self, aa_seq, **kwargs):
         """
         Predicts the proteasomal cleavage site of the given sequences
 
-        :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
-        :return: AResult - Returns a AResult object for the specified Bio.Seq
+        :param aa_seq: The sequence to be cleaved
+        :type aa_seq: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`
+        :return: Returns a :class:`~Fred2.Core.Result.AResult` object for the specified Bio.Seq
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError
 
@@ -173,12 +173,14 @@ class ACleavageFragmentPrediction(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def predict(self, _aa_seq, **kwargs):
+    def predict(self, aa_seq, **kwargs):
         """
         Predicts the probability that the fragment can be produced by the proteasom
 
-        :param Bio.Seq _aa_seq: The sequence to be cleaved
-        :return: AResult - Returns a AResult object for the specified Bio.Seq
+        :param aa_seq: The sequence to be cleaved
+        :type aa_seq: :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.AResult` object for the specified Bio.Seq
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError
 
@@ -218,9 +220,10 @@ class AEpitopePrediction(object):
         Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(Allele) alleles: The alleles for which the internal predictor
-         representation is needed
-        :return: list(str) - Returns a string representation of the input alleles
+        :param alleles: The alleles for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input alleles
+        :rtype: list(str)
         """
         raise NotImplementedError
 
@@ -231,9 +234,14 @@ class AEpitopePrediction(object):
         If alleles is not given, predictions for all valid alleles of the predictor is performed. If, however,
         a list of alleles is given, predictions for the valid allele subset is performed.
 
-        :param Peptide/list(Peptide) peptides: The peptide objects for which predictions should be performed
-        :param Allele/list(Allele) alleles: An Allele or list of Alleles for which prediction models should be used
-        :return: AResult - Returns a AResult object for the specified Peptides and Alleles
+        :param peptides: The peptide objects for which predictions should be performed
+        :type peptides: :class:`~Fred2.Core.Peptide.Peptide` or list(:class:`~Fred2.Core.Peptide.Peptide`)
+        :param alleles: An :class:`~Fred2.Core.Allele.Allele` or list of :class:`~Fred2.Core.Allele.Allele` for which
+                        prediction models should be used
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`/list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a :class:`~Fred2.Core.Result.AResult` object for the specified
+                 :class:`~Fred2.Core.Peptide.Peptide` and :class:`~Fred2.Core.Allele.Allele`
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError
 
@@ -249,8 +257,10 @@ class ASVM(object):
         """
         Returns the feature encoding for peptides
 
-        :param List(Peptide)/Peptide peptides: List of or a single Peptide object
-        :return: list(Object) - Feature encoding of the Peptide objects
+        :param peptides: List of or a single :class:`~Fred2.Core.Peptide.Peptide` object
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide`
+        :return: Feature encoding of the Peptide objects
+        :rtype: list(Object)
         """
         raise NotImplementedError
 
@@ -269,12 +279,13 @@ class AExternal(object):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def parse_external_result(self, _file):
+    def parse_external_result(self, file):
         """
         Parses external results and returns the result
 
-        :param str _file: The file path or the external prediction results
-        :return: dict - A dictionary containing the prediction results
+        :param str file: The file path or the external prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
         """
         raise NotImplementedError
 
@@ -282,7 +293,8 @@ class AExternal(object):
         """
         Checks whether the specified execution command can be found in PATH
 
-        :return: bool - Whether or not command could be found in PATH
+        :return: Whether or not command could be found in PATH
+        :rtype: bool
         """
         exe = self.command.split()[0]
         for try_path in os.environ["PATH"].split(os.pathsep):
@@ -303,8 +315,9 @@ class AExternal(object):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param (str) path: - Optional specification of executable path if deviant from self.__command
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: - Optional specification of executable path if deviant from self.__command
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         exe = self.command.split()[0] if path is None else path
         try:
@@ -350,8 +363,10 @@ class ATAPPrediction(object):
         """
         Predicts the TAP affinity for the given sequences
 
-        :param list(Peptide)/Peptide: Peptides for which TAP affinity should be predicted
-        :return: AResult - Returns a TAPResult object
+        :param peptides: :class:`~Fred2.Core.Peptide.Peptide` for which TAP affinity should be predicted
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.TAPResult` object
+        :rtype: :class:`~Fred2.Core.Result.TAPResult`
         """
         raise NotImplementedError
 
@@ -380,6 +395,7 @@ class AHLATyping(object):
 
         :param str ngsFile: The path to the input file containing the NGS reads
         :param str output: The path to the output file or directory
-        :return: list(Allele) - A list of HLA alleles representing the genotype predicted by the algorithm
+        :return: A list of HLA alleles representing the genotype predicted by the algorithm
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
         raise NotImplementedError

@@ -3,7 +3,7 @@
 # as part of this package.
 """
 .. module:: CleavagePrediction.ANN
-   :synopsis: ANN-based cleavage prediction methods.
+   :synopsis: This module contains all classes for external cleavage prediction methods.
 .. moduleauthor:: schubert
 
 """
@@ -28,23 +28,25 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         Implements predict functionality.
     """
     @abc.abstractmethod
-    def prepare_input(self, _input, _file):
+    def prepare_input(self, input, file):
         """
-        Prepares the data and writes them to _file in the special format used by the external tool
+        Prepares the data :attr:_input and writes them to :attr:_file in the special format used by the external tool
 
-        :param str _input: The input data (here peptide sequences)
-        :param File _file: A file handler with which the data are written to file
+        :param list(str) input: The input data (here peptide sequences)
+        :param File file: A file handler with which the data are written to file
         """
         raise NotImplementedError
 
-    def predict(self, _aa_seq, command=None, options=None, **kwargs):
+    def predict(self, aa_seq, command=None, options=None, **kwargs):
         """
         Overwrites ACleavageSitePrediction.predict
 
-        :param list(Peptide/Protein)/Peptide/Protein _aa_seq: A list of or a single Peptide or Protein object
+        :param aa_seq: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` object
+        :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`) or :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
-        :param str options: A string of additional options directly past to the external tool.
-        :return: CleavageSitePredictionResult - A CleavageSitePredictionResult object
+        :param str options: A string of additional options directly past to the external tool
+        :return: A :class:`~Fred2.Core.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.CleavageSitePredictionResult`
         """
         if not self.is_in_path() and "path" not in kwargs:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
@@ -55,12 +57,14 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
                                "not match external version {external_version}".format(internal_version=self.version,
                                                                                       external_version=external_version))
 
-        if isinstance(_aa_seq, Peptide) or isinstance(_aa_seq, Protein):
-            pep_seqs = {str(_aa_seq): _aa_seq}
+        if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
+            pep_seqs = {str(aa_seq): aa_seq}
         else:
-            if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in _aa_seq):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in _aa_seq}
+            pep_seqs = {}
+            for p in aa_seq:
+                if not isinstance(p, Peptide) and not isinstance(p, Protein):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         tmp_out = NamedTemporaryFile(delete=False)
         tmp_file = NamedTemporaryFile(delete=False)
@@ -143,28 +147,26 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         """Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved"""
         return self.__cleavage_pos
 
-    def parse_external_result(self, _file):
+    def parse_external_result(self, file):
         """
         Parses external results and returns the result
 
-        :param str _file: The file path or the external prediction results
-        :return: dict(str,dict((str,int),float)) - Returns a dictionary with the prediction results
+        :param str file: The file path or the external prediction results
+        :return: Returns a dictionary with the prediction results
+        :rtype: dict(str,dict((str,int),float))
         """
         result = {"Seq": {}, self.name: {}}
         count = 0
         is_new_seq = 0
 
-        for l in _file:
+        for l in file:
             l = l.strip()
             if not len(l):
                 continue
-            #print l
             if not is_new_seq % 4 and is_new_seq:
-                #print "New seq starts", l
                 count += 1
                 is_new_seq = 0
             elif l[0] == "-":
-                #print "in counter", l
                 is_new_seq += 1
             elif l[0].isdigit():
                 pos, aa, _, s, _ = l.split()
@@ -185,17 +187,18 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         overwrite the method. The function in the base class can be called
         with super()
 
-        :param (str) path: - Optional specification of executable path if deviant from self.__command
-        :return: str - The external version of the tool or None if tool does not support versioning
+        :param str path: - Optional specification of executable path if deviant from :attr:self.__command
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
         """
         #cannot be determined method does not support --version or something similar
         return None
 
-    def prepare_input(self, _input, _file):
+    def prepare_input(self, input, file):
         """
         Prepares the data and writes them to _file in the special format used by the external tool
 
-        :param str _input: The input data (here peptide sequences)
-        :param File _file: A file handler with which the data are written to file
+        :param list(str) input: The input data (here peptide sequences)
+        :param File file: A file handler with which the data are written to file
         """
-        _file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(_input)))
+        file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(input)))

@@ -19,14 +19,14 @@ from Fred2.Core.Generator import generate_proteins_from_transcripts
 class TestProteinClass(unittest.TestCase):
     def setUp(self):
         # generate a Protein for use in the tests of this class
-        self.single_protein = Protein("ASDERWQTGHKILPMNVFCY", _gene_id='gene 1', _transcript_id='someID')
+        self.single_protein = Protein("ASDERWQTGHKILPMNVFCY", gene_id='gene 1', transcript_id='someID')
 
         # generate a set of Proteins for use in the tests of this class
         self.prot_set = list()
-        self.prot_set.append(Protein("IIIVRC", _gene_id='gene 1', _transcript_id='set entry 1'))
-        self.prot_set.append(Protein("VRCVR", _gene_id='gene 1', _transcript_id='set entry 2'))
-        self.prot_set.append(Protein("IIVRCIT", _gene_id='gene 1', _transcript_id='set entry 3'))
-        self.prot_set.append(Protein("IVRC", _gene_id='gene 1', _transcript_id='set entry 4'))
+        self.prot_set.append(Protein("IIIVRC", gene_id='gene 1', transcript_id='set entry 1'))
+        self.prot_set.append(Protein("VRCVR", gene_id='gene 1', transcript_id='set entry 2'))
+        self.prot_set.append(Protein("IIVRCIT", gene_id='gene 1', transcript_id='set entry 3'))
+        self.prot_set.append(Protein("IVRC", gene_id='gene 1', transcript_id='set entry 4'))
 
     def test1_protein_construction_novariants(self):
         """
@@ -62,7 +62,7 @@ class TestProteinClass(unittest.TestCase):
         unique_test_prot_set.extend(self.prot_set)
         unique_test_prot_set.extend(self.prot_set)
 
-        unique_test_pep_set = generate_peptides_from_proteins(unique_test_prot_set, 3)
+        unique_test_pep_set = set(generate_peptides_from_proteins(unique_test_prot_set, 3))
         unique_test_pep_seqs = set([str(pep) for pep in unique_test_pep_set])
         self.assertEqual(len(unique_test_pep_set), len(unique_test_pep_seqs))
 
@@ -190,7 +190,7 @@ class TestProteinClass(unittest.TestCase):
             except ValueError:
                 pass
 
-        peptides = generate_peptides_from_proteins(proteins, 4)
+        peptides = list(generate_peptides_from_proteins(proteins, 4))
 
         sequences = [str(pep) for pep in peptides]
 
@@ -217,8 +217,7 @@ class TestProteinClass(unittest.TestCase):
                     print repr(p)
                     print repr(prot)
                     self.assertTrue(all(var in expected_vars for var in vars_))
-                except ValueError:
-
+                except KeyError:
                     pass
 
 

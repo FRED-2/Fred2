@@ -17,8 +17,8 @@ class TestPeptide(TestCase):
         self.simple = Peptide("SYFPEITHI")
 
         self.gcg_ps = "MKSIYFVAGLFVMLVQGSWQRSLQDTEEKSRSFSASQADPLSDPDQMNEDKRHSQGTFTSDYSKYLDSRRAQDFVQWLMNTKRNRNNIAKRHDEFERHAEGTFTSDVSSYLEGQAAKEFIAWLVKGRGRRDFPEEVAIVEELGRRHADGSFSDEMNTILDNLAARDFINWLIQTKITDRK"
-        self.gcg_t1 = Transcript("", _transcript_id="GLUC_HUMAN")
-        gcg_p1 = Protein(self.gcg_ps, _transcript_id='GLUC_HUMAN', _orig_transcript=self.gcg_t1)
+        self.gcg_t1 = Transcript("", transcript_id="GLUC_HUMAN")
+        gcg_p1 = Protein(self.gcg_ps, transcript_id='GLUC_HUMAN', orig_transcript=self.gcg_t1)
         self.w_p = Peptide("PROTEIN", {gcg_p1:[0]})
         self.gcg_p1 = gcg_p1
         self.gcg_v1 = Variant("rs5650", VariationType.SNP, 2, 162145588, 'G', 'T',
@@ -53,5 +53,5 @@ class TestPeptide(TestCase):
         self.assertTrue(repr(self.w_p.get_all_proteins()) == repr([self.gcg_p1]))
 
     def test_get_all_transcripts(self):
-        self.assertTrue(repr(self.w_v.get_all_transcripts()) == repr([Transcript(_seq="", _transcript_id="GLUC_HUMAN")]))
+        self.assertTrue(repr(self.w_v.get_all_transcripts()) == repr([Transcript(seq="", transcript_id="GLUC_HUMAN")]))
         self.assertTrue(repr(self.w_p.get_all_transcripts()) == repr([self.gcg_t1]))

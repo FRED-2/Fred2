@@ -18,7 +18,7 @@ from Fred2.Core.Variant import VariationType
 
 
 class Transcript(MetadataLogger, Seq):
-    """A Transcript is the mRNA sequence containing at no or several variations.
+    """A Transcript is the mRNA sequence containing no or several :class:`Fred2.Core.Variant.Variant`.
 
     .. note::
 
@@ -26,25 +26,27 @@ class Transcript(MetadataLogger, Seq):
         (from Biopython)
 
     :param str gene_id: Genome ID
-    :param str transcript_id: Transcript RefSeqID
-    :param dict(int,Variant) vars: Dict of Variants for specific positions in
-                                   the transcript. key=position, value=Variant
+    :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` RefSeqID
+    :param vars: Dict of :class:`Fred2.Core.Variant.Variant` for specific positions in the
+                 :class:`~Fred2.Core.Transcript.Transcript`. key=position, value=Variant
+    :type vars: dict(int,:class:`Fred2.Core.Variant.Variant`)
     """
     newid = itertools.count().next #this is evil
 
-    def __init__(self, _seq, _gene_id="unknown", _transcript_id=None, _vars=None):
+    def __init__(self, seq, gene_id="unknown", transcript_id=None, vars=None):
         """
-        :param str _gene_id: input genome ID
-        :param str _transcript_id: input transcript RefSeqID
-        :param str _seq: Transcript RefSeq sequence
-        :param dict(int,Variant) _vars: a dict of transcript position to Variant that is specific to the transcript.
+        :param str gene_id: Genome ID
+        :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` RefSeqID
+        :param str seq: :class:`~Fred2.Core.Transcript.Transcript` sequence
+        :param vars: A dict of :class:`~Fred2.Core.Transcript.Transcript` position to :class:`Fred2.Core.Variant.Variant`
+                     that is specific to the :class:`~Fred2.Core.Transcript.Transcript`
+        :type vars: dict(int,:class:`Fred2.Core.Variant.Variant`)
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq.upper(), generic_rna)
-        self.gene_id = _gene_id
-        self.transcript_id = Transcript.newid() if _transcript_id is None else _transcript_id
-        #TODO: this is not what the doc string says:
-        self.vars = dict() if _vars is None else _vars
+        Seq.__init__(self, seq.upper(), generic_rna)
+        self.gene_id = gene_id
+        self.transcript_id = Transcript.newid() if transcript_id is None else transcript_id
+        self.vars = dict() if vars is None else vars
 
     def __getitem__(self, index):
         """
@@ -53,8 +55,9 @@ class Transcript(MetadataLogger, Seq):
          Allows only simple slicing (i.e. start < stop)
 
         :param int index: position 
-        :returns: (Transcript) -- A Transcript consisting of the single
-        letter at position :attr:`index` or a new sliced Transcript (following Bio.Seqs definition)
+        :returns: A :class:`~Fred2.Core.Transcript.Transcript` consisting of the single letter at position :attr:`index`
+                  or a new sliced :class:`~Fred2.Core.Transcript.Transcript` (following :mod:`Bio.Seq.Seq` definition)
+        :rtype: :class:`~Fred2.Core.Transcript.Transcript`
         """
         if isinstance(index, int):
             #Return a single letter as a string
@@ -86,7 +89,7 @@ class Transcript(MetadataLogger, Seq):
             _vars.update(_fs)
             trans_id = self.transcript_id+":"+str(Transcript.newid())
             seq = str(self)[index]
-            t = Transcript(seq, _gene_id=self.gene_id, _transcript_id=trans_id, _vars=_vars)
+            t = Transcript(seq, gene_id=self.gene_id, transcript_id=trans_id, vars=_vars)
             return t
 
     def __repr__(self):

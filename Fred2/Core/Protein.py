@@ -1,9 +1,15 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
+"""
+.. module:: Core.Protein
+   :synopsis: Contains the Protein class
 
-__author__ = 'schubert,brachvogel,walzer,szolek'
+   :Note: All internal indices start at 0!
 
+.. moduleauthor:: schubert, brachvogel, walzer
+
+"""
 import itertools
 
 from Bio.Seq import Seq
@@ -15,62 +21,55 @@ from Fred2.Core.Variant import VariationType
 
 class Protein(MetadataLogger, Seq):
     """
-    Protein corresponding to exactly one transcript.
+    :class:`~Fred2.Core.Protein.Protein` corresponding to exactly one transcript.
 
     .. note::
 
         For accessing and manipulating the sequence see also :mod:`Bio.Seq.Seq`
         (from Biopython)
 
-    :param str _gene_id: ID of the genome
-    :param str _transcript_id: ID of the corresponding transcript
-    :param Transcript _orig_transcript: Reference to the originating transcript
-    :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
-                                          assoziated with the protein. 
-                                          key=position within protein, 
-                                          value=list of variants at that pos
     """
     newid = itertools.count().next #this is evil and has no other purpose? it does not help that there may be more than one protein from one transcript - due to variants
 
-    def __init__(self, _seq, _gene_id="unknown", _transcript_id=None, _orig_transcript=None, _vars=None):
+    def __init__(self, _seq, gene_id="unknown", transcript_id=None, orig_transcript=None, vars=None):
         """
-        :param str _seq: String of an IUPACProtein alphabet, representing the
-                         protein
-        :param str _gene_id: ID of the genome the protein originated from
-        :param str _transcript_id: ID of the transcript the protein originated 
-                                   from
-        :param Transcript _orig_transcript: Reference to the originating 
-                                            transcript object
-        :param dict(int,list(Variant)) _vars: Nonsynonymous variants that are
-                                              assoziated with the protein. 
-                                              key=position within protein, 
-                                              value=list of variants at that pos
+        :param str _seq: String of an IUPACProtein alphabet, representing the protein
+        :param str gene_id: ID of the genome the protein originated from
+        :param str transcript_id: ID of the transcript the protein originated from
+        :param orig_transcript: Reference to the originating transcript object
+        :type orig_transcript: :class:`~Fred2.Core.Transcript.Transcript`
+        :param vars: Nonsynonymous variants that are associated with the protein. key=position within protein,
+                     value=list of variants at that pos
+        :type vars: dict(int,list(:class:`~Fred2.Core.Variant.Variant`))
         """
         # Init parent type:
         MetadataLogger.__init__(self)
         Seq.__init__(self, _seq.upper(), IUPAC.IUPACProtein)
         # Init own member:
-        if _vars is None:
+        if vars is None:
             self.vars = dict()
         else:
-            self.vars = _vars  # {prot-position: list(variant)}
-        self.orig_transcript = _orig_transcript
-        self.transcript_id = "Protein_%i"%Protein.newid() if _transcript_id is None else _transcript_id
-        self.gene_id = _gene_id
+            self.vars = vars  # {prot-position: list(variant)}
+        self.orig_transcript = orig_transcript
+        self.transcript_id = "Protein_%i"%Protein.newid() if transcript_id is None else transcript_id
+        self.gene_id = gene_id
 
     def __getitem__(self, index):
         """
 
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        returns a single letter or a sliced protein (when given a slice).
-        The sliced protein does not reference to a Transcript object!
+        Returns a single letter or a sliced :class:`~Fred2.Core.Protein.Protein` (when given a slice).
+        The sliced :class:`~Fred2.Core.Protein.Protein` does not reference to a
+        :class:`~Fred2.Core.Transcript.Transcript` object
 
         Allows only simple slicing (i.e. start < stop)
 
         :param int/Slice index: position within the primary sequence or a slice
-        :returns: str/Protein - A single letter at position :attr:`index`
-                  or a sliced Protein with adjusted variant positions.
+        :returns: A single letter at position :attr:`index` or a sliced :class:`~Fred2.Core.Protein.Protein` with
+                  adjusted variant positions
+        :rtype: str or :class:`~Fred2.Core.Protein.Protein`
+        :raises ValueError: If start is greater than stop of index
         """
         if isinstance(index, int):
             #Return a single letter as a string
@@ -102,7 +101,7 @@ class Protein(MetadataLogger, Seq):
             _vars.update(_fs)
             trans_id = self.transcript_id+":"+str(Protein.newid())
             seq = str(self)[index]
-            return Protein(seq, _gene_id=self.gene_id, _transcript_id=trans_id, _vars=_vars)
+            return Protein(seq, gene_id=self.gene_id, transcript_id=trans_id, vars=_vars)
 
     def __repr__(self):
         # Header:

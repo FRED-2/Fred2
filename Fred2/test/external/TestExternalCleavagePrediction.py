@@ -13,7 +13,7 @@ class TestExternalCleavagePredictonClass(unittest.TestCase):
 
     def setUp(self):
         self.seqs = [Peptide("SYFPEISYFP"),
-                     Protein("IHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYS", _transcript_id="ID-01", _gene_id="FOXP3")]
+                     Protein("IHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYSIHTIEPFYS", transcript_id="ID-01", gene_id="FOXP3")]
         self.transcript = Transcript("")
 
     def test_peptide_cleavage_prediction_mixed_input(self):

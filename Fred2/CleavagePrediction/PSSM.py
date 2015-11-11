@@ -29,11 +29,15 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
     def predict(self, aa_seq, length=None, **kwargs):
         """
-        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
-        are made.
+        Returns predictions for given peptides.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: CleavageSitePredictionResult - Returns a CleavageSitePredictionResult object
+        :param aa_seq: A single :class:`~Fred2.Core.Peptide.Peptide` or `~Fred2.Core.Protein.Protein` or a list of
+                       :class:`~Fred2.Core.Peptide` or :class:`~Fred2.Core.Protein.Protein`
+        :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
+                      or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :param int length: The peptide length of the cleavage site model. If None the default value is used.
+        :return: Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
@@ -43,10 +47,11 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
             pep_seqs = {str(aa_seq): aa_seq}
         else:
-            if any((not isinstance(p, Peptide)) and (not isinstance(p, Protein)) for p in aa_seq):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in aa_seq}
-
+            pep_seqs = {}
+            for p in aa_seq:
+                if not isinstance(p, Peptide) and not isinstance(p, Protein):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         length = min(self.supportedLength) if length is None else length
         if length not in self.supportedLength:
@@ -62,7 +67,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
 
         diff = length - self.cleavagePos
         for j,seq in enumerate(pep_seqs.iterkeys()):
-
 
             seq_id = "seq_%i"%j
             p = pep_seqs[seq]
@@ -99,7 +103,6 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
         df_result = CleavageSitePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, j)) for i, j in df_result.index],
                                                         names=['ID', 'Pos'])
-
         return df_result
 
 
@@ -110,7 +113,7 @@ class PCM(APSSMCleavageSitePredictor):
     .. note::
 
         Doennes, P., and Kohlbacher, O. (2005). Integrated modeling of the major events in the MHC class
-        I antigen processing pathway. Protein science, 14(8), 2132-2140.
+        I antigen processing pathway. Protein Science, 14(8), 2132-2140.
     """
 
     __supported_length = frozenset([6])
@@ -140,15 +143,19 @@ class PCM(APSSMCleavageSitePredictor):
         """The name of the predictor"""
         return self.__name
 
-    def predict(self, peptides, **kwargs):
+    def predict(self, peptides, length=None, **kwargs):
         """
-        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
-        are made.
+        Returns predictions for given peptides.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: CleavageSitePredictionResult - Returns a CleavageSitePredictionResult object
+        :param aa_seq: A single :class:`~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
+                       :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
+                      or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :param int length: The peptide length of the cleavage site model. If None the default value is used.
+        :return: Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
         """
-        return super(PCM, self).predict(peptides, **kwargs)
+        return super(PCM, self).predict(peptides, lenght=length, **kwargs)
 
 
 class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
@@ -198,15 +205,19 @@ class ProteaSMMConsecutive(APSSMCleavageSitePredictor):
         """The name of the predictor"""
         return self.__name
 
-    def predict(self, peptides, **kwargs):
+    def predict(self, peptides, length=None, **kwargs):
         """
-        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
-        are made.
+        Returns predictions for given peptides.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: CleavageSitePredictionResult - Returns a CleavageSitePredictionResult object
+        :param aa_seq: A single :class:`~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
+                       :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
+                      or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :param int length: The peptide length of the cleavage site model. If None the default value is used.
+        :return: Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
         """
-        return super(ProteaSMMConsecutive, self).predict(peptides, **kwargs)
+        return super(ProteaSMMConsecutive, self).predict(peptides, length=length, **kwargs)
 
 
 class ProteaSMMImmuno(APSSMCleavageSitePredictor):
@@ -257,15 +268,19 @@ class ProteaSMMImmuno(APSSMCleavageSitePredictor):
         """The name of the predictor"""
         return self.__name
 
-    def predict(self, peptides, **kwargs):
+    def predict(self, peptides, length=None, **kwargs):
         """
-        Returns predictions for given peptides an alleles. If no alleles are given, predictions for all available models
-        are made.
+        Returns predictions for given peptides.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: CleavageSitePredictionResult - Returns a CleavageSitePredictionResult object
+        :param aa_seq: A single :class:`~Fred2.Core.Peptide.Peptide`/`~Fred2.Core.Protein.Protein` or a list of
+                       :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`)
+                      or :class:`~Fred2.Core.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :param int length: The peptide length of the cleavage site model. If None the default value is used.
+        :return: Returns a :class:`~Fred2.Core.Result.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.Result.CleavageSitePredictionResult`
         """
-        return super(ProteaSMMImmuno, self).predict(peptides, **kwargs)
+        return super(ProteaSMMImmuno, self).predict(peptides, length=length, **kwargs)
 
 
 class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
@@ -294,11 +309,13 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
     def predict(self, peptides,  **kwargs):
         """
         Takes peptides plus their trailing C and N-terminal residues to predict
-        the probability that this 9mer was produced by proteasomal cleavage. It returns the score and
+        the probability that this n-mer was produced by proteasomal cleavage. It returns the score and
         the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
 
-        :param list(Peptide)/Peptide peptides: A list of peptide objects or a single peptide object
-        :return: CleeavageFragmentPredictionResult - Returns a CleavageFragmentPredictionResults object
+        :param peptides: A list of peptide objects or a single peptide object
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
+        :rtype: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult`
         """
         def __load_model(length):
             allele_model = "%%s_%i"%(self.name, length)
@@ -308,9 +325,11 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides):peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p):p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name:{}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -396,11 +415,13 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
     def predict(self, peptides,  **kwargs):
         """
         Takes peptides plus their trailing C and N-terminal residues to predict
-        the probability that this 9mer was produced by proteasomal cleavage. It returns the score and
+        the probability that this n-mer was produced by proteasomal cleavage. It returns the score and
         the peptide sequence in a AResult object. Row-IDs are the peitopes column is the prediction score.
 
-        :param list(Peptide)/Peptide peptides: A list of peptide objects or a single peptide object
-        :return: CleeavageFragmentPredictionResult - Returns a CleavageFragmentPredictionResults object
+        :param peptides: A list of peptide objects or a single peptide object
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`Fred2.Core.Result.CleavageFragmentPredictionResult` object
+        :rtype: :class:`Fred2.Core.Result.CleavageFragmentPredictionResult`
         """
         def __load_model(length):
             allele_model = "%s_%i"%(self.name, length)
@@ -410,9 +431,11 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide) and not isinstance(p, Protein):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):

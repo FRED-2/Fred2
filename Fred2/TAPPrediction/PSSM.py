@@ -24,10 +24,12 @@ class APSSMTAPPrediction(ATAPPrediction):
 
     def predict(self, peptides, **kwargs):
         """
-        Returns predictions for given peptides.
+        Returns TAP predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
@@ -36,9 +38,11 @@ class APSSMTAPPrediction(ATAPPrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
@@ -86,7 +90,7 @@ class TAPDoytchinova(APSSMTAPPrediction):
 
     @property
     def supportedLength(self):
-        """A list of supported peptide lengths"""
+        """A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths"""
         return self.__supported_length
 
 
@@ -117,15 +121,17 @@ class SMMTAP(APSSMTAPPrediction):
 
     @property
     def supportedLength(self):
-        """A list of supported peptide lengths"""
+        """A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths"""
         return self.__supported_length
 
     def predict(self, peptides, **kwargs):
         """
-        Returns predictions for given peptides.
+        Returns TAP predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
-        :param list(Peptide)/Peptide peptides: A single Peptide or a list of Peptides
-        :return: ATAPPredictionResult - Returns a ATAPPredictionResult object with the prediction results
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
         """
         def __load_model(length):
             model = "%s_%i"%(self.name, length)
@@ -134,9 +140,11 @@ class SMMTAP(APSSMTAPPrediction):
         if isinstance(peptides, Peptide):
             pep_seqs = {str(peptides): peptides}
         else:
-            if any(not isinstance(p, Peptide) for p in peptides):
-                raise ValueError("Input is not of type Protein or Peptide")
-            pep_seqs = {str(p): p for p in peptides}
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
