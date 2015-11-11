@@ -398,7 +398,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
                 transToVar.setdefault(trans_id, []).append((True, v))
 
     for tId, vs in transToVar.iteritems():
-        query = dbadapter.get_transcript_information(tId)
+        query = dbadapter.get_transcript_information(unknown=tId)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
             continue
