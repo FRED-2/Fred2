@@ -15,15 +15,15 @@ class DummyAdapter(ADBAdapter):
     def __init__(self):
         pass
 
-    def get_product_sequence(self, product_refseq):
+    def get_product_sequence(self, product_refseq, **kwargs):
         # TODO: also implement this one?
         pass
 
-    def get_transcript_sequence(self, transcript_refseq):
+    def get_transcript_sequence(self, transcript_refseq, **kwargs):
         # TODO: also implement this one?
         pass
 
-    def get_transcript_information(self, transcript_refseq):
+    def get_transcript_information(self, transcript_refseq, **kwargs):
         """
         At the moment we only use this method.
         :param transcript_refseq: Refseq id of transcript

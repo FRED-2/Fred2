@@ -4,7 +4,7 @@ from Fred2.IO import MartsAdapter, read_annovar_exonic
 from Fred2.test.DummyAdapter import DummyAdapter
 from Fred2.test.VariantsForTesting import *
 from Fred2.Core import Generator
-
+from Fred2.IO.ADBAdapter import EIdentifierTypes
 
 class GeneratorTest(TestCase):
     def setUp(self):
@@ -29,11 +29,11 @@ class GeneratorTest(TestCase):
                                         "NM_001114377", 653, 217, "", "")
                                     }, False, True)
 
-        self.db_adapter = MartsAdapter()
+        self.db_adapter = MartsAdapter(biomart="http://grch37.ensembl.org/biomart/martservice?query=")
 
     def test__incorp_snp(self):
         ts = list("TESTSEQUENCE")
-        print self.assertEqual(Generator._incorp_snp(ts, var_2, "tsc_1", 6, 6), 6)
+        self.assertEqual(Generator._incorp_snp(ts, var_2, "tsc_1", 6, 6), 6)
 
     def test__incorp_insertion(self):
         ts = list("TESTSEQUENCE")
@@ -42,7 +42,7 @@ class GeneratorTest(TestCase):
     def test__incorp_deletion(self):
         ts = list("TESTSEQUEASDFGNCES")
         self.assertEqual(Generator._incorp_deletion(ts, var_4, "tsc_1", 0, 0),  -5)
-        self.assertEqual(Generator._incorp_deletion(ts, var_6, "tsc_1",0, 0),  -2)
+        self.assertEqual(Generator._incorp_deletion(ts, var_6, "tsc_1", 0, 0),  -2)
 
     def test__check_for_problematic_variants(self):
         self.assertTrue(Generator._check_for_problematic_variants([var_2, var_1]))
@@ -57,10 +57,10 @@ class GeneratorTest(TestCase):
         :return:
         """
         vars_ = \
-            [self.non_syn_hetero_snp, self.non_frame_shift_del,self.syn_homo_snp]
+            [self.non_syn_hetero_snp, self.non_frame_shift_del, self.syn_homo_snp]
 
         trans = \
-            [t for t in Generator.generate_transcripts_from_variants(vars_, self.db_adapter)]
+            [t for t in Generator.generate_transcripts_from_variants(vars_, self.db_adapter, EIdentifierTypes.REFSEQ)]
 
         self.assertTrue(len(trans) == 2**sum(not v.isHomozygous for v in vars_))
 
@@ -79,17 +79,17 @@ class GeneratorTest(TestCase):
 
         # INSERTIONS:
         dummy_vars = [var_3]
-        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ).next()
         self.assertEqual(str(trans), "AAAAACCTTCCCGGGGG")
 
         # SNPs:
         dummy_vars = [var_1]
-        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ).next()
         self.assertEqual(str(trans), "ATAAACCCCCGGGGG")
 
         # DELETIONS:
         dummy_vars = [var_4]
-        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ).next()
         self.assertEqual(str(trans), "AAAAAGGGGG")
 
     def test_offset_single(self):
@@ -106,15 +106,15 @@ class GeneratorTest(TestCase):
 
         # 1) INS, SNP, DEL
         dummy_vars = [var_3, var_7, var_6]
-        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ).next()
 
         self.assertEqual(str(trans), "AAAAACCTTCTGGGG")
 
         # 2.) INS, DEL, INS
         dummy_vars = [var_9, var_4, var_8]
-        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db).next()
+        trans = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ).next()
         self.assertEqual(str(trans), "AATTAAAGGGGGTTT")
-    #
+
     def test_heterozygous_variants(self):
         """
         Create multiple transcript variants for a transcript, given a set
@@ -142,7 +142,7 @@ class GeneratorTest(TestCase):
 
         # 1) INS, SNP, DEL
         dummy_vars = [var_10, var_11, var_12]
-        trans_gener = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db)
+        trans_gener = Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ)
         trans = [t for t in trans_gener]
 
         trans = map(str, trans)
@@ -159,15 +159,15 @@ class GeneratorTest(TestCase):
         self.assertTrue("GGGTTTCCCCCAAAAA" in trans)
         self.assertTrue("GGGGGTTTCCCCCAAAAA" in trans)
 
-    #     # def test_varinat_reader(self):
-    #     #     vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
-    #     #     print vars, len(vars)
-    #     #     trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
-    #     #     print trans
-    #     #     transToVar = {}
-    #     #     for v in vars:
-    #     #         for trans_id in v.coding.iterkeys():
-    #     #             transToVar.setdefault(trans_id, []).append(v)
+        # def test_varinat_reader(self):
+        #     vars = read_annovar_exonic("../IO/snp_annot_donor.txt.exonic_variant_function", gene_filter=[])
+        #     print vars, len(vars)
+        #     trans = list(generate_transcripts_from_variants(vars, self.db_adapter))
+        #     print trans
+        #     transToVar = {}
+        #     for v in vars:
+        #         for trans_id in v.coding.iterkeys():
+        #             transToVar.setdefault(trans_id, []).append(v)
 
     def test_peptides_from_variants(self):
         """
@@ -232,10 +232,11 @@ class GeneratorTest(TestCase):
                         'FPP', 'NLG', 'FPR', 'KNF', 'GGL', 'NFP'])
         # 1) INS, SNP, DEL
         dummy_vars = [var_10, var_11, var_12]
-        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(dummy_vars, 3, dummy_db)))
+        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(dummy_vars, 3, dummy_db, EIdentifierTypes.REFSEQ)))
 
         peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(Generator.generate_proteins_from_transcripts(
-                           Generator.generate_transcripts_from_variants(dummy_vars, dummy_db)), 3)))
+                           Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ)),
+            3)))
 
         self.assertTrue(len(peps - peps_from_prot) == 0)
         self.assertTrue(len(peps_from_prot - peps) == 0)
@@ -243,14 +244,16 @@ class GeneratorTest(TestCase):
         self.assertTrue(len(exp_peps-peps) == 0)
 
     def test_real_life_test(self):
-        mart = MartsAdapter()
+        mart = MartsAdapter(biomart="http://grch37.ensembl.org/biomart/martservice?query=")
+
         vars = read_annovar_exonic("/home/travis/build/FRED-2/Fred2/Fred2/test/test_annovar.out")
 
-        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart)))
+        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart,
+                                                                                   EIdentifierTypes.REFSEQ)))
 
         peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(
             Generator.generate_proteins_from_transcripts(
-            Generator.generate_transcripts_from_variants(vars, mart)), 9)))
+            Generator.generate_transcripts_from_variants(vars, mart, EIdentifierTypes.REFSEQ)), 9)))
 
         self.assertTrue(len(peps - peps_from_prot) == 0)
         self.assertTrue(len(peps_from_prot - peps) == 0)
@@ -289,6 +292,7 @@ class GeneratorTest(TestCase):
         exp_prot = set(['KFG', 'KNLG', 'KFPPG', 'KNFPRG', 'GFK', 'GGLK', 'GFPPK', 'GFPPK', 'GGFPQK'])
         prot = set(map(lambda x: str(x),
                        Generator.generate_proteins_from_transcripts(
-                           Generator.generate_transcripts_from_variants(dummy_vars, dummy_db))))
+                           Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ)))
+                   )
         self.assertTrue(len(prot-exp_prot) == 0)
         self.assertTrue(len(exp_prot-prot) == 0)
