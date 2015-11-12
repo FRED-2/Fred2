@@ -28,29 +28,40 @@ class ADBAdapter:
     @abstractmethod
     def get_product_sequence(self, product_id, **kwargs):
         """
-        fetches the product sequence for the given id
-        :keyword type: given id, is in the form of this type,found in EIdentifierTypes. It is to be documented if an ADBAdapter implementation overrides these types.
-        :return: the requested sequence
+        Fetches the product sequence for the given id
 
+        :param str product_id: The product ID as string
+        :keyword type: Given id, is in the form of this type,found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`. It
+                       is to be documented if an ADBAdapter implementation overrides these types.
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :return: The requested sequence
+        :rtype: str
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_transcript_sequence(self, transcript_id, **kwargs):
         """
         Fetches transcript sequence for the given id
 
-        :keyword type: given id, is in the form of this type,found in EIdentifierTypes. It is to be documented if an ADBAdapter implementation overrides these types.
-        :return: the requested sequence
-
+        :param str transcript_id: The transcript ID as string
+        :keyword type: Given id, is in the form of this type,found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`. It
+                       is to be documented if an ADBAdapter implementation overrides these types.
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :return: The requested sequence
+        :rtype: str
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_transcript_information(self, transcript_id, **kwargs):
         """
         Fetches transcript sequence for the given id
-        :keyword type: given id, is in the form of this type,found in EIdentifierTypes. It is to be documented if an ADBAdapter implementation overrides these types.
+
+        :param str transcript_id: The transcript ID as string
+        :keyword type: Given id, is in the form of this type,found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`. It
+                       is to be documented if an ADBAdapter implementation overrides these types.
         :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
+        :rtype: list(dict)
         """
-        pass
+        raise NotImplementedError

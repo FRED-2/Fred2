@@ -8,3 +8,4 @@ from Fred2.IO.MartsAdapter import MartsAdapter
 from Fred2.IO.RefSeqAdapter import RefSeqAdapter
 from Fred2.IO.UniProtAdapter import UniProtDB
 from Fred2.IO.EnsemblAdapter import EnsemblDB
+from Fred2.IO.ADBAdapter import EIdentifierTypes, EAdapterFields
