@@ -157,7 +157,7 @@ def _check_for_problematic_variants(vars):
 
 #################################################################
 # Public transcript generator functions
-def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
+def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=None,
                                     table='Standard', stop_symbol='*', to_stop=True, cds=False):
     """
     Generates :class:`~Fred2.Core.Peptide.Peptide` from :class:`~Fred2.Core.Variant.Variant` and avoids the
@@ -173,6 +173,8 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
     :param int length: The length of the peptides to construct
     :param dbadapter: A :class:`~Fred2.IO.ADBAdapter.ADBAdapter` to extract relevant transcript information
     :type dbadapter: :class:`~Fred2.IO.ADBAdapter.ADBAdapter`
+    :param id_type: The type of the transcript IDs used in annotation of variants (e.g. REFSEQ, ENSAMBLE)
+    :type id_type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
     :param peptides: A list of pre existing peptides that should be updated
     :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
     :param str table: Which codon table to use? This can be either a name (string), an NCBI identifier (integer), or
@@ -239,7 +241,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
     prots = []
     for tId, vs in transToVar.iteritems():
         #print tId
-        query = dbadapter.get_transcript_information(tId)
+        query = dbadapter.get_transcript_information(tId, type=id_type)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
             continue
@@ -276,7 +278,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, peptides=None,
 ################################################################################
 
 
-def generate_transcripts_from_variants(vars, dbadapter):
+def generate_transcripts_from_variants(vars, dbadapter, id_type):
     """
     Generates all possible transcript :class:`~Fred2.Core.Transcript.Transcript` based on the given
     :class:`~Fred2.Core.Variant.Variant`.
@@ -287,6 +289,8 @@ def generate_transcripts_from_variants(vars, dbadapter):
     :type vars: list(:class:`~Fred2.Core.Variant.Variant`)
     :param: dbadapter: a DBAdapter to fetch the transcript sequences
     :type dbadapter: class:`~Fred2.IO.ADBAdapter.ADBAdapter`
+    :param id_type: The type of the transcript IDs used in annotation of variants (e.g. REFSEQ, ENSAMBLE)
+    :type id_type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
     :return: A generator of transcripts with all possible variations determined by the given variant list
     :rtype: Generator(:class:`~Fred2.Core.Transcript.Transcript)
     :invariant: Variants are considered to be annotated from forward strand, regardless of the transcripts real
@@ -342,7 +346,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
-        query = dbadapter.get_transcript_information(tId)
+        query = dbadapter.get_transcript_information(tId, type=id_type)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
             continue
@@ -362,7 +366,7 @@ def generate_transcripts_from_variants(vars, dbadapter):
             yield Transcript("".join(varSeq), geneid, tId, vars=varComb)
 
 
-def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
+def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter, id_type):
     """
     Generates all possible :class:`~Fred2.Core.Transcript.Transcript` variations of the given
     :class:`~Fred2.Core.Variant.Variant`.
@@ -375,6 +379,8 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
     :type tumor: list(:class:`~Fred2.Core.Variant.Variant`)
     :param dbadapter: a DBAdapter to fetch the transcript sequences
     :type dbadapter: :class:`~Fred2.IO.ADBAdapter.ADBAdapter`
+    :param id_type: The type of the transcript IDs used in annotation of variants (e.g. REFSEQ, ENSAMBLE)
+    :type id_type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
     :return: A generator of transcripts with all possible variations determined by the given variant list
     :rtype: Generator(:class:`~Fred2.Core.Transcript.Transcript`)
     """
@@ -435,7 +441,7 @@ def generate_transcripts_from_tumor_variants(normal, tumor, dbadapter):
                 transToVar.setdefault(trans_id, []).append((True, v))
 
     for tId, vs in transToVar.iteritems():
-        query = dbadapter.get_transcript_information(unknown=tId)
+        query = dbadapter.get_transcript_information(tId, type=id_type)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
             continue
