@@ -4,11 +4,11 @@
 
 __author__ = 'walzer'
 
-import warnings
+import logging
 import bisect
 
 from Bio import SeqIO
-from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields
+from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields, EIdentifierTypes
 
 
 class EnsemblDB(ADBAdapter):
@@ -18,7 +18,7 @@ class EnsemblDB(ADBAdapter):
         combined fasta files. Search is done with python's fast search  based on a mix between boyer-moore and horspool
         (http://svn.python.org/view/python/trunk/Objects/stringlib/fastsearch.h?revision=68811&view=markup)
         :param name: a name for the EnsembleDB object
-        Usage tutorials:
+        Usage:
             import EnsembleDB
             db = EnsembleDB.EnsembleDB('Ensemble') #give it a name
             db.read_seqs('/path/to/file.fasta')
@@ -44,7 +44,7 @@ class EnsemblDB(ADBAdapter):
         """
         read sequences from Ensemble protein files (.fasta) or from lists or dicts of BioPython SeqRecords
         and make them available for fast search. Appending also with this function.
-        :param sequence_file: Ensemble files (.dat or .fasta)
+        :param sequence_file: Ensembl files (.dat or .fasta)
         :return:
         """
         recs = sequence_file
@@ -56,7 +56,7 @@ class EnsemblDB(ADBAdapter):
                     else:  # assume it is a dat file
                         recs = SeqIO.to_dict(SeqIO.parse(open(sequence_file), 'swiss'))
             except:
-                warnings.warn("Could not read file", UserWarning)
+                logging.warn("Could not read file", UserWarning)
                 return
         if isinstance(sequence_file, list):
             recs = SeqIO.to_dict(sequence_file)
@@ -94,19 +94,20 @@ class EnsemblDB(ADBAdapter):
                     self.enst2ensp[enst] = ensp
                     self.enst2ensg[enst] = ensg
                 else:
-                    warnings.warn("Unparsable filecontents", UserWarning)
+                    logging.warn("Unparsable filecontents", UserWarning)
                 if ensp:
                     self.ensp2ensg[ensp] = ensg
                     self.ensp2enst[ensp] = enst
                 else:
-                    warnings.warn("Unparsable filecontents", UserWarning)
+                    logging.warn("Unparsable filecontents", UserWarning)
         return
 
     def map_enst(self, enst):
         """
         looks up enst from the mapping and returns a ensg and a ensp
-        :param enst: the transcript to map
+        :param str enst: the transcript to map
         :return: tuple of gene and protein (might be None)
+        :rtype: dict
         """
         ensg = None
         ensp = None
@@ -119,8 +120,9 @@ class EnsemblDB(ADBAdapter):
     def map_ensp(self, ensp):
         """
         looks up ensp from the mapping and returns a ensg and a enst
-        :param ensp: the protein to map
+        :param str ensp: the protein to map
         :return: tuple of gene and protein (should not be None)
+        :rtype: dict
         """
         ensg = None
         enst = None
@@ -131,41 +133,95 @@ class EnsemblDB(ADBAdapter):
         return {'Ensembl Gene ID': ensg, 'Ensembl Transcript ID': enst, 'Ensembl Protein ID': ensp}
 
     def map_ensg(self, ensg):
-        warnings.warn('mapping ensg not implemented', NotImplementedError)
+        logging.warn('mapping ensg not implemented', NotImplementedError)
 
-    def get_transcript_sequence(self, transcript_id):
+    def get_transcript_sequence(self, transcript_id, **kwargs):
+        """
+        Fetches transcript sequence for the given id
+
+        :param str transcript_id: The id to be queried
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`,
+                       default is ensembl_transcript_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :return: The requested sequence
+        :rtype: str
+        """
+
+        if "type" in kwargs:
+            if kwargs["type"] != EIdentifierTypes.ENSEMBL:
+                logging.warn("Could not infer the origin of transcript id" + str(transcript_id))
+                return None
+
         if transcript_id in self.collection:
             return str(self.collection[transcript_id].seq)
         else:
             return None
 
-    def get_product_sequence(self, product_id):
+    def get_product_sequence(self, product_id, **kwargs):
+        """
+        Fetches product (i.e. protein) sequence for the given id
+
+        :param str product_id: The id to be queried
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
+                       ensembl_peptide_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :return: the requested sequence
+        :rtype: str
+        """
+
+        if "type" in kwargs:
+            if kwargs["type"] != EIdentifierTypes.ENSEMBL:
+                logging.warn("Could not infer the origin of transcript id" + str(product_id))
+                return None
+
         if product_id in self.collection:
             return self.collection[product_id]
         else:
             return None
 
-    def get_transcript_information(self, transcript_id):
+    def get_transcript_information(self, transcript_id, **kwargs):
+        """
+        Fetches transcript sequence, gene name and strand information for the given id
+
+        :param str transcript_id: The id to be queried
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`,
+                       default is ensembl_transcript_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :return: Dictionary of the requested keys as in :func:`~Fred2.IO.ADBAdapter.EAdapterFields`
+        :rtype: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        """
+
+        if "type" in kwargs:
+            if kwargs["type"] != EIdentifierTypes.ENSEMBL:
+                logging.warn("Could not infer the origin of transcript id" + str(transcript_id))
+                return None
+
         if transcript_id in self.collection:
             return {EAdapterFields.SEQ: str(self.collection[transcript_id].seq),
                     EAdapterFields.GENE: self.collection[transcript_id].description.split('gene:')[1].split(' ')[0],
-                    EAdapterFields.STRAND: "-" if int(self.collection[transcript_id].description.split('chromosome:')[1].split(' ')[0].split(':')[-1]) < 0 else "+"}
+                    EAdapterFields.STRAND: "-" if
+                    int(self.collection[transcript_id].description.split('chromosome:')[1].split(' ')[0].split(':')[-1])
+                    < 0 else "+"}
         else:
             return None
 
     def write_seqs(self, name):
         """
-            writes all fasta entries in the current object into one fasta file
-            :param name: the complete path with file name where the fasta is going to be written
+            Writes all fasta entries in the current object into one fasta file
+
+            :param str name: The complete path with file name where the fasta is going to be written
             """
         with open(name, "w") as output:
             SeqIO.write(self.collection.values(), output, "fasta")
 
     def exists(self, seq):
         """
-            fast check if given sequence exists (as subsequence) in one of the EnsembleDB objects collection of sequences.
-            :param seq: the subsequence to be searched for
+            Fast check if given sequence exists (as subsequence) in one of the EnsembleDB objects collection of
+            sequences.
+
+            :param str seq: the sub-sequence to be searched for
             :return: True, if it is found somewhere, False otherwise
+            :rtype: bool
             """
         if isinstance(seq, str):
             index = self.searchstring.find(seq)
@@ -177,11 +233,13 @@ class EnsemblDB(ADBAdapter):
 
     def search(self, seq):
         """
-            search for first occurrence of given sequence(s) in the EnsembleDB objects collection returning (each) the fasta
-            header front part of the first occurrence.
-            :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
-            :return: a dictionary of sequences to lists (of ids, 'null' if n/a)
-            """
+        Search for first occurrence of given sequence(s) in the EnsemblDB objects collection returning (each) the fasta
+        header front part of the first occurrence.
+
+        :param str seq: A string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
+        :return: A dictionary of sequences to lists (of ids, 'null' if n/a)
+        :rtype: dict
+        """
         if isinstance(seq, str):
             ids = 'null'
             index = self.searchstring.find(seq)
@@ -203,10 +261,13 @@ class EnsemblDB(ADBAdapter):
 
     def search_all(self, seq):
         """
-            search for all occurrences of given sequence(s) in the EnsembleDB objects collection returning (each) the
+            Search for all occurrences of given sequence(s) in the EnsembleDB objects collection returning (each) the
             fasta header front part of all occurrences.
-            :param seq: a string interpreted as a single sequence or a list (of str) interpreted as a coll. of sequences
-            :return: a dictionary of the given sequences to lists (of ids, 'null' if n/a)
+
+            :param str seq: A string interpreted as a single sequence or a list (of str) interpreted as a coll. of
+                            sequences
+            :return: A dictionary of the given sequences to lists (of ids, 'null' if n/a)
+            :rtype: dict
             """
         if isinstance(seq, str):
             ids = 'null'

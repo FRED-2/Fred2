@@ -8,13 +8,10 @@ from Fred2.Core.Generator import generate_transcripts_from_variants
 from Fred2.test.DummyAdapter import DummyAdapter
 from Fred2.test.VariantsForTesting import *
 
-# Transcripts
-
-# Protein
 from Fred2.Core.Protein import Protein
 from Fred2.Core.Generator import generate_peptides_from_proteins, generate_transcripts_from_tumor_variants
 from Fred2.Core.Generator import generate_proteins_from_transcripts
-
+from Fred2.IO.ADBAdapter import EIdentifierTypes
 
 class TestProteinClass(unittest.TestCase):
     def setUp(self):
@@ -82,7 +79,7 @@ class TestProteinClass(unittest.TestCase):
         dummy_vars = [var_10, var_11, var_12]
 
         proteins = []
-        t = list(generate_transcripts_from_variants(dummy_vars, dummy_db))
+        t = list(generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ))
         for trans in t:
             # check gene id field:
             print trans
@@ -134,8 +131,9 @@ class TestProteinClass(unittest.TestCase):
         dummy_db = DummyAdapter()
         normal_vars = [var_n2]
         tumor_vars = [var_t1]
-        t = list(generate_transcripts_from_tumor_variants(normal_vars, tumor_vars, dummy_db))
-        for trans in generate_transcripts_from_tumor_variants(normal_vars, tumor_vars, dummy_db):
+        t = list(generate_transcripts_from_tumor_variants(normal_vars, tumor_vars, dummy_db, EIdentifierTypes.REFSEQ))
+        for trans in generate_transcripts_from_tumor_variants(normal_vars, tumor_vars, dummy_db,
+                                                              EIdentifierTypes.REFSEQ):
             print "Tumor trans", repr(trans)
 
     def test4_peptides_from_variants(self):
@@ -181,7 +179,7 @@ class TestProteinClass(unittest.TestCase):
         dummy_vars = [var_13, var_14]
 
         proteins = []
-        transcripts = list(generate_transcripts_from_variants(dummy_vars, dummy_db))
+        transcripts = list(generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ))
         for trans in transcripts:
             ### GET PROTS:
             # IGNORE invalid sequence lengths
