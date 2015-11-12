@@ -20,11 +20,12 @@ from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields, EIdentifierTypes
 class MartsAdapter(ADBAdapter):
     def __init__(self, usr=None, host=None, pwd=None, db=None, biomart=None):
         """
-        used to fetch sequences from given RefSeq id's either from BioMart if no credentials given else from a MySQLdb
-        :param usr: db user e.g. = 'ucsc_annot_query'
-        :param host: db host e.g. = "pride"
-        :param pwd: pw for user e.g. = 'an0q3ry'
-        :param db: db on host e.g. = "hg18_ucsc_annotation"
+        Used to fetch sequences from given RefSeq id's either from BioMart if no credentials given else from a MySQLdb
+
+        :param str usr: db user e.g. = 'ucsc_annot_query'
+        :param str host: db host e.g. = "pride"
+        :param str pwd: pw for user e.g. = 'an0q3ry'
+        :param str db: db on host e.g. = "hg18_ucsc_annotation"
         """
         self.ids_proxy = dict()
         self.gene_proxy = dict()
@@ -62,12 +63,16 @@ class MartsAdapter(ADBAdapter):
     def get_product_sequence(self, product_id, **kwargs):
         """
         Fetches product (i.e. protein) sequence for the given id
-        :param product_id: the id to be queried
-        :keyword type: assumes given ID from type found in EIdentifierTypes, default is ensembl_peptide_id
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
 
-        :return: the requested sequence
+        :param str product_id: The id to be queried
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
+                       ensembl_peptide_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :keyword str _db: Can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: Specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+
+        :return: The requested sequence
+        :rtype: str
         """
 
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
@@ -110,12 +115,16 @@ class MartsAdapter(ADBAdapter):
     def get_transcript_sequence(self, transcript_id, **kwargs):
         """
         Fetches transcript sequence for the given id
-        :param transcript_id: the id to be queried
-        :keyword type: assumes given ID from type found in EIdentifierTypes, default is ensembl_transcript_id
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
 
-        :return: the requested sequence
+        :param str transcript_id: The id to be queried
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
+                       ensembl_transcript_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :keyword str _db: Can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: Specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+
+        :return: The requested sequence
+        :rtype: str
         """
 
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
@@ -158,12 +167,16 @@ class MartsAdapter(ADBAdapter):
     def get_transcript_information(self, transcript_id, **kwargs):
         """
         Fetches transcript sequence, gene name and strand information for the given id
-        :param transcript_id: the id to be queried
-        :keyword type: assumes given ID from type found in EIdentifierTypes, default is ensembl_transcript_id
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
 
-        :return: dictionary of the requested keys as in EAdapterFields.ENUM
+        :param str transcript_id: The id to be queried
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
+                       ensembl_transcript_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :keyword str _db: Can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: Specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+
+        :return: Dictionary of the requested keys as in EAdapterFields.ENUM
+        :rtype: dict
         """
 
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
@@ -207,14 +220,18 @@ class MartsAdapter(ADBAdapter):
         """
         If no transcript position is available for a variant, it can be retrieved if the mart has the transcripts
         connected to the CDS and the exons positions
-        :param transcript_id: the id to be queried
-        :param start: first position to be mapped
-        :param stop: last position to be mapped
-        :keyword type: assumes given ID from type found in EIdentifierTypes, default is ensembl_transcript_id
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
 
-        :return: a tuple of the mapped positions start, stop
+        :param str transcript_id: The id to be queried
+        :param int start: First position to be mapped
+        :param int stop: Last position to be mapped
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
+                       ensembl_transcript_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :keyword str _db: Can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: Specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+
+        :return: A tuple of the mapped positions start, stop
+        :rtype: int
         """
         # ma = MartsAdapter(biomart="http://grch37.ensembl.org")
         # print ma.get_transcript_position('17953929', '17953943', 'ENST00000361221')
@@ -302,13 +319,15 @@ class MartsAdapter(ADBAdapter):
     def get_gene_by_position(self, chrom, start, stop, **kwargs):
         """
         Fetches the gene name for given chromosomal location
-        :param chrom: integer value of the chromosome in question
-        :param start: integer value of the variation start position on given chromosome
-        :param stop: integer value of the variation stop position on given chromosome
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+
+        :param int chrom: Integer value of the chromosome in question
+        :param int start: Integer value of the variation start position on given chromosome
+        :param int stop: Integer value of the variation stop position on given chromosome
+        :keyword str _db: Can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: Specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
 
         :return: The respective gene name, i.e. the first one reported
+        :rtype: str
         """
         if str(chrom) + str(start) + str(stop) in self.gene_proxy:
             return self.gene_proxy[str(chrom) + str(start) + str(stop)]
@@ -336,12 +355,15 @@ class MartsAdapter(ADBAdapter):
     def get_transcript_information_from_protein_id(self, product_id, **kwargs):
         """
         Fetches transcript sequence for the given id
-        :param product_id: the id to be queried
-        :keyword type: assumes given ID from type found in EIdentifierTypes, default is ensembl_peptide_id
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
 
-        :return: list of dictionary of the requested sequence, the respective strand and the associated gene name
+        :param str product_id: The id to be queried
+        :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
+                       ensembl_peptide_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :keyword str _db: Can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: Specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+        :return: List of dictionary of the requested sequence, the respective strand and the associated gene name
+        :rtype: list(dict)
         """
 
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
@@ -384,14 +406,17 @@ class MartsAdapter(ADBAdapter):
 
     def get_variant_id_from_protein_id(self, transcript_id, **kwargs):
         """
-        returns all information needed to instantiate a variation
+        Returns all information needed to instantiate a variation
 
-        :param transcript_id: the id to be queried
-        :keyword type: assumes given ID from type found in EIdentifierTypes, default is ensembl_transcript_id
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+        :param str transcript_id: The id to be queried
+        :keyword type: assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
+                       ensembl_transcript_id
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :keyword str _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
 
-        :return: list of dicts -- containing all information needed for a variant initialization
+        :return: Containing all information needed for a variant initialization
+        :rtype: list(dict)
         """
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
@@ -430,13 +455,17 @@ class MartsAdapter(ADBAdapter):
 
     def get_ensembl_ids_from_id(self, gene_id, **kwargs):
         """
-        returns a list of gene-transcript-protein ids from some sort of id
-        :param gene_id: the id to be queried
-        :keyword type: assumes given ID from type found in EIdentifierTypes, default is gene name
-        :keyword _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
-        :keyword _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+        Returns a list of gene-transcript-protein ids from some sort of id
 
-        :return: list of dicts -- containing information about the corresponding (linked) entries.
+        :param str gene_id: The id to be queried
+        :keyword type: Assumes given ID from type found in list of :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes` ,
+                       default is gene name
+        :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
+        :keyword str _db: can override MartsAdapter default db ("hsapiens_gene_ensembl")
+        :keyword str _dataset: specifies the query dbs dataset if default is not wanted ("gene_ensembl_config")
+
+        :return: Containing information about the corresponding (linked) entries.
+        :rtype: list(dict)
         """
         _db = kwargs.get("_db","hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
@@ -483,10 +512,12 @@ class MartsAdapter(ADBAdapter):
     def get_all_variant_gene(self, locations, _db="hsapiens_gene_ensembl", _dataset='gene_ensembl_config'):
         """
         Fetches the important db ids and names for given chromosomal location
-        :param chrom: integer value of the chromosome in question
-        :param start: integer value of the variation start position on given chromosome
-        :param stop: integer value of the variation stop position on given chromosome
+
+        :param int chrom: Integer value of the chromosome in question
+        :param int start: Integer value of the variation start position on given chromosome
+        :param int stop: Integer value of the variation stop position on given chromosome
         :return: The respective gene name, i.e. the first one reported
+
         """
         #TODO assert types
         #<!DOCTYPE Query><Query client="true" processor="TSV" limit="-1" header="1"><Dataset name="hsapiens_gene_ensembl" config="gene_ensembl_config"><Filter name="chromosomal_region" value="1:40367114:40367114,1:40702744:40702744,1:40705023:40705023,1:40771399:40771399,1:40777210:40777210,1:40881015:40881015,1:41235036:41235036,1:42048927:42048927,1:43002232:43002232,1:43308758:43308758,1:43393391:43630154,1:43772617:43772617,1:43772834:43772834" filter_list=""/><Attribute name="uniprot_genename"/></Dataset></Query>
