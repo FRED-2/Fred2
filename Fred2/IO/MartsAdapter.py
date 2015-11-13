@@ -130,7 +130,7 @@ class MartsAdapter(ADBAdapter):
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
 
-        query_filter = "ensembl_peptide_id"
+        query_filter = "ensembl_transcript_id"
         if "type" in kwargs:
             query_id = kwargs["type"]
             if kwargs["type"] == EIdentifierTypes.REFSEQ:
@@ -182,7 +182,7 @@ class MartsAdapter(ADBAdapter):
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
 
-        query_filter = "ensembl_peptide_id"
+        query_filter = "ensembl_transcript_id"
         if "type" in kwargs:
             if kwargs["type"] == EIdentifierTypes.REFSEQ:
                 query_filter = "refseq_mrna"
@@ -222,8 +222,8 @@ class MartsAdapter(ADBAdapter):
         connected to the CDS and the exons positions
 
         :param str transcript_id: The id to be queried
-        :param int start: First position to be mapped
-        :param int stop: Last position to be mapped
+        :param int start: First genomic position to be mapped
+        :param int stop: Last genomic position to be mapped
         :keyword type: Assumes given ID from type found in :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`, default is
                        ensembl_transcript_id
         :type type: :func:`~Fred2.IO.ADBAdapter.EIdentifierTypes`
@@ -246,7 +246,7 @@ class MartsAdapter(ADBAdapter):
         _db = kwargs.get("_db", "hsapiens_gene_ensembl")
         _dataset = kwargs.get("_dataset", "gene_ensembl_config")
 
-        query_filter = "ensembl_peptide_id"
+        query_filter = "ensembl_transcript_id"
         if "type" in kwargs:
             if kwargs["type"] == EIdentifierTypes.REFSEQ:
                 query_filter = "refseq_mrna"
