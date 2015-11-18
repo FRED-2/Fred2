@@ -8,3 +8,4 @@ dist/*
 .pythoscope
 .idea
 *.pyc
+Fred2/tutorials/.ipynb_checkpoints/*

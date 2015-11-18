@@ -91,14 +91,16 @@ class EnsemblDB(ADBAdapter):
                 self.ensg2enst[ensg].append(enst)
                 self.ensg2ensp[ensg].append(ensp)
                 if enst:
-                    self.enst2ensp[enst] = ensp
-                    self.enst2ensg[enst] = ensg
-                else:
-                    logging.warn("Unparsable filecontents", UserWarning)
+                    if ensp:
+                        self.enst2ensp[enst] = ensp
+                    if ensg:
+                        self.enst2ensg[enst] = ensg
                 if ensp:
-                    self.ensp2ensg[ensp] = ensg
-                    self.ensp2enst[ensp] = enst
-                else:
+                    if ensg:
+                        self.ensp2ensg[ensp] = ensg
+                    if enst:
+                        self.ensp2enst[ensp] = enst
+                if not ensg and not enst and not ensp:
                     logging.warn("Unparsable filecontents", UserWarning)
         return
 
