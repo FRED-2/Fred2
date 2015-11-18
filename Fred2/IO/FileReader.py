@@ -21,7 +21,7 @@ from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
 ####################################
 #       F A S T A  -  R E A D E R
 ####################################
-def read_fasta(files, type=Peptide, id_position=1):
+def read_fasta(files, in_type=Peptide, id_position=1):
     """
     Generator function:
 
@@ -30,13 +30,13 @@ def read_fasta(files, type=Peptide, id_position=1):
     either be: Peptide, Protein or Transcript (for RNA).
 
     :param files: A (list) of file names to read in
-    :type files: list(str) or str
-    :param type: The type to read in
-    :type type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Transcript.Transcript`
+    :in_type files: list(str) or str
+    :param in_type: The type to read in
+    :type in_type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Transcript.Transcript`
                 or :class:`~Fred2.Core.Protein.Protein`
     :param int id_position: the position of the id specified counted by |
     :returns: a list of the specified sequence type derived from the FASTA file sequences.
-    :rtype: (list(:attr:`type`))
+    :rtype: (list(:attr:`in_type`))
     :raises ValueError: if a file is not readable
     """
 
@@ -59,9 +59,9 @@ def read_fasta(files, type=Peptide, id_position=1):
                    _id = _id
 
                 try:
-                    collect.add(type(seq.strip().upper(), _transcript_id=_id))
+                    collect.add(in_type(seq.strip().upper(), _transcript_id=_id))
                 except TypeError:
-                    collect.add(type(seq.strip().upper()))
+                    collect.add(in_type(seq.strip().upper()))
     return list(collect)
 
 
@@ -69,7 +69,7 @@ def read_fasta(files, type=Peptide, id_position=1):
 ####################################
 #       L I N E  -  R E A D E R
 ####################################
-def read_lines(files, type=Peptide):
+def read_lines(files, in_type=Peptide):
     """
     Generator function:
 
@@ -78,13 +78,13 @@ def read_lines(files, type=Peptide):
     Peptide, Protein or Transcript, Allele.
 
     :param files: a list of strings of absolute file names that are to be read.
-    :type files: list(str) or str
-    :param type: Possible types are :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`,
+    :in_type files: list(str) or str
+    :param in_type: Possible in_type are :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`,
                  :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
-    :type type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` or
+    :type in_type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` or
                 :class:`~Fred2.Core.Transcript.Transcript` or :class:`~Fred2.Core.Allele.Allele`
     :returns: A list of the specified objects
-    :rtype: (list(:attr:`type`))
+    :rtype: (list(:attr:`in_type`))
     :raises IOError: if a file is not readable
     """
 
@@ -95,12 +95,13 @@ def read_lines(files, type=Peptide):
                 raise IOError("Specified Files do not exist")
 
     collect = set()
+    #alternative to using strings is like: cf = getattr(Fred2.Core, "Protein"/"Peptide"/"Allele"/...all in core)
     for name in files:
         with open(name, 'r') as handle:
             # iterate over all lines:
             for line in handle:
                 # generate element:
-                collect.add(type(line.strip().upper()))
+                collect.add(in_type(line.strip().upper()))
 
     return list(collect)
 
@@ -137,7 +138,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                    ('frameshift', 'insertion'): VariationType.FSINS}
     with open(annovar_file, "r") as f:
         for line in f:
-            id, type, line, chrom, genome_start, genome_stop, ref, alt, zygos = map(lambda x: x.strip().lower(),
+            mut_id, mut_type, line, chrom, genome_start, genome_stop, ref, alt, zygos = map(lambda x: x.strip().lower(),
                                                                                     line.split("\t")[:9])
             #print ref, alt
 
@@ -152,7 +153,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                 warnings.warn("Skipping UNKWON gene")
                 continue
 
-           # print "Debug ", gene, type.split(),id
+           # print "Debug ", gene, type.split(),mut_id
             #print "Debug ", line, RE.findall(line), type, zygos
             coding = {}
             for nm_id_pos in RE.findall(line):
@@ -164,10 +165,10 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                 #internal transcript and protein position start at 0!
                 coding[nm_id] = MutationSyntax(nm_id, int(trans_pos)-1, int(prot_start)-1, trans_coding, prot_coding)
 
-            ty = tuple(type.split())
+            ty = tuple(mut_type.split())
 
             vars.append(
-                Variant(id, type_mapper.get(ty, VariationType.UNKNOWN), chrom, int(genome_start), ref.upper(),
+                Variant(mut_id, type_mapper.get(ty, VariationType.UNKNOWN), chrom, int(genome_start), ref.upper(),
                         alt.upper(), coding, zygos == "hom", ty[0] == "synonymous",
                         experimentalDesign=experimentalDesig))
     return vars
