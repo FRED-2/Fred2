@@ -124,7 +124,9 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
             allele_groups.append(allele_group)
         # export peptides to peptide list
 
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
+        pep_groups = pep_seqs.keys()
+        pep_groups.sort(key=len)
+        for length, peps in itertools.groupby(pep_groups, key=len):
             if length < min(self.supportedLength):
                 warnings.warn("Peptide length must be at least %i for %s but is %i" % (min(self.supportedLength),
                                                                                        self.name, length))
