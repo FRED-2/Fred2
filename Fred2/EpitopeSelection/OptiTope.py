@@ -137,9 +137,13 @@ class OptiTope(object):
             peps[seq] = p
             for a, s in itr.izip(res_df.columns, tup[1:]):
                 if method in ["smm", "smmpmbec", "arb", "comblibsidney"]:
-                    thr = min(1., max(0.0, 1.0 - math.log(self.__thresh.get(a.name),
-                                                          50000))) if a.name in self.__thresh else -float("inf")
-                    if s > thr:
+                    try:
+                        thr = min(1., max(0.0, 1.0 - math.log(self.__thresh.get(a.name),
+                                                      50000))) if a.name in self.__thresh else -float("inf")
+                    except:
+                        thr = 0
+
+                    if s >= thr:
                         alleles_I.setdefault(a.name, set()).add(seq)
                     imm[seq, a.name] = min(1., max(0.0, 1.0 - math.log(s, 50000)))
                 else:
