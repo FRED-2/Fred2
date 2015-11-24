@@ -2,35 +2,32 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Allele
-   :synopsis: Allele class.
-.. moduleauthor:: brachvogel, szolek, walzer
+.. module:: Core.Allele
+   :synopsis: HLA Allele class.
+.. moduleauthor:: schubert, brachvogel, szolek, walzer
 
 """
-__author__ = 'schubert', 'walzer'
+
 
 from Fred2.Core.Base import MetadataLogger
 
 
 class Allele(MetadataLogger):
     """
-    This class represents an Allele and stores additional informations as a 
-    dictionary
-
-    :param str name: the name of the MHC allele (new nomenclature A*01:01)
+    This class represents an HLA Allele and stores additional information
     """
-    def __init__(self, _name, prob=None):
+
+    def __init__(self, name, prob=None):
         """
-        :param str _name: input name in new nomenclature (A*01:01)
+        :param str name: input name in new nomenclature (A*01:01)
+        :param float prob: optional population frequency of allele in [0,1]
         """
         MetadataLogger.__init__(self)
-        name = _name.split("-")[-1].replace("HLA-", "")
+        name = name.split("-")[-1].replace("HLA-", "")
         self.name = name
         self.locus, rest = name.split('*')
         self.supertype, self.subtype = rest.split(':')[:2]
         self.prob = prob
-
-        # TODO check semantics
 
     def __repr__(self):
         return 'HLA-%s*%s:%s' % (str(self.locus), str(self.supertype), str(self.subtype))
@@ -39,7 +36,7 @@ class Allele(MetadataLogger):
         return self.name
 
     def __eq__(self, other):
-        return self.name == other.name
+        return str(self.name) == str(other)
 
     def __cmp__(self, other):
-        return cmp(self.name, other.name)
+        return cmp(self.name, str(other))

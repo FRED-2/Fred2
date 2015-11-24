@@ -2,15 +2,20 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Base
+.. module:: Core.Base
    :synopsis: This module contains base classes for all other modules.
 .. moduleauthor:: schubert, szolek, walzer
 
+
+https://docs.python.org/3/library/abc.html
+
 """
-__author__ = 'szolek', 'walzer'
 
 
 import abc
+import inspect
+import os
+import subprocess
 from collections import defaultdict
 from string import maketrans
 
@@ -23,11 +28,11 @@ class MetadataLogger(object):
     """
     This class provides a simple interface for assigning additional metadata to
     any object in our data model. Examples: storing ANNOVAR columns like depth,
-    base count, dbSNP id, quality information for variants, prediction scores 
-    for peptides etc. Normally used by custom toolbox functions and importers.
+    base count, dbSNP id, quality information for variants, additional prediction information
+    for peptides etc. This functionality is not used from core methods of FRED2.
 
-    The saved values are accessed via :meth:`~Fred2.Core.Base.log_metadata` and
-    :meth:`~Fred2.Core.Base.get_metadata`
+    The saved values are accessed via :meth:`~Fred2.Core.MetadataLogger.log_metadata` and
+    :meth:`~Fred2.Core.MetadataLogger.get_metadata`
     
     """
     def __init__(self):
@@ -40,8 +45,7 @@ class MetadataLogger(object):
         Inserts a new metadata
 
         :param str label: key for the metadata that will be added
-        :param list(object) value: any kindy of additional value that should be
-                                   kept
+        :param list(object) value: any kindy of additional value that should be kept
         """
         self.__metadata[label].append(value)
 
@@ -50,8 +54,7 @@ class MetadataLogger(object):
         Getter for the saved metadata with the key :attr:`label`
 
         :param str label: key for the metadata that is inferred
-        :param bool only_first: true if only the the first element of the 
-                                matadata list is to be returned
+        :param bool only_first: true if only the the first element of the matadata list is to be returned
         """
         # although defaultdict *would* return [] if it didn't find label in 
         # self.metadata, it would come with the side effect of adding label as 
@@ -73,13 +76,14 @@ class APluginRegister(abc.ABCMeta):
 
         if not hasattr(cls, 'registry'):
             cls.registry = dict()
-        cls.registry[name] = cls
+        if not inspect.isabstract(cls):
+            cls.registry.setdefault(str(cls().name).lower(), {}).update({str(cls().version).lower():cls})
 
-        #dont know if needed
-        #del cls.registry[bases.__name__] # Remove base classes
-
-    def __getitem__(cls, item):
-        return cls.registry[item]
+    def __getitem__(cls, args):
+        name, version = args
+        if version is None:
+            return cls.registry[name][max(cls.registry[name].keys())]
+        return cls.registry[name][version]
 
     def __iter__(cls):
         return iter(cls.registry.values())
@@ -96,48 +100,42 @@ class ACleavageSitePrediction(object):
     @abc.abstractproperty
     def name(self):
         """
-        Returns the name of the predictor
+        The name of the predictor
+        """
+        raise NotImplementedError
 
-        :return:
+    @abc.abstractproperty
+    def version(self):
+        """
+        Parameter specifying the version of the prediction method
         """
         raise NotImplementedError
 
     @abc.abstractproperty
     def supportedLength(self):
         """
-        Returns the supported lengths of the predictor
-
-        :return: list(int) - Supported peptide length
+        The supported lengths of the predictor
         """
-        raise  NotImplementedError
-
+        raise NotImplementedError
 
     @abc.abstractproperty
     def cleavagePos(self):
         """
-        parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
+        Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
         (starting from 1)
-
-        :return:
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def threshold(self):
-        """
-        parameter specifying the prediction threshold of a cleavage site
-
-        :return: float -- the threshold of a true cleavage site
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
-    def predict(self, _aa_seq,  **kwargs):
+    def predict(self, aa_seq, **kwargs):
         """
-        Predicts the proteom cleavage site of the given sequences
+        Predicts the proteasomal cleavage site of the given sequences
 
-        :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
-        :return: Returns a Result object for the specified Bio.Seq
+        :param aa_seq: The sequence to be cleaved
+        :type aa_seq: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein`
+        :return: Returns a :class:`~Fred2.Core.Result.AResult` object for the specified Bio.Seq
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError
 
@@ -148,47 +146,41 @@ class ACleavageFragmentPrediction(object):
     @abc.abstractproperty
     def name(self):
         """
-        Returns the name of the predictor
+        The name of the predictor
+        """
+        raise NotImplementedError
 
-        :return:
+    @abc.abstractproperty
+    def version(self):
+        """
+        Parameter specifying the version of the prediction method
         """
         raise NotImplementedError
 
     @abc.abstractproperty
     def supportedLength(self):
         """
-        Returns the supported lengths of the predictor
-
-        :return: list(int) - Supported peptide length
+        The supported lengths of the predictor
         """
-        raise  NotImplementedError
+        raise NotImplementedError
 
 
     @abc.abstractproperty
     def cleavagePos(self):
         """
-        parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
-
-        :return:
+        Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved
         """
         raise NotImplementedError
 
     @abc.abstractmethod
-    def threshold(self):
-        """
-        parameter specifying the prediction threshold of a cleavage fragment
-
-        :return: float -- the threshold of a true cleavage fragment
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def predict(self, _aa_seq,  **kwargs):
+    def predict(self, aa_seq, **kwargs):
         """
         Predicts the probability that the fragment can be produced by the proteasom
 
-        :param Bio.Seq _aa_seq: The sequence to be cleaved (must be an instance of Bio.Seq
-        :return: Returns a Result object for the specified Bio.Seq
+        :param aa_seq: The sequence to be cleaved
+        :type aa_seq: :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.AResult` object for the specified Bio.Seq
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError
 
@@ -199,48 +191,39 @@ class AEpitopePrediction(object):
     @abc.abstractproperty
     def name(self):
         """
-        Returns the name of the predictor
-
-        :return:
+        The name of the predictor
         """
+        raise NotImplementedError
+
+    @abc.abstractproperty
+    def version(cls):
+        """The version of the predictor"""
         raise NotImplementedError
 
     @abc.abstractproperty
     def supportedAlleles(self):
         """
-        Returns a list of valid allele models
-
-        :return: List of allele names for which the predictor provides models
+        A list of valid allele models
         """
         raise NotImplementedError
 
     @abc.abstractproperty
     def supportedLength(self):
         """
-        Returns a list of supported peptide lenghts
-
-        :return: List of supported peptide lengths
-        """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def threshold(self, allele):
-        """
-        parameter specifying the prediction threshold of a epitope
-        :param: Allele allele: the Allele object for which the binding threshold should be returned
-        :return: float -- the threshold of a true epitope
+        A list of supported peptide lengths
         """
         raise NotImplementedError
 
     @abc.abstractmethod
     def convert_alleles(self, alleles):
         """
-        Converts alleles into the interal allele representation of the predictor
+        Converts alleles into the internal allele representation of the predictor
         and returns a string representation
 
-        :param list(Allele) alleles: The alleles for which the internal predictor
-         representation is needed
+        :param alleles: The alleles for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
         :return: Returns a string representation of the input alleles
+        :rtype: list(str)
         """
         raise NotImplementedError
 
@@ -251,9 +234,14 @@ class AEpitopePrediction(object):
         If alleles is not given, predictions for all valid alleles of the predictor is performed. If, however,
         a list of alleles is given, predictions for the valid allele subset is performed.
 
-        :param Peptide/list(Peptide) peptides: The peptide objects for which predictions should be performed
-        :param Allele/list(Allele) alleles: An Allele or list of Alleles for which prediction models should be used
-        :return: Returns a Result object for the specified Peptides and Alleles
+        :param peptides: The peptide objects for which predictions should be performed
+        :type peptides: :class:`~Fred2.Core.Peptide.Peptide` or list(:class:`~Fred2.Core.Peptide.Peptide`)
+        :param alleles: An :class:`~Fred2.Core.Allele.Allele` or list of :class:`~Fred2.Core.Allele.Allele` for which
+                        prediction models should be used
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`/list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a :class:`~Fred2.Core.Result.AResult` object for the specified
+                 :class:`~Fred2.Core.Peptide.Peptide` and :class:`~Fred2.Core.Allele.Allele`
+        :rtype: :class:`~Fred2.Core.Result.AResult`
         """
         raise NotImplementedError
 
@@ -269,8 +257,10 @@ class ASVM(object):
         """
         Returns the feature encoding for peptides
 
-        :param List(Peptide)/Peptide peptides: List oder Peptide object
-        :return: list(Object) -- Feature encoding of the Peptide objects
+        :param peptides: List of or a single :class:`~Fred2.Core.Peptide.Peptide` object
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide`
+        :return: Feature encoding of the Peptide objects
+        :rtype: list(Object)
         """
         raise NotImplementedError
 
@@ -284,19 +274,63 @@ class AExternal(object):
     @abc.abstractproperty
     def command(self):
         """
-        defines the external execution path ?
-        :return:
-        """
-
-    @abc.abstractmethod
-    def parse_external_result(self, _file):
-        """
-        Parses external NetMHC results and returns a Result object
-
-        :param str _file: The file path or the external prediction results
-        :return: Result - Returns a Result object
+        Defines the commandline call for external tool
         """
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def parse_external_result(self, file):
+        """
+        Parses external results and returns the result
+
+        :param str file: The file path or the external prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
+        """
+        raise NotImplementedError
+
+    def is_in_path(self):
+        """
+        Checks whether the specified execution command can be found in PATH
+
+        :return: Whether or not command could be found in PATH
+        :rtype: bool
+        """
+        exe = self.command.split()[0]
+        for try_path in os.environ["PATH"].split(os.pathsep):
+            try_path = try_path.strip('"')
+            exe_try = os.path.join(try_path, exe).strip()
+            if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
+                return True
+        return False
+
+    @abc.abstractmethod
+    def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param str path: - Optional specification of executable path if deviant from self.__command
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
+        """
+        exe = self.command.split()[0] if path is None else path
+        try:
+            p = subprocess.Popen(exe + ' --version', shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            #p.wait() #block the rest
+            stdo, stde = p.communicate()
+            stdr = p.returncode
+            if stdr > 0:
+                raise RuntimeError("Could not check version of " + exe + " - Please check your installation and FRED2 "
+                                                                         "wrapper implementation.")
+        except Exception as e:
+                raise RuntimeError(e)
+        return str(stdo).strip()
 
 
 class ATAPPrediction(object):
@@ -305,36 +339,63 @@ class ATAPPrediction(object):
     @abc.abstractproperty
     def name(self):
         """
-        Returns the name of the predictor
+        The name of the predictor
+        """
+        raise NotImplementedError
 
-        :return:
+    @abc.abstractproperty
+    def version(self):
+        """
+        Parameter specifying the version of the prediction method
         """
         raise NotImplementedError
 
     @abc.abstractproperty
     def supportedLength(self):
         """
-        Returns the supported lengths of the predictor
-
-        :return: list(int) - Supported peptide length
+        The supported lengths of the predictor
         """
         raise NotImplementedError
 
-    @abc.abstractmethod
-    def threshold(self):
-        """
-        parameter specifying the prediction threshold of TAP binding
-
-        :return: float -- the threshold of a true TAP binding
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
-    def predict(self, peptides,  **kwargs):
+    def predict(self, peptides, **kwargs):
         """
         Predicts the TAP affinity for the given sequences
 
-        :param list(Peptide)/Peptide: Peptides for which TAP affinity should be predicted
-        :return: Returns a TAPResult object
+        :param peptides: :class:`~Fred2.Core.Peptide.Peptide` for which TAP affinity should be predicted
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)/:class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.TAPResult` object
+        :rtype: :class:`~Fred2.Core.Result.TAPResult`
+        """
+        raise NotImplementedError
+
+
+class AHLATyping(object):
+    __metaclass__ = APluginRegister
+
+    @abc.abstractproperty
+    def name(self):
+        """
+        The name of the predictor
+        """
+        raise NotImplementedError
+
+    @abc.abstractproperty
+    def version(self):
+        """
+        Parameter specifying the version of the prediction method
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def predict(self, ngsFile, output, **kwargs):
+        """
+        Prediction method for inferring the HLA typing
+
+        :param str ngsFile: The path to the input file containing the NGS reads
+        :param str output: The path to the output file or directory
+        :return: A list of HLA alleles representing the genotype predicted by the algorithm
+        :rtype: list(:class:`~Fred2.Core.Allele.Allele`)
         """
         raise NotImplementedError

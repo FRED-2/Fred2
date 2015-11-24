@@ -2,22 +2,23 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: Transcript
+.. module:: Core.Transcript
    :synopsis: Contains the Transcript Class.
-.. moduleauthor:: brachvogel, szolek, walzer
+.. moduleauthor:: brachvogel, schubert, walzer
 
 """
-__author__ = 'brachvogel', 'szolek', 'walzer'
+
+import itertools
 
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_rna
 
-from Fred2.Core.Protein import Protein
 from Fred2.Core.Base import MetadataLogger
+from Fred2.Core.Variant import VariationType
 
 
 class Transcript(MetadataLogger, Seq):
-    """A Transcript is the mRNA sequence containing at no or several variations.
+    """A Transcript is the mRNA sequence containing no or several :class:`Fred2.Core.Variant.Variant`.
 
     .. note::
 
@@ -25,87 +26,89 @@ class Transcript(MetadataLogger, Seq):
         (from Biopython)
 
     :param str gene_id: Genome ID
-    :param str transcript_id: Transcript RefSeqID
-    :param dict(int,Variant) vars: Dict of Variants for specific positions in
-                                   the transcript. key=position, value=Variant
+    :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` RefSeqID
+    :param vars: Dict of :class:`Fred2.Core.Variant.Variant` for specific positions in the
+                 :class:`~Fred2.Core.Transcript.Transcript`. key=position, value=Variant
+    :type vars: dict(int,:class:`Fred2.Core.Variant.Variant`)
     """
+    newid = itertools.count().next #this is evil
 
-    def __init__(self, _gene_id, _transcript_id, _seq, _vars=None):
+    def __init__(self, seq, gene_id="unknown", transcript_id=None, vars=None):
         """
-        :param str _gene_id: input genome ID
-        :param str _transcript_id: input transcript RefSeqID
-        :param str _seq: Transcript RefSeq sequence
-        :param dict(int,Variant) _vars: Dict of Variants for specific positions 
-                                        in the transcript. key=position, 
-                                        value=Variant
+        :param str gene_id: Genome ID
+        :param str transcript_id: :class:`~Fred2.Core.Transcript.Transcript` RefSeqID
+        :param str seq: :class:`~Fred2.Core.Transcript.Transcript` sequence
+        :param vars: A dict of :class:`~Fred2.Core.Transcript.Transcript` position to :class:`Fred2.Core.Variant.Variant`
+                     that is specific to the :class:`~Fred2.Core.Transcript.Transcript`
+        :type vars: dict(int,:class:`Fred2.Core.Variant.Variant`)
         """
         MetadataLogger.__init__(self)
-        Seq.__init__(self, _seq, generic_rna)
-        self.gene_id = _gene_id
-        self.transcript_id = _transcript_id
-        if _vars is not None:
-            self.vars = {v.get_transcript_position(_transcript_id): v \
-                         for v in _vars}
-
-        else:
-            self.vars = dict()
-
+        Seq.__init__(self, seq.upper(), generic_rna)
+        self.gene_id = gene_id
+        self.transcript_id = Transcript.newid() if transcript_id is None else transcript_id
+        self.vars = dict() if vars is None else vars
 
     def __getitem__(self, index):
         """
         Overrides :meth:`Bio.Seq.Seq.__getitem__` (from Biopython)
 
-        :param int index: position 
-        :returns: (Transcript) -- A Transcript consisting of the single
-        letter at position :attr:`index`.
-        """
-        item = str(self)[index]
-        return Transcript(self.transcript_id, item, self.vars)
+         Allows only simple slicing (i.e. start < stop)
 
+        :param int index: position 
+        :returns: A :class:`~Fred2.Core.Transcript.Transcript` consisting of the single letter at position :attr:`index`
+                  or a new sliced :class:`~Fred2.Core.Transcript.Transcript` (following :mod:`Bio.Seq.Seq` definition)
+        :rtype: :class:`~Fred2.Core.Transcript.Transcript`
+        """
+        if isinstance(index, int):
+            #Return a single letter as a string
+            return str(self)[index]
+        else:
+            start, stop, step = index.indices(len(self))
+            if start > stop:
+                raise ValueError("start has to be greater than stop")
+
+            if index.step:
+                slice = set(xrange(start, step, stop))
+            else:
+                slice = set(xrange(start, stop))
+
+            _vars = {}
+            _fs = {}
+            shift = 0
+            #collect also all frame shift variants that are not canceled out
+            for pos, v in sorted(self.vars.iteritems()):
+                if pos < start:
+                    if v.type in [VariationType.FSINS, VariationType.FSDEL]:
+                        shift = (v.get_shift()+shift) % 3
+                        if shift:
+                            _fs.setdefault[pos-start] = v
+                        else:
+                            _fs.clear()
+                if pos in slice:
+                    _vars[pos-start] = v
+            _vars.update(_fs)
+            trans_id = self.transcript_id+":"+str(Transcript.newid())
+            seq = str(self)[index]
+            t = Transcript(seq, gene_id=self.gene_id, transcript_id=trans_id, vars=_vars)
+            return t
 
     def __repr__(self):
-        lines = []
-        lines += ["TRANSCRIPT: %s " % self.transcript_id]
-        
+        lines = ["TRANSCRIPT: %s" % self.transcript_id]
         # get all variants:
         lines += ["VARIANTS:"]
         for vpos, var in self.vars.iteritems():
-            lines.append('\t pos %i: %s'%(vpos, var))
-
+            lines.append('\tpos %i: %s'%(vpos, var))
         lines += ["SEQUENCE: %s (mRNA)"%str(self)]
-
-        return '\n\t'.join(lines) + '\n'
-
-
-    def translate(self, table='Standard', stop_symbol='*', to_stop=False, 
-                  cds=False):
-        """
-        Overrides :meth:`Bio.Seq.Seq.translate` (from Biopython) and enables 
-        the translation from a transcript to a protein instance
-
-        :param returns: (Protein) -- the protein that corresponds to the 
-                        transcript
-        """
-        # translate to a protein sequence
-        if len(str(self)) % 3 != 0:
-            raise ValueError('ERROR while translating: lenght of transcript %s \
-is no multiple of 3, the transcript is:\n %s' % (self.transcript_id, self))
-
-        prot_seq = str(Seq.translate(self))
-
-        # only transfer the non-synonymous variants to the protein as an
-        # ordered dict, also translate into protein positions
-        new_vars = dict()
-        for var in self.vars.values():
-            if not var.isSynonymous:
-                pos = var.get_protein_position(self.transcript_id)
-                new_vars.setdefault(pos, []).append(var)
-
-        gene_id = self.gene_id
-        return Protein(prot_seq, gene_id, self.transcript_id, self, new_vars)
+        return '\n\t'.join(lines)
 
     def __eq__(self, other):
         return str(self) == str(other)
+
+    def __lt__(self, other):
+        return str(self) <= str(other)
+
+    def __ge__(self, other):
+        return str(self) >= str(other)
 
     def __cmp__(self, other):
         return cmp(str(self), str(other))

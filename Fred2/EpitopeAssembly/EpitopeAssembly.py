@@ -3,19 +3,18 @@
 # as part of this package.
 """
 .. module:: EpitopeAssembly.EpitopeAssembly
-   :synopsis: This module contains all classes for all other EpitopeAssembly.
+   :synopsis: This module contains all classes for EpitopeAssembly.
 .. moduleauthor:: schubert
 
 """
 from __future__ import division
 
 import os
-import copy
 import subprocess
 import warnings
 import itertools as itr
 import multiprocessing as mp
-
+import copy
 
 from tempfile import NamedTemporaryFile
 
@@ -23,27 +22,31 @@ from pyomo.environ import *
 from pyomo.opt import SolverFactory,SolverStatus, TerminationCondition
 
 from Fred2.Core.Base import ACleavageSitePrediction
-from Fred2.Core.Protein import Protein
 from Fred2.Core.Peptide import Peptide
 from Fred2.CleavagePrediction.PSSM import APSSMCleavageSitePredictor
-from Fred2.EpitopePrediction.PSSM import APSSMEpitopePredictor
+from Fred2.EpitopePrediction.PSSM import APSSMEpitopePrediction
 
 
 class EpitopeAssembly(object):
     """
         Implements the epitope assembly approach proposed by Toussaint et al.
-        using proteasomal cleaveage site prediction and formulationg the problem as
+        using proteasomal cleavage site prediction and formulating the problem as
         TSP.
 
-        The ILP model is implemented. So be reasonable with the size of epitope to be arranged.
+        .. note::
 
-        :param List(Peptide) peptides: A list of peptides which shell be arranged
-        :param ACleavageSitePredictor pred: A cleavage site predictor
-        :param str solver: specifies the solver to use (mused by callable by coopr)
-        :param float weight: specifies how strong unwanted cleavage sites should be punished [0,1],
-                             where 0 means they will be ignored, and 1 the sum of all unwanted cleave sites is
-                             subtracted from the cleave site between two epitopes
-        :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
+            Toussaint, N.C., et al. Universal peptide vaccines - Optimal peptide vaccine design based on viral
+            sequence conservation. Vaccine 2011;29(47):8745-8753.
+
+        :param peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
+        :param pred: A :class:`~Fred2.Core.Base.ACleavageSitePrediction`
+        :type pred: :class:`~Fred2.Core.Base.ACleavageSitePredictor`
+        :param str solver: Specifies the solver to use (mused by callable by pyomo)
+        :param float weight: Specifies how strong unwanted cleavage sites should be punished [0,1], where 0 means they
+                             will be ignored, and 1 the sum of all unwanted cleave sites is subtracted from the cleave
+                             site between two epitopes
+        :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
     def __init__(self, peptides, pred, solver="glpk", weight=0.0, matrix=None, verbosity=0):
@@ -89,18 +92,16 @@ class EpitopeAssembly(object):
             for i in set(cleave_pred.index.get_level_values(0)):
                 fragment = "".join(cleave_pred.ix[i]["Seq"])
                 start, stop = fragments[fragment]
-    #            edge_matrix[(start, stop)] = -1.0 * (cleave_pred.loc[(i, len(str(start)) - 1), pred.name] - weight * sum(
-    #                cleave_pred.loc[(i, j), pred.name] for j in xrange(len(fragment)) if j != len(str(start)) - 1))
 
                 cleav_pos = len(str(start)) - 1
                 edge_matrix[(start, stop)] = -1.0 * (cleave_pred.loc[(i, len(str(start)) - 1), pred.name] - weight * sum(
                     cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1,cleav_pos+4,1) if j != cleav_pos))
 
-                self.neo_cleavage[(start, stop)] = sum(cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1,cleav_pos+4,1) if j != cleav_pos)
+                self.neo_cleavage[(start, stop)] = sum(cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1, cleav_pos+4,1) if j != cleav_pos)
                 self.good_cleavage[(start, stop)] = cleave_pred.loc[(i, len(str(start)) - 1), pred.name]
         else:
             edge_matrix = matrix
-            seq_to_pep = {str(p):p for p in pep_tmp}
+            seq_to_pep = {str(p): p for p in pep_tmp}
             for p in seq_to_pep.iterkeys():
                 if p != "Dummy":
                     edge_matrix[(p,"Dummy")] = 0
@@ -137,39 +138,45 @@ class EpitopeAssembly(object):
                                                   rule=lambda model, a, b:
                                                   model.u[a]-model.u[b]+1 <= (model.card -1)*(1-model.x[a, b]))
 
-        self.instance = model.create()
+        self.instance = model
         if self.__verbosity > 0:
             print "MODEL INSTANCE"
             self.instance.pprint()
 
-    def solve(self):
+    def solve(self, options=None):
         """
         Solves the Epitope Assembly problem and returns an ordered list of the peptides
 
-        :return: list(Peptide) - An order list of the peptides (based on the string-of-beads ordering)
+        .. note::
+
+            This can take quite long and should not be done for more and 30 epitopes max!
+
+        :param str options: Solver specific options as string (will not be checked for correctness)
+        :return: An order list of the :class:`~Fred2.Core.Peptide.Peptide` (based on the string-of-beads ordering)
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
 
-        self.instance.preprocess()
-
-        res = self.__solver.solve(self.instance)
-        self.instance.load(res)
+        options = dict() if options is None else options
+        res = self.__solver.solve(self.instance, options=options)
+        self.instance.solutions.load_from(res)
         if self.__verbosity > 0:
             res.write(num=1)
 
-        return [ self.__seq_to_pep[u] for u in sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
+        return [self.__seq_to_pep[u] for u in sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
 
     def approximate(self):
         """
-        Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
+        Approximates the eptiope assembly problem by applying Lin-Kernighan traveling salesman heuristic
 
-        LKH implementation must be downloaded, compiled, and globally executable.
+        .. note::
 
+            LKH implementation must be downloaded, compiled, and globally executable.
+            Source code can be found here:
+            http://www.akira.ruc.dk/~keld/research/LKH/
 
-        Source code can be found here:
-        http://www.akira.ruc.dk/~keld/research/LKH/
-        :return: list(Peptide) - An order list of the peptides (based on the sting-of-beads ordering)
+        :return: An order list of the :class:`~Fred2.Core.Peptide.Peptide` (based on the sting-of-beads ordering)
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
-        #TODO:Add external code to dependencies
         tmp_conf = NamedTemporaryFile(delete=False)
         tmp_prob = NamedTemporaryFile(delete=False)
         tmp_out = NamedTemporaryFile(delete=False)
@@ -183,19 +190,18 @@ class EpitopeAssembly(object):
         tmp_prob.write("NAME: %s\nTYPE: ATSP\nDIMENSION: %i\nEDGE_WEIGHT_TYPE: EXPLICIT\nEDGE_WEIGHT_FORMAT: FULL_MATRIX\nEDGE_WEIGHT_SECTION\n"%(tmp_prob.name,len(self.instance.E_prime)))
         for i in self.instance.E_prime:
             epis.append(i)
-            tmp_prob.write("\t".join("99999999" if i == j else str(int(float(self.instance.w_ab[i,j])*1000000)) for j in self.instance.E_prime)+"\n")
+            tmp_prob.write("\t".join("99999999" if i == j else str(int(float(self.instance.w_ab[i,j])*10000)) for j in self.instance.E_prime)+"\n")
 
         tmp_prob.write("EOF")
         tmp_prob.close()
 
         #try:
         r = subprocess.call("LKH %s"%tmp_conf.name, shell=True)
-        #os.system("LKH %s"%tmp_conf.name,shell=True)
-        #except Exception as e:
-        #    print e
-        #    return []
-
-        #read in result
+        if r == 127:
+                raise RuntimeError("LKH is not installed or globally executable.")
+        elif r != 0:
+                raise RuntimeError("An unknown error occurred for method LKH. "
+                                   "Please check whether LKH is globally executable.")
         result = []
         with open(tmp_out.name, "r") as resul_f:
             is_tour = False
@@ -211,12 +217,7 @@ class EpitopeAssembly(object):
                 else:
                     pass
 
-
-
-
         tmp_out.close()
-        #print tmp_prob.name
-        #print tmp_out.name
         os.remove(tmp_conf.name)
         os.remove(tmp_prob.name)
         os.remove(tmp_out.name)
@@ -229,34 +230,43 @@ def _runs_lexmin(a):
     """
     private used to unpack arguments send to processes
     :param a:
-    :return:
+    :return: ei,ej,cleavage_score,imm_score,c1_score,c2_score,non-junction_score
     """
-    spacer,cleav,epi,good_cleav,bad_cleav,non_c = _spacer_design(*a)
-    return a[0],a[1],cleav,epi,spacer,good_cleav,bad_cleav,non_c
+    spacer, cleav, epi, good_cleav, bad_cleav, non_c = _spacer_design(*a)
+    return a[0], a[1], cleav, epi, spacer, good_cleav, bad_cleav, non_c
 
 
-def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, weight,
-                    thresh, solver, beta=0, options=""):
+def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob, alpha,
+                    thresh, solver, beta=0, options=None):
     """
         PRIVATE:
         internal spacer design for a pre-defined spacer length between two epitopes
 
-        :param str ei: Start epitope
-        :param str ej: End epitope
-        :param int k: Length of spacer
-        :param str options: solver options
+        :param str ei: start epitope
+        :param str ej: end epitope
+        :param int k: length of spacer
+        :param int en: epitope length
+        :param int cn: cleavage-site string length
+        :param dict(int,dict(string,float)) cl_pssm: a cleavage site prediction PSSM as dict-of-dicts
+        :param dict(int,dict(string,float)) epi_pssm: a epitope prediction PSSM as dict-of-dicts
+        :param int cleav_pos: integer specifying at which AA within the epitope of length cn the cleave is predicted
+        :param dict(strin,float) allele_prob: a dict of HLA alleles as string (i.e. A*02:01) and probabilities [0,1]
+        :param float alpha: specifies the first-order influence on the objectives [0,1]
+        :param float thresh: specifies at which score a peptide is considered as epitope
+        :param string solver: string specifying which ILP solver should be used
+        :param dict(str,str) options: solver specific options as keys and parameters as values
         :return: Tuple of ei, ej, spacer (str), cleavage score, immunogenicity score
     """
+    options = dict() if options is None else options
 
     if k <= 0:
         seq = ei+ej
         i = len(ei)-cleav_pos
         g=len(ei)+k-cleav_pos
-        c1=sum(cl_pssm[j][seq[i+j]] for j in xrange(cn))
-        c2=sum(cl_pssm[j][seq[g+j]] for j in xrange(cn))
-        non_c = sum(cl_pssm[j][seq[k+j]] for k in xrange(len(seq)-(cn-1))
-                                                        for j in xrange(cn)
-                                                            if k != i and k != g)
+        c1=sum(cl_pssm[j][seq[i+j]] for j in xrange(cn))+cl_pssm.get(-1,{}).get("con",0)
+        c2=sum(cl_pssm[j][seq[g+j]] for j in xrange(cn))+cl_pssm.get(-1,{}).get("con",0)
+        non_c = sum(sum(cl_pssm[j][seq[k+j]] for j in xrange(cn) if k != i and k != g)+cl_pssm.get(-1,{}).get("con",0)
+                                                        for k in xrange(len(seq)-(cn-1)))
 
         imm = sum(prob*sum(max(sum(epi_pssms[j,seq[i+j],a] for j in xrange(en))+epi_pssms.get((-1,"con",a),0)-thresh[a],0)
                                                                     for i in xrange(len(seq)-en))
@@ -350,7 +360,7 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
     model.c_cleavage = Constraint(rule=lambda model: 0.5*(sum( model.f[i,a]*model.x[model.ci+i,a] for i in model.C for a in model.S[model.ci+i] )
                               + sum(model.f[j,a]*model.x[model.cj+j,a] for j in model.C for a in model.S[model.cj+j])+2*model.bc) >= model.tau_cleav)
 
-    instance = model.create()
+    instance = model
     solver = SolverFactory(solver)
 
     instance.obj_epi.deactivate()
@@ -358,11 +368,10 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
     instance.c_epi.deactivate()
     instance.c_cleavage.deactivate()
 
-    instance.preprocess()
-    res = solver.solve(instance,options=options)#, tee=True)
+    res = solver.solve(instance, options=options)#, tee=True)
 
     if (res.solver.status == SolverStatus.ok) and (res.solver.termination_condition == TerminationCondition.optimal):
-        instance.load(res)
+        instance.solutions.load_from(res)
         #print "In Second objective ",options
         obj_cleav = instance.obj_cleav()
 
@@ -371,16 +380,13 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         instance.c_cleavage.activate()
 
         #set bound of now inactive objective
-        getattr(instance, "tau_cleav").set_value(weight*obj_cleav)
+        getattr(instance, "tau_cleav").set_value(alpha*obj_cleav)
         #instance.pprint()
 
-        instance.x.reset()
-        instance.y.reset()
-        instance.preprocess()
-        res2 = solver.solve(instance,options=options)#, tee=True)
+        res2 = solver.solve(instance, options=options)#, tee=True)
         if (res2.solver.status == SolverStatus.ok) and (
             res2.solver.termination_condition == TerminationCondition.optimal):
-            instance.load(res2)
+            instance.solutions.load_from(res2)
 
             if beta:
 
@@ -393,10 +399,8 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
 
                 getattr(instance, "tau_epi").set_value((2-beta)*obj_imm)
                 #print "imm",obj_imm,"tau_epi", (2-beta)*obj_imm
-                instance.x.reset()
-                instance.y.reset()
-                instance.preprocess()
-                res3 = solver.solve(instance,options=options)#, tee=True)
+
+                res3 = solver.solve(instance, options=options)#, tee=True)
                 if (res3.solver.status == SolverStatus.ok) and (res3.solver.termination_condition == TerminationCondition.optimal):
                     instance.load(res3)
                     ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a] for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
@@ -412,9 +416,9 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                 else:
                     raise RuntimeError("Problem could not be solved. Please check your input.")
             else:
-                ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a] for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
-                cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a] for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
-                non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a] for i in xrange(le-(cn-1))
+                ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
+                cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
+                non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a].value for i in xrange(le-(cn-1))
                                                             for j in instance.C
                                                                 for a in instance.S[i+j]
                                                                     if i != instance.ci and i != instance.cj))
@@ -437,28 +441,38 @@ class EpitopeAssemblyWithSpacer(object):
         (currently only allowed with PSSM cleavage site and epitope prediction)
 
         The ILP model is implemented. So be reasonable with the size of epitope to be arranged.
-
-        :param List(Peptide) peptides: A list of peptides which shell be arranged
-        :param ACleavageSitePredictor cleav_pred: A cleavage site predictor (PSSM only)
-        :param AEpitopePredictor epi_pred: A epitope predictior (PSSM only)
-        :param List(Allele) alleles: A list of alleles for which predictions should be made
-        :param int k: The maximal length of a spacer
-        :param int en: Length of epitopes
-        :param str solver: specifies the solver to use (mused by callable by coopr)
-        :param float weight: specifies how strong unwanted cleavage sites should be punished [0,1],
-                             where 0 means they will be ignored, and 1 the sum of all unwanted cleave sites is
-                             subtracted from the cleave site between two epitopes
-        :param int verbosity: specifies how verbos the class will be, 0 means normal, >0 debug mode
     """
 
-    def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", alpha=0.99,beta=0.99, verbosity=0):
+    def __init__(self, peptides, cleav_pred, epi_pred, alleles, k=5, en=9, threshold=None, solver="glpk", alpha=0.99,
+                 beta=0, verbosity=0):
+        """
+
+        :param peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
+        :param cleav_pred: A :class:`~Fred2.CleavagePrediction.PSSM.APSSMCleavageSitePredictor` (PSSM only)
+        :type cleav_pred: :class:`~Fred2.Core.Base.ACleavageSitePredictor`
+        :param epi_pred: A :class:`~Fred2.EpitopePrediction.PSSM.APSSMEpitopePrediction` (PSSM only)
+        :type epi_pred: :class:`~Fred2.Core.Base.AEpitopePredictor`
+        :param alleles: A list of :class:`~Fred2.Core.Allele.Allele` for which predictions should be made
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :param int k: The maximal length of a spacer
+        :param int en: Length of epitopes
+        :param dict(str,float) threshold: A dictionary specifying the epitope prediction threshold for each
+                                          :class:`~Fred2.Core.Allele.Allele`
+        :param str solver: Specifies the solver to use (must be callable by pyomo)
+        :param float alpha: Specifies how how much junction-cleavage score can be sacrificed  to gain lower
+                            neo-immunogenicity
+        :param float beta: Specifies how how much noe-immunogenicity score can be sacrificed to gain lower non-junction
+                           cleavage score
+        :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
+        """
 
         #test input
         if not isinstance(cleav_pred, APSSMCleavageSitePredictor):
             raise ValueError("Second input must be a PSSM-based cleavage site predictor.")
 
-        #if not isinstance(epi_pred, APSSMEpitopePredictor):
-        #    raise ValueError("Third input must be a PSSM-based epitope predictor.")
+        if not isinstance(epi_pred, APSSMEpitopePrediction):
+            raise ValueError("Third input must be a PSSM-based epitope predictor.")
 
         if en not in epi_pred.supportedLength:
             raise ValueError("Specified epitope length of en=%i is not supported by %s"%(en,epi_pred.name))
@@ -514,54 +528,61 @@ class EpitopeAssemblyWithSpacer(object):
         self.__changed = True
         self.__k = k
         self.__result = None
-        self.__thresh = {a.name:0 for a in alleles} if threshold is None else threshold
+        self.__thresh = {a.name: 0 for a in alleles} if threshold is None else threshold
         self.__alleles = _alleles
         self.__epi_pred = epi_pred
         self.__clev_pred = cleav_pred
         self.__en = en
         self.__alpha = alpha
         self.__beta = beta
-        self.__peptides = peptides
+        self.__peptides = list(peptides)
         #model construction for spacer design
 
-    def solve(self, threads=None, options="",start=0):
+    def solve(self, start=0, threads=None, options=None):
         """
-        solve the epitope assembly problem with spacers optimally using integer linear programming.
+        Solve the epitope assembly problem with spacers optimally using integer linear programming.
 
-        Cations: this can take quite long and should not be done for more and 30 epitopes max!
+        .. note::
 
+            This can take quite long and should not be done for more and 30 epitopes max!
+            Also, one has to disable pre-solving steps in order to use this model.
+
+        :param int start: Start length for spacers (default 0).
         :param int threads: Number of threads used for spacer design.
-                Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
-        :param str options: Solver specific options (threads for example)
-        :return: Sting-of-beats with spacer
+                            Be careful, if options contain solver threads it will allocate threads*solver_threads cores!
+        :param dict(str,str) options: Solver specific options as keys and parameters as values
+        :return: A list of ordered :class:`~Fred2.Core.Peptide.Peptide`
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
-        def __load_model(data, name, length):
-            model = "%s_%s"%(name, str(length))
-            return getattr( __import__(data, fromlist=[model]), model)
+        def __load_model(name, model):
+            return getattr(__import__("Fred2.Data.pssms."+name+".mat."+model, fromlist=[model]), model)
 
-
+        options = dict() if options is None else options
         threads = mp.cpu_count() if threads is None else threads
         pool = mp.Pool(threads)
 
 
         #prepare parameters
         cn = min(self.__clev_pred.supportedLength)
-        cl_pssm = __load_model("Fred2.Data.CleaveagePSSMMatrices", self.__clev_pred.name,cn)
+        cl_pssm = __load_model(self.__clev_pred.name, self.__clev_pred.name+"_"+str(cn))
         cleav_pos = self.__clev_pred.cleavagePos
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
-            pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
-                                self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            for j,v in pssm.iteritems():
-                for aa,score in  v.iteritems():
-                    epi_pssms[j,aa,a.name] = score
+            pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+            for j, v in pssm.iteritems():
+                for aa, score in v.iteritems():
+                    if self.__epi_pred.name in ["SMM", "SMMPMBEC"]:
+                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+                        self.__thresh = {k: 1-math.log(v, 50000) for k, v in self.__thresh.iteritems()}
+                    else:
+                        epi_pssms[j, aa, a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
-        res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
-                                       self.__alpha, self.__thresh, self.__solver, self.__beta, options)
+        res = map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
+                                      self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
         pool.close()
@@ -582,7 +603,7 @@ class EpitopeAssemblyWithSpacer(object):
         self.spacer = opt_spacer
         #print "solve assembly with generated adjacency matrix"
         assembler = EpitopeAssembly(self.__peptides, self.__clev_pred, solver=self.__solver, matrix=adj_matrix)
-        res = assembler.solve()
+        res = assembler.solve(options=options)
 
         #generate output
         sob = []
@@ -595,7 +616,7 @@ class EpitopeAssemblyWithSpacer(object):
             sob.append(Peptide(ej))
         return sob
 
-    def approximate(self, start=0, threads=1,options=""):
+    def approximate(self, start=0, threads=1, options=None):
         """
         Approximates the Eptiope Assembly problem by applying Lin-Kernighan traveling salesman heuristic
 
@@ -605,16 +626,17 @@ class EpitopeAssemblyWithSpacer(object):
         http://www.akira.ruc.dk/~keld/research/LKH/
 
         :param int start: Start length for spacers (default 0).
-        :param int threads: Number of threads used for spacer design.
-                Be careful in if options contain solver threads if will allocate threads*solver_threads cores!
-        :param str options: Solver specific options (threads for example)
-        :return: Sting-of-beats with spacer
+        :param int threads: Number of threads used for spacer design. Be careful, if options contain solver threads it
+                            will allocate threads*solver_threads cores!
+        :param dict(str,str) options: Solver specific options (threads for example)
+        :return: A list of ordered :class:`~Fred2.Core.Peptide.Peptide`
+        :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
         def __load_model(data, name, length):
             model = "%s_%s"%(name, str(length))
-            return getattr( __import__(data, fromlist=[model]), model)
+            return getattr(__import__(data, fromlist=[model]), model)
 
-
+        options = dict() if options is None else options
         threads = mp.cpu_count() if threads is None else threads
         pool = mp.Pool(threads)
 
@@ -632,9 +654,9 @@ class EpitopeAssemblyWithSpacer(object):
                 pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
                                     self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
                 allele_prob[a.name] = a.prob
-                for j,v in pssm.iteritems():
-                    for aa,score in  v.iteritems():
-                        epi_pssms[j,aa,a.name] = score
+                for j, v in pssm.iteritems():
+                    for aa, score in v.iteritems():
+                        epi_pssms[j, aa, a.name] = score
             except AttributeError:
                 #del self.__thresh[a.name]
                 continue
@@ -657,8 +679,8 @@ class EpitopeAssemblyWithSpacer(object):
         #print res
         #print "find best scoring spacer for each epitope pair"
         for ei, ej, score, epi, spacer, c1, c2, non_c in res:
-                if adj_matrix.get((ei, ej), inf) > -min(c1,c2):
-                    adj_matrix[(ei, ej)] = -min(c1,c2)
+                if adj_matrix.get((ei, ej), inf) > -min(c1, c2):
+                    adj_matrix[(ei, ej)] = -min(c1, c2)
                     opt_spacer[(ei, ej)] = spacer
 
         self.spacer = opt_spacer

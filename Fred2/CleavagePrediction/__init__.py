@@ -1,11 +1,23 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'schubert'
+"""
+.. module:: CleavagePrediction
+   :synopsis: Factory classes for cleavage site and fragment prediction.
+              This is the entry point to all cleavage prediction methods.
+.. moduleauthor:: schubert
+
+"""
 
 from Fred2.Core.Base import ACleavageSitePrediction, ACleavageFragmentPrediction
 from Fred2.CleavagePrediction.PSSM import *
-from Fred2.CleavagePrediction.ANN import *
+from Fred2.CleavagePrediction.External import *
+
+try:
+    from fred_plugin import *
+except ImportError:
+    pass
+
 
 class CleavageSitePredictorFactory(object):
     class __metaclass__(type):
@@ -13,31 +25,30 @@ class CleavageSitePredictorFactory(object):
             type.__init__(cls, name, bases, nmspc)
 
         def __call__(self, _predictor, *args, **kwargs):
-            '''
-            just as I think it works.....
-
-            If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
+            """
+            If a third person wants to write a new Cleavage Site Predictor. One has to name the file fred_plugin and
             inherit from ACleavagePrediction. That's it nothing more.
-            '''
-            try:
-                from fred_plugin import *
-            except ImportError:
-                pass
+            """
 
+            version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
-                return ACleavageSitePrediction.registry[_predictor](*args)
-            except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
-                                 "supported by FRED2 and inherits ACleavageSitePrediction.")
+                return ACleavageSitePrediction[str(_predictor).lower(), version](*args)
+            except KeyError as e:
+                if version is None:
+                    raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                                "supported by FRED2 and inherits ACleavageSitePrediction.")
+                else:
+                    raise ValueError("Predictor %s version %s is not known. Please verify that such an Predictor is "%(_predictor, version) +
+                                "supported by FRED2 and inherits ACleavageSitePrediction.")
 
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a list of available cleavage site predictors
 
-        :return: list of epitope predictors represented as string
+        :return: dict(str,list(int)) - dict of cleavage site predictor represented as string and the supported versions
         """
-        return ACleavageSitePrediction.registry.keys()
+        return {k: sorted(versions.iterkeys()) for k, versions in ACleavageSitePrediction.registry.iteritems()}
 
 
 class CleavageFragmentPredictorFactory(object):
@@ -46,28 +57,27 @@ class CleavageFragmentPredictorFactory(object):
             type.__init__(cls, name, bases, nmspc)
 
         def __call__(self, _predictor, *args, **kwargs):
-            '''
-            just as I think it works.....
+            """
+            If a third person wants to write a new Cleavage Fragment Predictor. One has to name the file fred_plugin and
+            inherit from CleavageFragmentPredictorFactory. That's it nothing more.
+            """
 
-            If a third person wants to write a new Epitope Predictior. He/She has to name the file fred_plugin and
-            inherit from ACleavagePrediction. That's it nothing more.
-            '''
+            version = str(kwargs["version"]).lower() if "version" in kwargs else None
             try:
-                from fred_plugin import *
-            except ImportError:
-                pass
-
-            try:
-                return ACleavageFragmentPrediction.registry[_predictor](*args)
-            except KeyError:
-                raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
-                                 "supported by FRED2 and inherits ACleavageFragmentPrediction.")
+                return ACleavageFragmentPrediction[str(_predictor).lower(), version](*args)
+            except KeyError as e:
+                if version is None:
+                    raise ValueError("Predictor %s is not known. Please verify that such an Predictor is "%_predictor +
+                                "supported by FRED2 and inherits ACleavageFragmentPrediction.")
+                else:
+                    raise ValueError("Predictor %s version %s is not known. Please verify that such an Predictor is "%(_predictor, version) +
+                                "supported by FRED2 and inherits ACleavageFragmentPrediction.")
 
     @staticmethod
     def available_methods():
         """
-        Returns a list of available epitope predictors
+        Returns a list of available cleavage site predictors
 
-        :return: list of epitope predictors represented as string
+        :return: dict(str,list(str)) - dict of cleavage site predictor represented as string and the supported versions
         """
-        return ACleavageFragmentPrediction.registry.keys()
+        return {k: sorted(versions.iterkeys()) for k, versions in ACleavageFragmentPrediction.registry.iteritems()}

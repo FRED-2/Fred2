@@ -1,7 +1,11 @@
 # This code is part of the Fred2 distribution and governed by its
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
-__author__ = 'walzer'
+"""
+.. module:: IO.RefSeqAdapter
+   :synopsis: DB-Adapter class for RefSeq
+.. moduleauthor:: walzer
+"""
 
 import logging
 
@@ -31,11 +35,13 @@ class RefSeqAdapter(ADBAdapter):
                     print 'claaaash!!'  # TODO no clashes in v.66 but ever?! use logging.warning or something
         return refseq_records
 
-    def get_product_sequence(self, product_refseq):
+    def get_product_sequence(self, product_refseq, **kwargs):
         """
-        fetches product sequence for the given id
-        :param product_refseq: given refseq id
-        :return: list of dictionaries of the requested sequence, the respective strand and the associated gene name
+        Fetches product sequence for the given id
+
+        :param str product_refseq: Given refseq id
+        :return: List of dictionaries of the requested sequence, the respective strand and the associated gene name
+        :rtype: list(dict)
         """
         if self.refseq_prot:
             if product_refseq in self.refseq_prot:
@@ -45,7 +51,7 @@ class RefSeqAdapter(ADBAdapter):
         else:
             logging.warning('no sequences loaded')
 
-    def get_transcript_sequence(self, transcript_refseq):
+    def get_transcript_sequence(self, transcript_refseq, **kwargs):
         """
         Fetches transcript sequence for the given id
         :param transcript_refseq:
@@ -59,7 +65,7 @@ class RefSeqAdapter(ADBAdapter):
         else:
             logging.warning('no sequences loaded')
 
-    def get_transcript_information(self, transcript_refseq):
+    def get_transcript_information(self, transcript_refseq, **kwargs):
         pass
 
 # from Bio import Entrez

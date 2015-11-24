@@ -4,10 +4,10 @@
 """
 .. module:: Variant
    :synopsis: Contains relevant classes describing variants.
-.. moduleauthor:: schubert, szolek, walzer
+.. moduleauthor:: schubert, walzer
 
 """
-__author__ = 'schubert'
+import math
 
 from Fred2.Core.Base import MetadataLogger
 
@@ -29,12 +29,13 @@ class MutationSyntax():
     This class represents the mutation syntax of a variant and stores its 
     transcript and protein position
 
-    :param str transID: the transcript id
-    :param int transPos: the position of the variant within the transcript
-    :param int protPos: the protein position of the variant within the 
-                        transcript
-    :param str cds: the complete cds_mutation_syntax string
-    :param str aas: the complete protein_mutation_syntax string
+    :param str transID: The :class:`~Fred2.Core.Transcript.Transcript` id
+    :param int transPos: The position of the :class:`~Fred2.Core.Variant.Variant` within the
+                         :class:`~Fred2.Core.Transcript.Transcript`
+    :param int protPos: The :class:`~Fred2.Core.Protein.Protein` position of the :class:`~Fred2.Core.Variant.Variant`
+                        within the :class:`~Fred2.Core.Transcript.Transcript`
+    :param str cds: The complete cds_mutation_syntax string
+    :param str aas: The complete protein_mutation_syntax string
     """
     def __init__(self, transID, transPos, protPos, cds, aas):
         #TODO: is protPos always given? what about synonymous variants?
@@ -47,46 +48,40 @@ class MutationSyntax():
 
 class Variant(MetadataLogger):
     """
-    A Variant contains information about a single genetic modification of
+    A :class:`~Fred2.Core.Variant.Variant` contains information about a single genetic modification of
     the reference genome.
-
-    :param str id: Variant id
-    :param Enum.VariationType type: An Enum type of the variant either SNP, 
-                                    DEL, or INS
-    :param str chrom: The chromosome on which the variant lies
-    :param int genomePos: The genomic position of the variant
-    :param str ref: The reference seq at the genomic position
-    :param str obs: The observed variation at the genomic position
-    :param dict(str,MutationSyntax) coding: A dictionary of associated 
-                                            transcripts. Key=transcript_id, 
-                                            value=MutationSyntax
-    :param bool isHomozygous: defines if variant is homozygous or not
-    :param bool isSynonymous: defines if variant is a synonymous mutation 
-                              or not
-    :param dict(str,int) offsets: the position offset this variant has in a 
-                                  specific transcript-variant
-                                  key=transcript-variant-id (xxx:FRED2_nn)
-                                  value=offset
-    :param defaultdict(list) metadata: meta information (not relevant for core
-                                       functionality of Fred2)
 
     """
     def __init__(self, id, type, chrom, genomePos, ref, obs, coding,
                  isHomozygous, isSynonymous, experimentalDesign=None, metadata=None):
         """
         Constructor for a variant, see init-types in class parameters
+
+        :param str id: :class:`~Fred2.Core.Variant.Variant` id
+        :param type: An Enum type of the :class:`~Fred2.Core.Variant.Variant` either SNP, DEL, or INS
+        :type type: :func:`~Fred2.Core.Variant.VariationType`
+        :param str chrom: The chromosome on which the variant lies
+        :param int genomePos: The genomic position of the :class:`~Fred2.Core.Variant.Variant`
+        :param str ref: The reference seq at the genomic position
+        :param str obs: The observed variation at the genomic position
+        :param coding: A dictionary of associated transcripts. Key=transcript_id,
+                       value=:class:`~Fred2.Core.Variant.MutationSyntax`
+        :type coding: dict(str,:class:`~Fred2.Core.Variant.MutationSyntax`)
+        :param bool isHomozygous: Defines if variant is homozygous or not
+        :param bool isSynonymous: Defines if variant is a synonymous mutation or not
+        :param str experimentalDesign: String specifying the experimental condition (e.g. tumor)
+        :param dict(list) metadata: meta information (not relevant for core functionality of Fred2)
         """
         MetadataLogger.__init__(self)
         self.id = id
         self.type = type
         self.chrom = chrom
         self.genomePos = genomePos
-        self.ref = ref
-        self.obs = obs
+        self.ref = ref.upper()
+        self.obs = obs.upper()
         self.gene = None
         self.isHomozygous = isHomozygous
         self.isSynonymous = isSynonymous
-        self.offsets = {}
         self.coding = coding  # dict transcript_id:MutationSyntax
         self.experimentalDesign = "" if experimentalDesign is None else experimentalDesign
 
@@ -95,61 +90,57 @@ class Variant(MetadataLogger):
                 self.log_metadata(meta, metadata[meta])
 
     def __repr__(self):
-        return "Variant(%s%i%s):%s" % (self.ref, self.genomePos, self.obs,
-                                       self.experimentalDesign) if self.experimentalDesign else "Variant(%s%i%s)" % (
-        self.ref, self.genomePos, self.obs)
+        return "Variant(g.%i%s>%s):%s" % (self.genomePos, self.ref, self.obs, self.experimentalDesign) \
+            if self.experimentalDesign else "Variant(g.%i%s>%s)" % (self.genomePos, self.ref, self.obs)
 
     def get_transcript_offset(self):
+        """
+        Returns the sequence offset caused by the mutation
+
+        :return: The sequence offset
+        :rtype: int
+        """
         return len(self.obs) - len(self.ref)
 
     def get_shift(self):
+        """
+        Returns the frameshift offset caused by the mutation in {0,1,2}
+
+        :return: The frameshift caused by mutation
+        :rtype: int
+        """
         return self.get_transcript_offset() % 3
 
-    def get_transcript_position(self, trans_variant_id):
+    def get_annotated_transcript_pos(self, transID):
         """
-        .. note::
+        Returns the annotated :class:`~Fred2.Core.Transcript.Transcript` position
 
-            May only be used for transcript variants that were created from
-            this variant via 
-            :func:`Generator.generate_transcripts_from_variants`.
-
-        returns the specific transcript position of a given transcript_id. 
-        If variant is not associated with the given transcript id the function 
-        throws a KeyError
-
-        :param str transcriptId: A transcript_id
-        :return: (int) -- transcript position
-        :raises: KeyError
+        :param str transID: The :class:`~Fred2.Core.Transcript.Transcript` ID of interest
+        :return: The annotated :class:`~Fred2.Core.Transcript.Transcript` position of the given
+                 :class:`~Fred2.Core.Transcript.Transcript` ID
+        :rtype: int
+        :raises KeyError: If variant is not annotated to the given :class:`~Fred2.Core.Transcript.Transcript` ID
         """
-        trans_id = trans_variant_id.split(":FRED2_")[0]
+        trID = transID.split(":FRED_")[0]
         try:
-            return self.coding[trans_id].tranPos + \
-                   self.offsets.get(trans_variant_id, 0)
+            return self.coding[trID].tranPos
         except KeyError:
-            raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (trans_variant_id, str(self)))
+            raise KeyError("Variant {var} was not annotated to Transcript {tID}".format(var=repr(self), tID=transID))
 
-    def get_protein_position(self, trans_variant_id):
+    def get_annotated_protein_pos(self, transID):
         """
-        .. note::
+        Returns the annotated protein position
 
-            May only be used for transcript variants that were created from
-            this variant via 
-            :func:`Generator.generate_transcripts_from_variants`.
-
-        returns the specific protein position of a given transcript_id. If 
-        variant is not associated with the given transcript id the function 
-        throws a KeyError
-
-        :param str transcriptId: A transcript_id
-        :return: (int) -- the protein position of the variant
+        :param str transID: The :class:`~Fred2.Core.Transcript.Transcript` ID of interest
+        :return: The annotated :class:`~Fred2.Core.Protein.Protein` position of the given
+                 :class:`~Fred2.Core.Transcript.Transcript` ID
+        :rtype: int
+        :raise KeyError: If :class:`~Fred2.Core.Variant.Variant` is not annotated to the given
+                         :class:`~Fred2.Core.Transcript.Transcript` ID
         """
-        trans_id = trans_variant_id.split(":FRED2_")[0]
-        try: 
-            # get actual transcript position
-            tpos = self.coding[trans_id].tranPos + \
-                   self.offsets.get(trans_variant_id, 0)
+        trID = transID.split(":FRED_")[0]
+        try:
+            return self.coding[trID].protPos
         except KeyError:
-            raise KeyError("Transcript ID %s not associated with variant %s"%
-                           (str(trans_variant_id), self.__str__()))
-        return max((tpos//3) + 1, 0) # generate protein pos from transcript pos
+            raise KeyError("Variant {var} was not annotated to " \
+                           "Protein with transcript ID {tID}".format(var=repr(self),tID=transID))

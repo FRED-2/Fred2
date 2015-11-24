@@ -4,113 +4,106 @@
 """
 .. module:: Reader
    :synopsis: Module handles reading of files. line reading, FASTA reading, annovar reading
-.. moduleauthor:: 
-    brachvogel, schubert
+.. moduleauthor:: brachvogel, schubert
 
 """
+
 import warnings
+import os
+import re
 
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
-from Fred2.Core.Allele import Allele
 from Fred2.Core.Peptide import Peptide
-from Fred2.Core.Protein import Protein
-from Fred2.Core.Transcript import Transcript
 from Fred2.Core.Variant import Variant, VariationType, MutationSyntax
-
-
-def __check_type(type, allowed=['Peptide', 'Protein','Transcript']):
-    if not type in allowed:
-        raise ValueError("An invalid sequence object type was specified for \
-parsing a FASTA file. Type was %s but allowed types are: %s."%(type, allowed))
-
-
-def __create_single_sequ(sequ, id, type):
-    if type == "Peptide":
-        return Peptide(sequ)
-
-    elif type == "Protein":
-        return Protein(sequ, "unknown", id)
-
-    elif type == "Transcript":
-        return Transcript("unkown", id, sequ)
-
-    elif type == "Allele":
-        return Allele(sequ)
 
 
 ####################################
 #       F A S T A  -  R E A D E R
 ####################################
-def read_fasta(*argv, **kwargs):
+def read_fasta(files, in_type=Peptide, id_position=1):
     """
+    Generator function:
+
     Read a (couple of) peptide, protein or rna sequence from a FASTA file.
     User needs to specify the correct type of the underlying sequences. It can
     either be: Peptide, Protein or Transcript (for RNA).
 
-    :param *argv: a string list of absolute file names of the FASTA files to be
-                  read. Give as: get_sequence(*["path/name1", "path/name2"]).
-                  This field is required!
-    :param **kwargs: optional. Use get_sequence(*["path/name1", "path/name2",
-                     type="Protein"). Possible types are Peptide', 'Protein'
-                     and 'Transcript'.
-    :returns: (list(SequenceType)) -- a list of the specified sequence type
-              derived from the FASTA file sequences.
+    :param files: A (list) of file names to read in
+    :in_type files: list(str) or str
+    :param in_type: The type to read in
+    :type in_type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Transcript.Transcript`
+                or :class:`~Fred2.Core.Protein.Protein`
+    :param int id_position: the position of the id specified counted by |
+    :returns: a list of the specified sequence type derived from the FASTA file sequences.
+    :rtype: (list(:attr:`in_type`))
+    :raises ValueError: if a file is not readable
     """
-    _type = kwargs.get("type", "Peptide")
 
-    __check_type(_type)
-    print kwargs
-    collect = {}
+    if isinstance(files, basestring):
+            files = [files]
+    else:
+            if any(not os.path.exists(f) for f in files):
+                raise ValueError("Specified Files do not exist")
+
+    collect = set()
     # open all specified files:
-    for name in argv:
+    for name in files:
         with open(name, 'r') as handle:
             # iterate over all FASTA entries:
             for _id, seq in SimpleFastaParser(handle):
                 # generate element:
                 try:
-                    collect[seq.upper()] = _id.split("|")[kwargs["id_position"]]
-		    print collect[seq.upper()]
+                    _id = _id.split("|")[id_position]
                 except KeyError:
-                    collect[seq.upper()] = _id
+                   _id = _id
 
-    return [__create_single_sequ(seq, _id, _type) \
-            for seq, _id in collect.items()]
+                try:
+                    collect.add(in_type(seq.strip().upper(), _transcript_id=_id))
+                except TypeError:
+                    collect.add(in_type(seq.strip().upper()))
+    return list(collect)
+
 
 
 ####################################
 #       L I N E  -  R E A D E R
 ####################################
-def read_lines(*argv, **kwargs):
+def read_lines(files, in_type=Peptide):
     """
+    Generator function:
+
     Read a sequence directly from a line. User needs to manually specify the 
-    correct type of the underlying sequences. It can either be: 
-    Peptide, Protein or Transcript (for RNA).
+    correct type of the underlying data. It can either be:
+    Peptide, Protein or Transcript, Allele.
 
-    :param *argv: a list of strings of absolute file names of the FASTA files 
-                  that are to be read. Give as: 
-                  get_sequence(*["path/name1", "path/name2"]).
-                  This field is required!
-    :param **kwargs: optional. Use get_sequence(*["path/name1", "path/name2",
-                     type="Protein"). Possible types are Peptide', 'Protein'
-                     and 'Transcript'.
-    :returns: (list(SequenceType)) -- a list of the specified sequence type
-              derived from the FASTA file sequences.
+    :param files: a list of strings of absolute file names that are to be read.
+    :in_type files: list(str) or str
+    :param in_type: Possible in_type are :class:`~Fred2.Core.Peptide.Peptide`, :class:`~Fred2.Core.Protein.Protein`,
+                 :class:`~Fred2.Core.Transcript.Transcript`, and :class:`~Fred2.Core.Allele.Allele`.
+    :type in_type: :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` or
+                :class:`~Fred2.Core.Transcript.Transcript` or :class:`~Fred2.Core.Allele.Allele`
+    :returns: A list of the specified objects
+    :rtype: (list(:attr:`in_type`))
+    :raises IOError: if a file is not readable
     """
-    _type = kwargs.get("type", "Peptide")
 
-    __check_type(_type, ['Peptide', 'Protein', 'Transcript', 'Allele'])
+    if isinstance(files, basestring):
+            files = [files]
+    else:
+            if any(not os.path.exists(f) for f in files):
+                raise IOError("Specified Files do not exist")
 
     collect = set()
-    for name in argv:
+    #alternative to using strings is like: cf = getattr(Fred2.Core, "Protein"/"Peptide"/"Allele"/...all in core)
+    for name in files:
         with open(name, 'r') as handle:
             # iterate over all lines:
             for line in handle:
                 # generate element:
-                collect.add(line.strip().upper())
+                collect.add(in_type(line.strip().upper()))
 
-    return [__create_single_sequ(seq, "generic_id_"+str(_id), _type) \
-            for _id, seq in enumerate(collect)]
+    return list(collect)
 
 
 #####################################
@@ -118,20 +111,18 @@ def read_lines(*argv, **kwargs):
 #####################################
 def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
     """
-    Reads an gene-based ANNOVAR output file and generates Variant objects containing
-    all annotated transcript ids an outputs a list variants.
+    Reads an gene-based ANNOVAR output file and generates :class:`~Fred2.Core.Variant.Variant` objects containing
+    all annotated :class:`~Fred2.Core.Transcript.Transcript` ids an outputs a list :class:`~Fred2.Core.Variant.Variant`.
 
     :param str annovar_file: The path ot the ANNOVAR file
-    :param list(str) gene_filter: A list of gene names of interest (only variants associated
-                                  with these genes are generated)
-    :return: list(AVariant) -- List of variants fully annotated
+    :param list(str) gene_filter: A list of gene names of interest (only variants associated with these genes
+                                  are generated)
+    :return: List of :class:`~Fred2.Core.Variant.Variants fully annotated
+    :rtype: list(:class:`~Fred2.Core.Variant.Variant`)
     """
-    import re
 
     vars = []
     gene_filter = gene_filter if gene_filter is not None else []
-    nm_var_dict = {}
-    nm_gene_name = {}
 
     #fgd3:nm_001083536:exon6:c.g823a:p.v275i,fgd3:nm_001286993:exon6:c.g823a:p.v275i,fgd3:nm_033086:exon6:c.g823a:p.v275i
     #RE = re.compile("\w+:(\w+):exon\d+:c.(\D*)(\d+)_*(\d*)(\D\w*):p.\w+:\D*->\D*:(\D).*?,")
@@ -147,8 +138,8 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                    ('frameshift', 'insertion'): VariationType.FSINS}
     with open(annovar_file, "r") as f:
         for line in f:
-            id, type, line, chrom, genome_start, genome_stop, ref, alt, zygos=map(lambda x: x.strip().lower(),
-                                                                              line.split("\t")[:9])
+            mut_id, mut_type, line, chrom, genome_start, genome_stop, ref, alt, zygos = map(lambda x: x.strip().lower(),
+                                                                                    line.split("\t")[:9])
             #print ref, alt
 
             #test if its a intersting snp
@@ -162,7 +153,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                 warnings.warn("Skipping UNKWON gene")
                 continue
 
-           # print "Debug ", gene, type.split(),id
+           # print "Debug ", gene, type.split(),mut_id
             #print "Debug ", line, RE.findall(line), type, zygos
             coding = {}
             for nm_id_pos in RE.findall(line):
@@ -170,13 +161,14 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                 #print "Debug ",nm_id_pos
 
                 nm_id = nm_id.upper()
-                _,_,trans_coding,prot_coding = mutation_string.split(":")
-                coding[nm_id] = MutationSyntax(nm_id,int(trans_pos),int(prot_start),trans_coding,prot_coding)
+                _, _, trans_coding, prot_coding = mutation_string.split(":")
+                #internal transcript and protein position start at 0!
+                coding[nm_id] = MutationSyntax(nm_id, int(trans_pos)-1, int(prot_start)-1, trans_coding, prot_coding)
 
-            ty = tuple(type.split())
+            ty = tuple(mut_type.split())
 
             vars.append(
-                Variant(id, type_mapper.get(ty, VariationType.UNKNOWN), chrom, int(genome_start), ref.upper(),
+                Variant(mut_id, type_mapper.get(ty, VariationType.UNKNOWN), chrom, int(genome_start), ref.upper(),
                         alt.upper(), coding, zygos == "hom", ty[0] == "synonymous",
                         experimentalDesign=experimentalDesig))
     return vars

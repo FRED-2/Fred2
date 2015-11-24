@@ -1,54 +1,66 @@
+# This code is part of the Fred2 distribution and governed by its
+# license.  Please see the LICENSE file that should have been included
+# as part of this package.
 """
 .. module:: TAPPrediction.SVM
    :synopsis: This module contains all SVM-based TAP prediction tools
 .. moduleauthor:: schubert
 
 """
-__author__ = 'schubert'
 
 import svmlight
 import collections
 import itertools
-import os
 import warnings
+import pkg_resources
 
+from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Base import ATAPPrediction, ASVM
 from Fred2.Core.Result import TAPPredictionResult
 
 
 class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
-    def threshold(self):
-        return 0.5
-
     def predict(self, peptides,  **kwargs):
-        if isinstance(peptides, collections.Iterable):
-            pep_seqs = {str(p):p for p in peptides}
-        else:
-            pep_seqs = {str(peptides):peptides}
+        """
+        Returns TAP predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
+        """
+        if isinstance(peptides, Peptide):
+            pep_seqs = {str(peptides):peptides}
+        else:
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
 
         #group peptides by length and
 
-        result = {self.name:{}}
+        result = {self.name: {}}
         for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
             #load svm model
-            encoding = self.encode(peps)
-
             if length not in self.supportedLength:
-                warnings.warn("No model exists for peptides of length %i. Allowed lengths are (%s)"%(length,
-                                                                                    ", ".join(self.supportedLength)))
+                warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
                 continue
 
-            model_path = os.path.abspath("../Data/svms/%s/%s_%i"%(self.name, self.name, length))
-            model = svmlight.read_model(model_path)
 
+            encoding = self.encode(peps)
+
+            model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s_%i"%(self.name, length))
+            model = svmlight.read_model(model_path)
 
             pred = svmlight.classify(model, encoding.values())
             result[self.name] = {}
             for pep, score in itertools.izip(encoding.keys(), pred):
                     result[self.name][pep_seqs[pep]] = score
 
+        if not result[self.name]:
+            raise ValueError("No predictions could be made with "+self.name+" for given input.")
         df_result = TAPPredictionResult.from_dict(result)
 
         return df_result
@@ -56,32 +68,41 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
 
 class SVMTAP(ASVMTAPPrediction):
     """
-        Implements SVMTAP prediction of Doeness et al.
+    Implements SVMTAP prediction of Doeness et al.
 
-        An SVM method for prediction of TAP affinities.
-        Doennes, P. and Kohlbacher, O.
-        Integrated modeling of the major events in the MHC class I antigen processing pathway.
-        Protein Sci, 2005
+    .. note::
+
+        Doennes, P. and Kohlbacher, O. Integrated modeling of the major events in the MHC class
+        I antigen processing pathway. Protein Sci, 2005
     """
 
     __name = "svmtap"
-    __length = [9]
+    __length = frozenset([9])
+    __version = "1.0"
+
+    @property
+    def version(self):
+        """The version of the predictor"""
+        return self.__version
 
     @property
     def name(self):
+        """The name of the predictor"""
         return self.__name
 
     @property
     def supportedLength(self):
+        """A list of supported peptide lengths"""
         return self.__length
 
     def encode(self, peptides):
         """
-        Here implements a binary sparse encoding of the peptide
+        Encodes the :class:`~Fred2.Core.Peptide.Peptide` with a binary sparse encoding
 
-        :param peptides:
-        :return: dict(peptide, (tuple(int, list(tuple(int,float)))) -- dictionary with peptide
-                 as key and feature encoding as value (see svmlight encoding scheme http://svmlight.joachims.org/)
+        :param list(str) peptides: A list of :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Dictionary with :class:`~Fred2.Core.Peptide.Peptide` as key and feature encoding as value (see svmlight
+                 encoding scheme http://svmlight.joachims.org/)
+        :rtype: dict(:class:`~Fred2.Core.Peptide.Peptide`, (tuple(int, list(tuple(int,float))))
         """
         AA = {'A': 1, 'C': 2, 'E': 4, 'D': 3, 'G': 6, 'F': 5, 'I': 8, 'H': 7, 'K': 9, 'M': 11, 'L': 10, 'N': 12,
               'Q': 14, 'P': 13, 'S': 16, 'R': 15, 'T': 17, 'W': 19, 'V': 18, 'Y': 20}
@@ -96,10 +117,17 @@ class SVMTAP(ASVMTAPPrediction):
             return 0, encoding
 
         if isinstance(peptides, collections.Iterable):
-            return {p:__encode(p) for p in peptides}
+            return {p: __encode(p) for p in peptides}
         else:
-            return {peptides:__encode(peptides)}
+            return {peptides: __encode(peptides)}
 
+    def predict(self, peptides, **kwargs):
+        """
+        Returns predictions for given :class:`~Fred2.Core.Peptide.Peptide`.
 
-    def predict(self, peptides,  **kwargs):
-       return super(SVMTAP, self).predict(peptides, **kwargs)
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :return: Returns a :class:`~Fred2.Core.Result.TAPPredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.TAPPredictionResult`
+        """
+        return super(SVMTAP, self).predict(peptides, **kwargs)
