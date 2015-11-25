@@ -59,7 +59,7 @@ def read_fasta(files, in_type=Peptide, id_position=1):
                    _id = _id
 
                 try:
-                    collect.add(in_type(seq.strip().upper(), _transcript_id=_id))
+                    collect.add(in_type(seq.strip().upper(), transcript_id=_id))
                 except TypeError:
                     collect.add(in_type(seq.strip().upper()))
     return list(collect)
