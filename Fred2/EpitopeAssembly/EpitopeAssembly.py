@@ -15,6 +15,7 @@ import warnings
 import itertools as itr
 import multiprocessing as mp
 import copy
+import math
 
 from tempfile import NamedTemporaryFile
 
@@ -576,7 +577,7 @@ class EpitopeAssemblyWithSpacer(object):
                 for aa, score in v.iteritems():
                     if self.__epi_pred.name in ["SMM", "SMMPMBEC"]:
                         epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-                        self.__thresh = {k: 1-math.log(v, 50000) for k, v in self.__thresh.iteritems()}
+                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
                     else:
                         epi_pssms[j, aa, a.name] = score
 
@@ -649,17 +650,15 @@ class EpitopeAssemblyWithSpacer(object):
         epi_pssms = {}
         allele_prob = {}
         for a in self.__alleles:
-
-            try:
-                pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
-                                    self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-                allele_prob[a.name] = a.prob
-                for j, v in pssm.iteritems():
-                    for aa, score in v.iteritems():
+            allele_prob[a.name] = a.prob
+            pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+            for j, v in pssm.iteritems():
+                for aa, score in v.iteritems():
+                    if self.__epi_pred.name in ["SMM", "SMMPMBEC"]:
+                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
+                    else:
                         epi_pssms[j, aa, a.name] = score
-            except AttributeError:
-                #del self.__thresh[a.name]
-                continue
 
         if not epi_pssms:
             raise ValueError("Selected alleles with epitope length are not supported by the prediction method.")
