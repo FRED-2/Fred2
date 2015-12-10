@@ -2437,7 +2437,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         Immunogenetics. 2010 Apr 9. [Epub ahead of print]
     """
     __name = "netctlpan"
-    __command = "netctlpan -f {peptides} -a {alleles} {options} > {out}"
+    __command = "netCTLpan -f {peptides} -a {alleles} {options} > {out}"
     __supported_length = frozenset([8, 9, 10, 11])
     __alleles = frozenset(
         ['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
