@@ -206,7 +206,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
             if v.isHomozygous:
                 pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
-                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset, isReverse)
+                offset = _incorp.get(v.type, lambda a, b, c, d, e, f: e)(seq, v, tId, pos, offset, isReverse)
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset,isReverse):
                     yield s
             else:
@@ -223,7 +223,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
                 generate_peptides_from_variants.transOff += 1
                 pos = v.coding[tId].tranPos + offset
                 usedVs[pos] = v
-                offset = _incorp.get(v.type, lambda a, b, c, d, e: e)(seq, v, tId, pos, offset, isReverse)
+                offset = _incorp.get(v.type, lambda a, b, c, d, e, f: e)(seq, v, tId, pos, offset, isReverse)
 
                 for s in _generate_combinations(tId, vs, seq, usedVs, offset, isReverse):
                     yield s
