@@ -81,7 +81,7 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         try:
             stdo = None
             stde = None
-            cmd = _command.format(peptides=tmp_file.name, options="" if options is None else options, out=tmp_out.name)
+            cmd = _command.format(input=tmp_file.name, options="" if options is None else options, out=tmp_out.name)
             p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdo, stde = p.communicate()
             stdr = p.returncode
