@@ -55,7 +55,7 @@ def read_fasta(files, in_type=Peptide, id_position=1):
                 # generate element:
                 try:
                     _id = _id.split("|")[id_position]
-                except KeyError:
+                except IndexError:
                    _id = _id
 
                 try:
