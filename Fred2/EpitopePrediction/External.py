@@ -57,6 +57,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)/:class:`~Fred2.Core.Allele.Allele`
         :param str command: The path to a alternative binary (can be used if binary is not globally executable)
         :param str options: A string of additional options directly past to the external tool.
+        :keyword chunksize: denotes the chunksize in which the number of peptides are bulk processed
         :return: A :class:`~Fred2.Core.Result.EpitopePredictionResult` object
         :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
@@ -79,6 +80,10 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                     raise ValueError("Input is not of type Protein or Peptide")
                 pep_seqs[str(p)] = p
 
+        chunksize = len(pep_seqs)
+        if 'chunks' in kwargs:
+            chunksize = kwargs['chunks']
+
         if alleles is None:
             al = [Allele("HLA-" + a) for a in self.supportedAlleles]
             allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
@@ -94,7 +99,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         # group alleles in blocks of 80 alleles (NetMHC can't deal with more)
         _MAX_ALLELES = 50
 
-        # allowe customary executable specification
+        # allow custom executable specification
         if command is not None:
             exe = self.command.split()[0]
             _command = self.command.replace(exe, command)
@@ -132,41 +137,44 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                                                                                        self.name, length))
                 continue
             peps = list(peps)
-            tmp_out = NamedTemporaryFile(delete=False)
-            tmp_file = NamedTemporaryFile(delete=False)
-            self.prepare_input(peps, tmp_file)
-            #            tmp_file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(peps))
-            #                           if self.name.lower() in ["netmhcii","netctlpan"] else "\n".join(peps))
-            tmp_file.close()
+            for i in xrange(0, len(peps), chunksize):
+                tmp_out = NamedTemporaryFile(delete=False)
+                tmp_file = NamedTemporaryFile(delete=False)
+                self.prepare_input(peps[i:i+chunksize], tmp_file)
+                #            tmp_file.write("\n".join(">pepe_%i\n%s"%(i, p) for i, p in enumerate(peps))
+                #                           if self.name.lower() in ["netmhcii","netctlpan"] else "\n".join(peps))
+                tmp_file.close()
 
-            # generate cmd command
-            for allele_group in allele_groups:
-                try:
-                    stdo = None
-                    stde = None
-                    cmd = _command.format(peptides=tmp_file.name, alleles=",".join(allele_group),
-                                          options="" if options is None else options, out=tmp_out.name)
-                    p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                         stderr=subprocess.PIPE)
-                    # p.wait() communicate already waits for the process https://docs.python.org/2.7/library/subprocess.html#subprocess.Popen.communicate
-                    stdo, stde = p.communicate()
-                    stdr = p.returncode
-                    if stdr > 0:
-                        raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
-                except Exception as e:
-                    raise RuntimeError(e)
+                # generate cmd command
+                for allele_group in allele_groups:
+                    try:
+                        stdo = None
+                        stde = None
+                        cmd = _command.format(peptides=tmp_file.name, alleles=",".join(allele_group),
+                                              options="" if options is None else options, out=tmp_out.name)
+                        p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                             stderr=subprocess.PIPE)
+                        # p.wait() communicate already waits for the process https://docs.python.org/2.7/library/subprocess.html#subprocess.Popen.communicate
+                        stdo, stde = p.communicate()
+                        stdr = p.returncode
+                        if stdr > 0:
+                            raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
+                    except Exception as e:
+                        raise RuntimeError(e)
 
-                res_tmp = self.parse_external_result(tmp_out.name)
-                for al, ep_dict in res_tmp.iteritems():
-                    for p, v in ep_dict.iteritems():
-                        result[allales_string[al]][pep_seqs[p]] = v
-            os.remove(tmp_file.name)
-            tmp_out.close()
-            os.remove(tmp_out.name)
+                    res_tmp = self.parse_external_result(tmp_out.name)
+                    for al, ep_dict in res_tmp.iteritems():
+                        for p, v in ep_dict.iteritems():
+                            result[allales_string[al]][pep_seqs[p]] = v
+                os.remove(tmp_file.name)
+                tmp_out.close()
+                os.remove(tmp_out.name)
 
         if not result:
             raise ValueError("No predictions could be made with " + self.name +
                              " for given input. Check your epitope length and HLA allele combination.")
+
+
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
@@ -406,7 +414,7 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
     """
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhcpan"
-    __command = "netMHCpan -p {peptides} -a {alleles} {options} -ic50 -xls -xlsfile {out}"
+    __command = "netMHCpan-2.4 -p {peptides} -a {alleles} {options} -ic50 -xls -xlsfile {out}"
     __alleles = frozenset(
         ['A*01:01', 'A*01:02', 'A*01:03', 'A*01:06', 'A*01:07', 'A*01:08', 'A*01:09', 'A*01:10', 'A*01:12',
          'A*01:13', 'A*01:14', 'A*01:17', 'A*01:19', 'A*01:20', 'A*01:21', 'A*01:23', 'A*01:24', 'A*01:25',
