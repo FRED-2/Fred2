@@ -574,7 +574,7 @@ class EpitopeAssemblyWithSpacer(object):
             pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
             for j, v in pssm.iteritems():
                 for aa, score in v.iteritems():
-                    if self.__epi_pred.name in ["SMM", "SMMPMBEC"]:
+                    if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
                         epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
                         self.__thresh = {k: 1-math.log(v, 50000) for k, v in self.__thresh.iteritems()}
                     else:
