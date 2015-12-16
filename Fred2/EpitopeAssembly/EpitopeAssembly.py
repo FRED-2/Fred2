@@ -15,6 +15,7 @@ import warnings
 import itertools as itr
 import multiprocessing as mp
 import copy
+import math
 
 from tempfile import NamedTemporaryFile
 
@@ -576,7 +577,7 @@ class EpitopeAssemblyWithSpacer(object):
                 for aa, score in v.iteritems():
                     if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
                         epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-                        self.__thresh = {k: 1-math.log(v, 50000) for k, v in self.__thresh.iteritems()}
+                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
                     else:
                         epi_pssms[j, aa, a.name] = score
 
@@ -632,9 +633,8 @@ class EpitopeAssemblyWithSpacer(object):
         :return: A list of ordered :class:`~Fred2.Core.Peptide.Peptide`
         :rtype: list(:class:`~Fred2.Core.Peptide.Peptide`)
         """
-        def __load_model(data, name, length):
-            model = "%s_%s"%(name, str(length))
-            return getattr(__import__(data, fromlist=[model]), model)
+        def __load_model(name, model):
+            return getattr(__import__("Fred2.Data.pssms."+name+".mat."+model, fromlist=[model]), model)
 
         options = dict() if options is None else options
         threads = mp.cpu_count() if threads is None else threads
@@ -643,23 +643,21 @@ class EpitopeAssemblyWithSpacer(object):
 
         #prepare parameters
         cn = min(self.__clev_pred.supportedLength)
-        cl_pssm = __load_model("Fred2.Data.CleaveagePSSMMatrices", self.__clev_pred.name,cn)
+        cl_pssm = __load_model(self.__clev_pred.name, self.__clev_pred.name+"_"+str(cn))
         cleav_pos = self.__clev_pred.cleavagePos
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
         for a in self.__alleles:
-
-            try:
-                pssm = __load_model("Fred2.Data.EpitopePSSMMatrices",
-                                    self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-                allele_prob[a.name] = a.prob
-                for j, v in pssm.iteritems():
-                    for aa, score in v.iteritems():
+            allele_prob[a.name] = a.prob
+            pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+            for j, v in pssm.iteritems():
+                for aa, score in v.iteritems():
+                    if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
+                    else:
                         epi_pssms[j, aa, a.name] = score
-            except AttributeError:
-                #del self.__thresh[a.name]
-                continue
 
         if not epi_pssms:
             raise ValueError("Selected alleles with epitope length are not supported by the prediction method.")
