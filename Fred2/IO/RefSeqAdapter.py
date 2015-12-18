@@ -5,16 +5,18 @@
 .. module:: IO.RefSeqAdapter
    :synopsis: DB-Adapter class for RefSeq
 .. moduleauthor:: walzer
+.. deprecated:: 1.0
 """
 
 import logging
 
 from Bio import SeqIO
-
+from Fred2.Core.Base import deprecated
 from Fred2.IO.ADBAdapter import ADBAdapter
 
-#TODO: refactor ... function based on old code
+
 class RefSeqAdapter(ADBAdapter):
+    @deprecated  # TODO: refactor ... function based on old code
     def __init__(self, prot_file=None, prot_vers=None, mrna_file=None, mrna_vers=None):
         self.refseq_prot = self.load(prot_file)
         self.vers_prot = prot_vers
@@ -23,16 +25,19 @@ class RefSeqAdapter(ADBAdapter):
 
     def load(self, filename):
         refseq_records = dict()
-        with open(filename, "rU") as f:
-            for record in SeqIO.parse(f, "fasta"):
-                ridv = filter(None, record.id.split('|'))[-1]  # NP_001639.1
-                rid = ridv.split('.')[0]  # NP_001639
-                if rid not in refseq_records:
-                    refseq_records[rid] = record
-                    refseq_records[rid].dbxrefs.append(ridv)
-                    refseq_records[rid].id = rid
-                else:
-                    print 'claaaash!!'  # TODO no clashes in v.66 but ever?! use logging.warning or something
+        try:
+            with open(filename, "rU") as f:
+                for record in SeqIO.parse(f, "fasta"):
+                    ridv = filter(None, record.id.split('|'))[-1]  # NP_001639.1
+                    rid = ridv.split('.')[0]  # NP_001639
+                    if rid not in refseq_records:
+                        refseq_records[rid] = record
+                        refseq_records[rid].dbxrefs.append(ridv)
+                        refseq_records[rid].id = rid
+                    else:
+                        print 'claaaash!!'  # TODO no clashes in v.66 but ever?! use logging.warning or something
+        except:
+            pass
         return refseq_records
 
     def get_product_sequence(self, product_refseq, **kwargs):
