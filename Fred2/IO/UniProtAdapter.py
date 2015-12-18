@@ -2,18 +2,21 @@
 # license.  Please see the LICENSE file that should have been included
 # as part of this package.
 """
-.. module:: IO.niProtAdapter
+.. module:: IO.UniProtAdapter
    :synopsis: DB-Adapter class for UniProt
 .. moduleauthor:: walzer
+.. deprecated:: 1.0
 """
 
 import warnings
 import bisect
 
 from Bio import SeqIO
+from Fred2.Core.Base import deprecated
 
-#TODO: refactor ... function based on old code
+
 class UniProtDB:
+    @deprecated  # TODO: refactor ... function based on old code
     def __init__(self, name='fdb'):
         """
         UniProtDB class to give quick access to entries (fast exact match searches) and convenient ways to produce
