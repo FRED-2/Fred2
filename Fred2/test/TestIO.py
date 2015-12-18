@@ -47,7 +47,8 @@ class TestIO(TestCase):
     def test_read_fasta(self):
         seqs = FileReader.read_fasta(self.fa_path)
         self.assertEqual(len(seqs), 2)
-        self.assertRaises(Exception, FileReader.read_fasta, self.fa_unconventional_path) # no "|"
+        seqs = FileReader.read_fasta(self.fa_unconventional_path)  # no "|"
+        self.assertEqual(len(seqs), 174)
 
     def test_read_annovar_exonic(self):
         ano = FileReader.read_annovar_exonic(self.ano_path)
