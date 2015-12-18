@@ -1,15 +1,12 @@
 from unittest import TestCase
 import copy
 
-from Fred2.Core import Peptide
 from Fred2.Core import Allele
 from Fred2.IO import FileReader
-from Fred2.Core import Transcript
-from Fred2.Core import Variant
-from Fred2.Core import VariationType
-from Fred2.Core import MutationSyntax
 from Fred2.IO.MartsAdapter import MartsAdapter
 from Fred2.IO.EnsemblAdapter import EnsemblDB
+from Fred2.IO.RefSeqAdapter import RefSeqAdapter
+from Fred2.IO.UniProtAdapter import UniProtDB
 from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields, EIdentifierTypes
 import warnings
 import logging
@@ -18,6 +15,11 @@ __author__ = 'walzer'
 
 
 class TestIO(TestCase):
+    def assertWarnings(self, warning, call, *args, **kwds):
+        with warnings.catch_warnings(record=True) as warning_list:
+            warnings.simplefilter('always')
+            result = call(*args, **kwds)
+            self.assertTrue(any(item.category == warning for item in warning_list))
 
     def setUp(self):
         self.ale_path = "../Data/examples/alleles.txt"
@@ -63,7 +65,6 @@ class TestIO(TestCase):
         self.assertEqual(ed.get_transcript_information("ENSP00000337602", type=EIdentifierTypes.ENSEMBL)[0],
                          self.ENSEMBL_ensg)
 
-
     def test_MartsAdapter(self):
         ma = MartsAdapter(biomart="http://grch37.ensembl.org")
 
@@ -80,3 +81,9 @@ class TestIO(TestCase):
         self.assertDictEqual(self.ENST00000361221, ma.get_transcript_information('ENST00000361221', type=EIdentifierTypes.ENSEMBL))
         self.assertIsNone(ma.get_transcript_information("ENST00000614237", type=EIdentifierTypes.ENSEMBL))
         self.assertEqual(str(ma.get_ensembl_ids_from_id('TP53', type=EIdentifierTypes.GENENAME)), "[{0: 'ENSG00000141510', 1: '-', 3: 'ENST00000413465', 4: 'ENSP00000410739'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000359597', 4: 'ENSP00000352610'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000504290', 4: ''}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000510385', 4: ''}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000504937', 4: ''}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000269305', 4: 'ENSP00000269305'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000455263', 4: 'ENSP00000398846'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000420246', 4: 'ENSP00000391127'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000445888', 4: 'ENSP00000391478'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000576024', 4: 'ENSP00000458393'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000509690', 4: 'ENSP00000425104'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000514944', 4: 'ENSP00000423862'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000574684', 4: ''}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000505014', 4: ''}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000508793', 4: 'ENSP00000424104'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000604348', 4: 'ENSP00000473895'}, {0: 'ENSG00000141510', 1: '-', 3: 'ENST00000503591', 4: 'ENSP00000426252'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t8', 4: 'LRG_321p8'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t7', 4: 'LRG_321p13'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t6', 4: 'LRG_321p12'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t5', 4: 'LRG_321p11'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t4', 4: 'LRG_321p10'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t3', 4: 'LRG_321p3'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t2', 4: 'LRG_321p2'}, {0: 'LRG_321', 1: '+', 3: 'LRG_321t1', 4: 'LRG_321p1'}]")
+
+    def test_UniProtAdapter(self):
+        self.assertWarnings(DeprecationWarning, UniProtDB)
+
+    def test_RefSeqAdapter(self):
+        self.assertWarnings(DeprecationWarning, RefSeqAdapter,"1","2","3","4")
