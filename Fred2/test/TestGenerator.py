@@ -5,6 +5,10 @@ from Fred2.test.DummyAdapter import DummyAdapter
 from Fred2.test.VariantsForTesting import *
 from Fred2.Core import Generator
 from Fred2.IO.ADBAdapter import EIdentifierTypes
+import os
+import inspect
+import Fred2
+
 
 class GeneratorTest(TestCase):
     def setUp(self):
@@ -246,7 +250,8 @@ class GeneratorTest(TestCase):
     def test_real_life_test(self):
         mart = MartsAdapter(biomart="http://grch37.ensembl.org/biomart/martservice?query=")
 
-        vars = read_annovar_exonic("/home/travis/build/FRED-2/Fred2/Fred2/test/test_annovar.out")
+        ano_path = os.path.join(os.path.dirname(inspect.getfile(Fred2)), "Data/examples/test_annovar.out")
+        vars = read_annovar_exonic(ano_path)
 
         peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart,
                                                                                    EIdentifierTypes.REFSEQ)))
