@@ -43,7 +43,7 @@ setup(
     name='Fred2',
 
     # Version:
-    version='2.0.0',
+    version='2.0.1',
 
     description='A Framework for Epitope Detection and Vaccine Design',
     long_description=readme,
@@ -120,6 +120,6 @@ setup(
     #ext_modules=[d2s_module],
 
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
-    install_requires=['setuptools>=18.2', 'pandas', 'pyomo>=4.0', 'biopython', 'svmlight', 'MySQL-python >= 1.2.4'],
+    install_requires=['setuptools>=18.2', 'pandas', 'pyomo>=4.0','svmlight', 'MySQL-python >= 1.2.4', 'biopython'],
 
 )
