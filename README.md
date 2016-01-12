@@ -23,3 +23,4 @@ Getting Started
 ---------------
 
 Users and developers should start by reading our [wiki](https://github.com/FRED-2/Fred2/wiki) and [IPython tutorials](https://github.com/FRED-2/Fred2/tree/master/Fred2/tutorials).
+A reference documentation is also available [online](http://fred2.readthedocs.org/en/latest/).
