@@ -1403,7 +1403,7 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         core identification. Immunogenetics, 1-10.
     """
 
-    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    __supported_length = frozenset([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     __name = "netmhcIIpan"
     __command = "netMHCIIpan -f {peptides} -inptype 1 -a {alleles} {options} -xls -xlsfile {out}"
     __alleles = frozenset(
@@ -1604,7 +1604,7 @@ class NetMHCIIpan_3_1(NetMHCIIpan_3_0):
         Immunogenetics, 1-10.
     """
 
-    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    __supported_length = frozenset([9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     __name = "netmhcIIpan"
     __command = "netMHCIIpan -f {peptides} -inptype 1 -a {alleles} {options} -xls -xlsfile {out}"
     __alleles = frozenset(
