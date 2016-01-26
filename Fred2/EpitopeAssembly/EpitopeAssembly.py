@@ -582,7 +582,7 @@ class EpitopeAssemblyWithSpacer(object):
                         epi_pssms[j, aa, a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
-        res = map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
+        res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                       self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
