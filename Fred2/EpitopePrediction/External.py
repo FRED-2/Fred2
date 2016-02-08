@@ -11,6 +11,7 @@ import abc
 
 import itertools
 import warnings
+import logging
 import pandas
 import subprocess
 import csv
@@ -114,13 +115,13 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                 c_a = 0
                 allele_groups.append(allele_group)
                 if str(allales_string[a]) not in self.supportedAlleles:
-                    warnings.warn("Allele %s is not supported by %s" % (str(allales_string[a]), self.name))
+                    logging.warn("Allele %s is not supported by %s" % (str(allales_string[a]), self.name))
                     allele_group = []
                     continue
                 allele_group = [a]
             else:
                 if str(allales_string[a]) not in self.supportedAlleles:
-                    warnings.warn("Allele %s is not supported by %s" % (str(allales_string[a]), self.name))
+                    logging.warn("Allele %s is not supported by %s" % (str(allales_string[a]), self.name))
                     continue
                 allele_group.append(a)
                 c_a += 1
@@ -133,7 +134,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
             if length < min(self.supportedLength):
-                warnings.warn("Peptide length must be at least %i for %s but is %i" % (min(self.supportedLength),
+                logging.warn("Peptide length must be at least %i for %s but is %i" % (min(self.supportedLength),
                                                                                        self.name, length))
                 continue
             peps = list(peps)
@@ -151,7 +152,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                         stdo = None
                         stde = None
                         cmd = _command.format(peptides=tmp_file.name, alleles=",".join(allele_group),
-                                              options="" if options is None else options, out=tmp_out.name)
+                                              options="" if options is None else options, out=tmp_out.name, length=str(length))
                         p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE)
                         # p.wait() communicate already waits for the process https://docs.python.org/2.7/library/subprocess.html#subprocess.Popen.communicate
@@ -331,7 +332,7 @@ class NetMHC_3_0(NetMHC_3_4):
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhc"
     __version = "3.0a"
-    __command = "netMHC-3.0 -p {peptides} -a {alleles} -x {out} {options}"
+    __command = "netMHC-3.0 -p {peptides} -a {alleles} -x {out} -l {length} {options}"
 
     @property
     def version(self):
