@@ -5,7 +5,7 @@ Unittest for external epitope prediction methods
 import unittest
 import os
 
-from Fred2.Core import Allele
+from Fred2.Core import Allele, CombinedAllele
 from Fred2.Core import Peptide
 from Fred2.Core import Transcript
 
@@ -31,6 +31,7 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
         self.peptides_mhcII = [Peptide("AAAAAASYFPEITHI"), Peptide("IHTIEPFYSAAAAAA")]
         self.mhcI = [Allele("HLA-B*15:01"), Allele("HLA-A*02:01")]
         self.mhcII = [Allele("HLA-DRB1*07:01"), Allele("HLA-DRB1*15:01")]
+        self.mhcII_combined_alleles = [CombinedAllele("DPA1*01:03-DPB1*01:01"), CombinedAllele("DQA1*06:02-DQB1*06:31")]
         self.transcript = Transcript("")
 
     def test_multiple_inputs(self):
@@ -42,7 +43,9 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
                     try:
                         if any(a.name in mo.supportedAlleles for a in self.mhcII):
                             mo.predict(self.peptides_mhcII, alleles=self.mhcII)
-                        else:
+                        if any(a.name in mo.supportedAlleles for a in self.mhcII_combined_alleles):
+                            mo.predict(self.peptides_mhcII, alleles=self.mhcII_combined_alleles)
+                        if any(a.name in mo.supportedAlleles for a in self.mhcI):
                             mo.predict(self.peptides_mhcI, alleles=self.mhcI)
                         print "Success"
                     except RuntimeError as e: #catch only those stemming from binary unavailability
@@ -60,7 +63,9 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
                     try:
                         if any(a.name in mo.supportedAlleles for a in self.mhcII):
                             mo.predict(self.peptides_mhcII[0], alleles=self.mhcII)
-                        else:
+                        if any(a.name in mo.supportedAlleles for a in self.mhcII_combined_alleles):
+                            mo.predict(self.peptides_mhcII[0], alleles=self.mhcII_combined_alleles)
+                        if any(a.name in mo.supportedAlleles for a in self.mhcI):
                             mo.predict(self.peptides_mhcI[0], alleles=self.mhcI)
                         print "Success"
                     except RuntimeError as e: #catch only those stemming from binary unavailability
@@ -78,7 +83,9 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
                     try:
                         if any(a.name in mo.supportedAlleles for a in self.mhcII):
                             mo.predict(self.peptides_mhcII, alleles=self.mhcII[0])
-                        else:
+                        if any(a.name in mo.supportedAlleles for a in self.mhcII_combined_alleles):
+                            mo.predict(self.peptides_mhcII, alleles=self.mhcII_combined_alleles[0])
+                        if any(a.name in mo.supportedAlleles for a in self.mhcI):
                             mo.predict(self.peptides_mhcI, alleles=self.mhcI[0])
                         print "Success"
                     except RuntimeError as e: #catch only those stemming from binary unavailability
