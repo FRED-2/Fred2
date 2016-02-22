@@ -854,7 +854,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         locus protein of known sequence." PloS one 2.8 (2007): e796.
     """
     __version = "2.8"
-    __supported_length = frozenset([8, 9, 10, 11])
+    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14])
     __name = "netmhcpan"
     __command = "netMHCpan -p {peptides} -a {alleles} {options} -ic50 -xls -xlsfile {out}"
     __alleles = frozenset(
