@@ -133,8 +133,8 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         pep_groups = pep_seqs.keys()
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
-            if length < min(self.supportedLength):
-                logging.warn("Peptide length must be at least %i for %s but is %i" % (min(self.supportedLength),
+            if length not in self.supportedLength:
+                logging.warn("Peptide length must be at least %i or at most %i for %s but is %i" % (min(self.supportedLength), max(self.supportedLenght),
                                                                                        self.name, length))
                 continue
             peps = list(peps)
@@ -854,7 +854,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         locus protein of known sequence." PloS one 2.8 (2007): e796.
     """
     __version = "2.8"
-    __supported_length = frozenset([8, 9, 10, 11])
+    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14])
     __name = "netmhcpan"
     __command = "netMHCpan -p {peptides} -a {alleles} {options} -ic50 -xls -xlsfile {out}"
     __alleles = frozenset(
