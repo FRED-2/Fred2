@@ -477,7 +477,6 @@ class NetMHC_4_0(NetMHC_3_4):
         :return: The external version of the tool or None if tool does not support versioning
         :rtype: str
         """
-        print "calling NetMHC 4.0"
         # can not be determined netmhcpan does not support --version or similar
         return None
 
@@ -3293,7 +3292,6 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         """
         converted_alleles = list()
         for a in alleles:
-            print a
             if not isinstance(a, CombinedAllele):
                 converted_alleles.append("%s_%s%s" % (a.locus, a.supertype, a.subtype))
             else:
