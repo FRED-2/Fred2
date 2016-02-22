@@ -133,8 +133,8 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         pep_groups = pep_seqs.keys()
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
-            if length < min(self.supportedLength):
-                logging.warn("Peptide length must be at least %i for %s but is %i" % (min(self.supportedLength),
+            if length not in self.supportedLength:
+                logging.warn("Peptide length must be at least %i or at most %i for %s but is %i" % (min(self.supportedLength), max(self.supportedLenght),
                                                                                        self.name, length))
                 continue
             peps = list(peps)
