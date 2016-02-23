@@ -77,7 +77,6 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
                     warnings.warn("No model exists for peptides of length %i or allele %s." % (length,
                                                                                                allales_string[a].name))
                     continue
-                model = svmlight.read_model(model_path)
 
                 model = svmlight.read_model(model_path)
                 pred = svmlight.classify(model, encoding.values())

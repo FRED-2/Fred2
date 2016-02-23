@@ -73,7 +73,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
             for a in alleles_string.keys():
                 try:
                     pssm = __load_allele_model(a, length)
-                except AttributeError:
+                except ImportError:
                     warnings.warn("No model found for %s with length %i"%(alleles_string[a], length))
                     continue
 
@@ -598,7 +598,7 @@ class ARB(APSSMEpitopePrediction):
             for a in alleles_string.keys():
                 try:
                     pssm = __load_allele_model(a, length)
-                except AttributeError:
+                except ImportError:
                     warnings.warn("No model found for %s with length %i"%(alleles_string[a], length))
                     continue
 
