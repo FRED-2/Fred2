@@ -113,7 +113,7 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
             try_path = try_path.strip('"')
             exe_try = os.path.join(try_path, exe).strip()
             if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
-                r = netmhc.predict(self.peptides_mhcI, alleles=self.mhcI, path=exe_try, options="--sort", chunksize=1)
+                r = netmhc.predict(self.peptides_mhcI, alleles=self.mhcI, command=exe_try, options="--sort", chunksize=1)
                 self.assertTrue(len(r) == len(self.peptides_mhcI))
                 self.assertAlmostEqual(r["A*02:01"]["SYFPEITHI"]["netmhc"], 0.150579105869, places=7, msg=None, delta=None)
                 self.assertAlmostEqual(r["A*02:01"]["IHTIEPFYS"]["netmhc"], 0.0619540879359, places=7, msg=None, delta=None)
@@ -126,8 +126,9 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
             exe_try = os.path.join(try_path, exe).strip()
             if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
                 print netctlpan.predict(self.peptides_mhcI, alleles=self.mhcI,
-                                        path=exe_try,
+                                        commad=exe_try,
                                         options="-wt 0.05 -wc 0.225 -ethr 0.5")
+
 
 if __name__ == '__main__':
     unittest.main()

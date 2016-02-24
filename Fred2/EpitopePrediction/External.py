@@ -312,7 +312,7 @@ class NetMHC_3_0(NetMHC_3_4):
     Implements the NetMHC binding (for netMHC3.0)::
 
 
-   .. note::
+    .. note::
 
         NetMHC-3.0: accurate web accessible predictions of human, mouse and monkey MHC class I affinities for peptides
         of length 8-11. Lundegaard C, Lamberth K, Harndahl M, Buus S, Lund O, Nielsen M.
@@ -401,6 +401,84 @@ class NetMHC_3_0(NetMHC_3_4):
         if 'Average' in result:
             result.pop('Average')
         return dict(result)
+
+
+
+class NetMHC_4_0(NetMHC_3_4):
+    """
+    Implements the NetMHC 4.0 binding
+
+    .. note::
+        Andreatta M, Nielsen M. Gapped sequence alignment using artificial neural networks:
+        application to the MHC class I system. Bioinformatics (2016) Feb 15;32(4):511-7
+    """
+    __command = "netMHC -p {peptides} -a {alleles} -xls -xlsfile {out} {options}"
+    __version = "4.0"
+
+    @property
+    def version(self):
+        """The version of the predictor"""
+        return self.__version
+
+    @property
+    def command(self):
+        """
+        Defines the commandline call for external tool
+        """
+        return self.__command
+
+    def convert_alleles(self, alleles):
+        """
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
+
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :rtype: list(str)
+        """
+        return ["HLA-%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
+
+    def parse_external_result(self, file):
+        """
+        Parses external results and returns the result
+
+        :param str file: The file path or the external prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
+        """
+        result = defaultdict(defaultdict)
+        f = csv.reader(open(file, "r"), delimiter='\t')
+        pos_factor = 3
+        alleles = map(lambda x: x.split()[0], filter(lambda x: x.strip() != "", f.next()))
+        f.next()
+        for l in f:
+            if not l:
+                continue
+            pep_seq = l[1]
+            for i, a in enumerate(alleles):
+                ic_50 = l[(i+1)*pos_factor]
+                sc = 1.0 - math.log(float(ic_50), 50000)
+                result[a][pep_seq] = sc if sc > 0.0 else 0.0
+        return dict(result)
+
+    def get_external_version(self, path=None):
+        """
+        Returns the external version of the tool by executing
+        >{command} --version
+
+        might be dependent on the method and has to be overwritten
+        therefore it is declared abstract to enforce the user to
+        overwrite the method. The function in the base class can be called
+        with super()
+
+        :param str path: Optional specification of executable path if deviant from :attr:`self.__command`
+        :return: The external version of the tool or None if tool does not support versioning
+        :rtype: str
+        """
+        # can not be determined netmhcpan does not support --version or similar
+        return None
 
 
 class NetMHCpan_2_4(AExternalEpitopePrediction):
@@ -3214,7 +3292,6 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         """
         converted_alleles = list()
         for a in alleles:
-            print a
             if not isinstance(a, CombinedAllele):
                 converted_alleles.append("%s_%s%s" % (a.locus, a.supertype, a.subtype))
             else:
