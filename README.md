@@ -24,3 +24,11 @@ Getting Started
 
 Users and developers should start by reading our [wiki](https://github.com/FRED-2/Fred2/wiki) and [IPython tutorials](https://github.com/FRED-2/Fred2/tree/master/Fred2/tutorials).
 A reference documentation is also available [online](http://fred2.readthedocs.org/en/latest/).
+
+How to Cite
+-----------
+Please cite:
+
+Schubert, B., Walzer, M., Brachvogel, H-P., Sozolek, A., Mohr, C., and Kohlbacher, O. (2016). FRED 2 - An Immunoinformatics Framework for Python. Bioinformatics 2016; doi: 10.1093/bioinformatics/btw113
+
+and the original publications of the used methods.
