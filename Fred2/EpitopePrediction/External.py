@@ -1348,7 +1348,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
-        alleles = set(filter(lambda x: x != "", f.next()))
+        alleles = list(filter(lambda x: x != "", f.next()))
         f.next()
         ic_pos = 3
         for row in f:
