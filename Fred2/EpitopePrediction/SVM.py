@@ -62,7 +62,9 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
         # group peptides by length and
         result = {}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
+        pep_groups = pep_seqs.keys()
+        pep_groups.sort(key=len)
+        for length, peps in itertools.groupby(pep_groups, key=len):
             # load svm model
 
             if length not in self.supportedLength:
@@ -80,7 +82,8 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
                 model = svmlight.read_model(model_path)
                 pred = svmlight.classify(model, encoding.values())
-                result[allales_string[a]] = {}
+                if allales_string[a] not in result:
+                    result[allales_string[a]] = {}
                 for pep, score in itertools.izip(encoding.keys(), pred):
                     result[allales_string[a]][pep_seqs[pep]] = score
 
