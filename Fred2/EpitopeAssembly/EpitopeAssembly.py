@@ -403,11 +403,11 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
 
                 res3 = solver.solve(instance, options=options)#, tee=True)
                 if (res3.solver.status == SolverStatus.ok) and (res3.solver.termination_condition == TerminationCondition.optimal):
-                    instance.load(res3)
-                    ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a] for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
-                    cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a] for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
-                    imm = float(sum(instance.y[i,a]*instance.p[a] for a in instance.A for i in instance.R))
-                    non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a] for i in xrange(le-(cn-1))
+                    instance.solution.load_from(res3)
+                    ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
+                    cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
+                    imm = float(sum(instance.y[i,a].value*instance.p[a] for a in instance.A for i in instance.R))
+                    non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a].value for i in xrange(le-(cn-1))
                                                             for j in instance.C
                                                                 for a in instance.S[i+j]
                                                                     if i != instance.ci and i != instance.cj))
