@@ -42,7 +42,9 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
         #group peptides by length and
 
         result = {self.name: {}}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        pep_groups = pep_seqs.keys()
+        pep_groups.sort(key=len)
+        for length, peps in itertools.groupby(pep_groups, key=len):
             #load svm model
             if length not in self.supportedLength:
                 warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
@@ -55,7 +57,6 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
             model = svmlight.read_model(model_path)
 
             pred = svmlight.classify(model, encoding.values())
-            result[self.name] = {}
             for pep, score in itertools.izip(encoding.keys(), pred):
                     result[self.name][pep_seqs[pep]] = score
 
