@@ -63,7 +63,10 @@ class APSSMEpitopePrediction(AEpitopePrediction):
             alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
 
         result = {}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        pep_groups = pep_seqs.keys()
+        pep_groups.sort(key=len)
+        for length, peps in itertools.groupby(pep_groups, key=len):
+
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:
@@ -77,12 +80,12 @@ class APSSMEpitopePrediction(AEpitopePrediction):
                     warnings.warn("No model found for %s with length %i"%(alleles_string[a], length))
                     continue
 
-                result[alleles_string[a]] = {}
+                if alleles_string[a] not in result:
+                    result[alleles_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
                     score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1, {}).get("con", 0)
                     result[alleles_string[a]][pep_seqs[p]] = score
-                    #print a, score, result
 
         if not result:
             raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
