@@ -129,6 +129,5 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
                                         commad=exe_try,
                                         options="-wt 0.05 -wc 0.225 -ethr 0.5")
 
-
 if __name__ == '__main__':
     unittest.main()
