@@ -17,13 +17,15 @@ import multiprocessing as mp
 import copy
 import math
 
+from collections import defaultdict
 from tempfile import NamedTemporaryFile
 
 from pyomo.environ import *
 from pyomo.opt import SolverFactory,SolverStatus, TerminationCondition
 
-from Fred2.Core.Base import ACleavageSitePrediction
-from Fred2.Core.Peptide import Peptide
+from Fred2.Core.Generator import generate_peptides_from_proteins
+from Fred2.Core.Base import ACleavageSitePrediction, AEpitopePrediction
+from Fred2.Core import Peptide, Protein, Allele
 from Fred2.CleavagePrediction.PSSM import APSSMCleavageSitePredictor
 from Fred2.EpitopePrediction.PSSM import APSSMEpitopePrediction
 
@@ -225,6 +227,279 @@ class EpitopeAssembly(object):
         return result
 
 
+class ParetoEpitopeAssembly(object):
+    """
+        This implementation extends Toussaint et al.s TSP implementation which a bi-objective approach
+        that also minimizes the neoepitope formation at the junctions as second objective. (Unpublished)
+
+        .. note::
+
+            Toussaint, N.C., et al. Universal peptide vaccines - Optimal peptide vaccine design based on viral
+            sequence conservation. Vaccine 2011;29(47):8745-8753.
+
+        :param peptides: A list of :class:`~Fred2.Core.Peptide.Peptide` which shell be arranged
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`)
+        :param cl_pred: A :class:`~Fred2.Core.Base.ACleavageSitePrediction`
+        :type cl_pred: :class:`~Fred2.Core.Base.ACleavageSitePredictor`
+        :param ep_pred: A :class:`~Fred2.Core.Base.AEpitopePrediction`
+        :type ep_pred: :class:`~Fred2.Core.Base.AEpitopePrediction`
+        :param alleles: A list of HLA alleles
+        :type alleles: List(:class:`~Fred2.Core.Allele.Allele`)
+        :param dict(str,float) threshold: a dictionary with key=allele.name and value the binding threshold of this
+                                          allele
+        :param comparator: A boolean function consuming two parameters a,b and comparing a comp b
+        :param int length: the epitope length to consider (default: 9)
+        :param str solver: Specifies the solver to use (mused by callable by pyomo)
+        :param float weight: Specifies how strong unwanted cleavage sites should be punished [0,1], where 0 means they
+                             will be ignored, and 1 the sum of all unwanted cleave sites is subtracted from the cleave
+                             site between two epitopes
+        :param int verbosity: Specifies how verbos the class will be, 0 means normal, >0 debug mode
+    """
+
+    def __init__(self, peptides, cl_pred, ep_pred, alleles, threshold, comparator, length=9, solver="glpk", weight=0.0, matrix=None, verbosity=0):
+
+        if not isinstance(cl_pred, ACleavageSitePrediction):
+            raise ValueError("Cleave site predictor must be of type ACleavageSitePrediction")
+
+        if not isinstance(ep_pred, AEpitopePrediction):
+            raise ValueError("Epitope predictor must be of type AEpitopePrediction")
+
+        if any( not isinstance(a, Allele) for a in alleles):
+            raise ValueError("alleles contains non Allele objects.")
+
+        if len(peptides) > 60:
+            warnings.warn("The peptide set exceeds 60. Above this level one has to expect " +
+                          "considerably long running times due to the complexity of the problem.")
+
+        _alleles = copy.deepcopy(alleles)
+
+        #test if allele prob is set, if not set allele prob uniform
+        #if only partly set infer missing values (assuming uniformity of missing value)
+        prob = []
+        no_prob = []
+        for a in _alleles:
+            if a.prob is None:
+                no_prob.append(a)
+            else:
+                prob.append(a)
+
+        if len(no_prob) > 0:
+            #group by locus
+            no_prob_grouped = {}
+            prob_grouped = {}
+            for a in no_prob:
+                no_prob_grouped.setdefault(a.locus, []).append(a)
+            for a in prob:
+                prob_grouped.setdefault(a.locus, []).append(a)
+
+            for g, v in no_prob_grouped.iteritems():
+                total_loc_a = len(v)
+                if g in prob_grouped:
+                    remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
+                    for a in v:
+                        a.prob = remaining_mass/total_loc_a
+                else:
+                    for a in v:
+                        a.prob = 1.0/total_loc_a
+        probs = {a.name:a.prob for a in _alleles}
+        if verbosity:
+            for a in _alleles:
+                print a.name, a.prob
+
+
+        #Generate model
+        #1. Generate peptides for which cleave sites have to be predicted
+        #2. generate graph with dummy element
+        self.__verbosity = verbosity
+
+        pep_tmp = peptides[:]
+        pep_tmp.append("Dummy")
+        cl_edge_matrix = {}
+        ep_edge_matrix = defaultdict(int)
+        fragments = {}
+        seq_to_pep = {}
+        self.neo_cleavage = {}
+        self.good_cleavage = {}
+
+        if matrix is None:
+            for start, stop in itr.combinations(pep_tmp, 2):
+                if start == "Dummy" or stop == "Dummy":
+                    seq_to_pep[str(start)] = start
+                    seq_to_pep[str(stop)] = stop
+                    cl_edge_matrix[(str(start), str(stop))] = 0
+                    cl_edge_matrix[(str(stop), str(start))] = 0
+                    ep_edge_matrix[(str(start), str(stop))] = 0
+                    ep_edge_matrix[(str(stop), str(start))] = 0
+                else:
+                    start_str = str(start)
+                    stop_str = str(stop)
+                    frag = Protein(start_str+stop_str)
+                    garf = Protein(stop_str+start_str)
+
+                    fragments[frag] = (start_str, stop_str)
+                    fragments[garf] = (stop_str, start_str)
+
+            epi_pred = ep_pred.predict(generate_peptides_from_proteins(fragments.keys(), length), alleles=_alleles)
+            for index,row in epi_pred.iterrows():
+                nof_epis = sum(comparator(row[a],threshold.get(a.name, 0)) for a in _alleles) \
+
+                for protein in index[0].proteins.itervalues():
+                    start, stop = fragments[protein]
+                    ep_edge_matrix[start,stop] += len(index[0].proteinPos[protein.transcript_id])*nof_epis
+
+            cleave_pred = cl_pred.predict(fragments.keys())
+            #cleave_site_df = cleave_pred.xs((slice(None), (cleavage_pos-1)))
+            for i in set(cleave_pred.index.get_level_values(0)):
+                fragment = "".join(cleave_pred.ix[i]["Seq"])
+                start, stop = fragments[fragment]
+
+                cleav_pos = len(str(start)) - 1
+                cl_edge_matrix[(start, stop)] = -1.0 * (
+                cleave_pred.loc[(i, len(str(start)) - 1), cl_pred.name] - weight * sum(
+                    cleave_pred.loc[(i, j), cl_pred.name] for j in xrange(cleav_pos - 1, cleav_pos + 4, 1) if
+                    j != cleav_pos))
+
+                self.neo_cleavage[(start, stop)] = sum(
+                    cleave_pred.loc[(i, j), cl_pred.name] for j in xrange(cleav_pos - 1, cleav_pos + 4, 1) if
+                    j != cleav_pos)
+                self.good_cleavage[(start, stop)] = cleave_pred.loc[(i, len(str(start)) - 1), cl_pred.name]
+
+
+        else:
+            cl_edge_matrix = matrix
+            seq_to_pep = {str(p): p for p in pep_tmp}
+            for p in seq_to_pep.iterkeys():
+                if p != "Dummy":
+                    cl_edge_matrix[(p,"Dummy")] = 0
+                    cl_edge_matrix[("Dummy",p)] = 0
+                    ep_edge_matrix[(p,"Dummy")] = 0
+                    ep_edge_matrix[("Dummy",p)] = 0
+        self.__seq_to_pep = seq_to_pep
+
+        #3. initialize ILP
+        self.__solver = SolverFactory(solver)
+        model = ConcreteModel()
+
+        E = filter(lambda x: x != "Dummy", seq_to_pep.keys())
+        model.E = Set(initialize=E)
+        model.E_prime = Set(initialize=seq_to_pep.keys())
+        model.ExE = Set(initialize=itr.permutations(E,2), dimen=2)
+
+        model.w_ab = Param(model.E_prime, model.E_prime, initialize=cl_edge_matrix)
+        model.e_ab = Param(model.E_prime, model.E_prime, initialize=ep_edge_matrix)
+        model.card = Param(initialize=len(model.E_prime))
+        model.eps1 = Param(initialize=1e6, mutable=True)
+        model.eps2 = Param(initialize=1e6, mutable=True)
+
+        model.x = Var(model.E_prime, model.E_prime, within=Binary)
+        model.u = Var(model.E, domain=PositiveIntegers, bounds=(2,model.card))
+
+        model.cleavage_obj = Objective(
+            rule=lambda mode: sum(model.w_ab[a,b]*model.x[a,b] for a in model.E_prime
+                                   for b in model.E_prime if a != b),
+            sense=minimize)
+
+        model.epitope_obj = Objective(
+            rule=lambda mode: sum( model.e_ab[a,b]*model.x[a,b] for a in model.E_prime
+                                   for b in model.E_prime if a != b),
+            sense=minimize)
+
+        model.tour_constraint_1 = Constraint(model.E_prime,
+                                             rule=lambda model, a:
+                                             sum(model.x[a,b] for b in model.E_prime if a != b) == 1)
+        model.tour_constraint_2 = Constraint(model.E_prime,
+                                             rule=lambda model, a:
+                                             sum(model.x[b,a] for b in model.E_prime if a != b) == 1)
+        model.cardinality_constraint = Constraint(model.ExE,
+                                                  rule=lambda model, a, b:
+                                                  model.u[a]-model.u[b]+1 <= (model.card -1)*(1-model.x[a, b]))
+        model.cleavageobjective_constraint = Constraint(rule=lambda model:
+                                                sum(model.w_ab[a,b]*model.x[a,b] for a in model.E_prime
+                                                        for b in model.E_prime if a != b) <= model.eps1)
+        model.epitopeobjective_constraint = Constraint(rule=lambda model:
+                                                sum(model.e_ab[a,b]*model.x[a,b] for a in model.E_prime
+                                                        for b in model.E_prime if a != b) <= model.eps2)
+        self.objectsives = [model.cleavage_obj, model.epitope_obj]
+        self.constraints = [model.epitopeobjective_constraint, model.cleavageobjective_constraint]
+        self.epsilons = [model.eps2, model.eps1]
+        self.instance = model
+        if self.__verbosity > 0:
+            print "MODEL INSTANCE"
+            self.instance.pprint()
+
+    def solve(self, eps=1e6, order=(0,1), options={}):
+        """
+        solves a bi-objective problem using the epsilon-constraint method
+
+        :param str options: options directly handed to the solver
+        :param eps: the epsilon bound on the second objective
+        :param tuple(int,int) order: The oder in which the two objective should be solved
+        :return: The two objective values and the pareot-optimal assembly as triple
+        :rtype: tuple(float,float,list(Peptide))
+        """
+        objs = [0,0]
+        self.objectsives[order[0]].activate()
+        self.objectsives[order[1]].deactivate()
+        self.constraints[order[0]].activate()
+        self.constraints[order[1]].deactivate()
+
+        getattr(self.instance, str(self.epsilons[order[0]])).set_value(float(eps))
+
+        res = self.__solver.solve(self.instance, options=options)
+        self.instance.solutions.load_from(res)
+        objs[order[0]] = self.objectsives[order[0]].expr()
+        if self.__verbosity > 0:
+            res.write(num=1)
+            print "Objective {nof_obj}:{value}".format(nof_obj=order[0],value=objs[order[0]])
+
+        self.objectsives[order[1]].activate()
+        self.objectsives[order[0]].deactivate()
+        self.constraints[order[1]].activate()
+        self.constraints[order[0]].deactivate()
+
+        getattr(self.instance, str(self.epsilons[order[1]])).set_value(objs[order[0]])
+
+        res = self.__solver.solve(self.instance, options=options)
+        self.instance.solutions.load_from(res)
+        objs[order[1]] = self.objectsives[order[1]].expr()
+        if self.__verbosity > 0:
+            res.write(num=1)
+            print "Objective {nof_obj}:{value}".format(nof_obj=order[1],value=objs[order[1]])
+
+        return objs[0], objs[1], [self.__seq_to_pep[u] for u in
+                                                       sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
+
+    def paretosolve(self, nof_sol=None, options={}, rel_tol=1e-09, abs_tol=0.0001):
+        """
+        returns the whole pareto front of the be-objective optimization problem
+
+
+        :param int nof_sol: the number of solutions to max. obtain (if front is bigger)
+        :param dict options: the solver options
+        :param float rel_tol: relative floating point similarity tolerance
+        :param float abs_tol: absolute floating point similarity tolerance
+        :return: the pareto front of possible assemblies
+        :rtype: list(tuple(float,float,list(Peptide)))
+        """
+
+        def __isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol):
+            return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
+        zT = self.solve(options=options)
+        pareto_front = [zT]
+        zB = self.solve(order=(1,0), options=options)
+        pareto_front.append(zB)
+
+        while True:
+            zT = self.solve(eps=zT[1]-abs_tol, options=options)
+
+            if __isclose(zT[1], zB[1]):
+                return sorted(pareto_front)
+
+            pareto_front.append(zT)
+
+
+
 
 ########################################################################################################################
 def _runs_lexmin(a):
@@ -384,6 +659,8 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         getattr(instance, "tau_cleav").set_value(alpha*obj_cleav)
         #instance.pprint()
 
+        #print "Epitope pair: ", ei,ej, " initial cleavage ",obj_cleav,"Init imm ", sum(instance.y[i,a].value*instance.p[a] for a in instance.A
+        #                                             for i in instance.R)
         res2 = solver.solve(instance, options=options)#, tee=True)
         if (res2.solver.status == SolverStatus.ok) and (
             res2.solver.termination_condition == TerminationCondition.optimal):
@@ -399,7 +676,6 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                 instance.c_epi.activate()
 
                 getattr(instance, "tau_epi").set_value((2-beta)*obj_imm)
-                #print "imm",obj_imm,"tau_epi", (2-beta)*obj_imm
 
                 res3 = solver.solve(instance, options=options)#, tee=True)
                 if (res3.solver.status == SolverStatus.ok) and (res3.solver.termination_condition == TerminationCondition.optimal):
@@ -423,6 +699,10 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                                                             for j in instance.C
                                                                 for a in instance.S[i+j]
                                                                     if i != instance.ci and i != instance.cj))
+
+                #print "Epitope pair: ", ei,ej, "Second cleavage: ",0.5*(sum( instance.f[i,a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[model.ci+i] )
+                #             + sum(instance.f[j,a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[model.cj+j])+2*instance.bc), obj_cleav*alpha, "second imm ", instance.obj_epi()
+
                 return "".join([a for i in xrange(len(ei), len(ei) + k) for a in instance.S[i] if
                             instance.x[i, a].value]), float(ci+cj)/2, instance.obj_epi(),float(ci),float(cj),non_c
         else:
@@ -570,15 +850,18 @@ class EpitopeAssemblyWithSpacer(object):
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
+        if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
             pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            for j, v in pssm.iteritems():
-                for aa, score in v.iteritems():
-                    if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
-                    else:
+            if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                for j, v in pssm.iteritems():
+                        for aa, score in v.iteritems():
+                            epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+            else:
+                 for j, v in pssm.iteritems():
+                    for aa, score in v.iteritems():
                         epi_pssms[j, aa, a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
@@ -648,15 +931,18 @@ class EpitopeAssemblyWithSpacer(object):
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
+        if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
             pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            for j, v in pssm.iteritems():
-                for aa, score in v.iteritems():
-                    if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
-                    else:
+            if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                for j, v in pssm.iteritems():
+                        for aa, score in v.iteritems():
+                            epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+            else:
+                 for j, v in pssm.iteritems():
+                    for aa, score in v.iteritems():
                         epi_pssms[j, aa, a.name] = score
 
         if not epi_pssms:
