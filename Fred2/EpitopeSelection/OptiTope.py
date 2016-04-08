@@ -221,13 +221,6 @@ class OptiTope(object):
             print "MODEL INSTANCE"
             self.instance.pprint()
 
-        #deactivate additional constraints and variables
-        #params
-        self.instance.c.deactivate()
-        self.instance.t_c.deactivate()
-        self.instance.t_allele.deactivate()
-        self.instance.t_var.deactivate()
-
         #constraints
         self.instance.IsAlleleCovConst.deactivate()
         self.instance.MinAlleleCovConst.deactivate()
@@ -235,9 +228,6 @@ class OptiTope(object):
         self.instance.MinAntigenCovConst.deactivate()
         self.instance.EpitopeConsConst.deactivate()
 
-        #variables
-        self.instance.y.deactivate()
-        self.instance.z.deactivate()
 
     def set_k(self, k):
         """
@@ -266,10 +256,8 @@ class OptiTope(object):
         mc = self.instance.t_allele.value
 
         try:
-            self.instance.t_allele.activate()
             getattr(self.instance, str(self.instance.t_allele)).set_value(int(len(self.__alleleProb) * minCoverage))
             #variables
-            self.instance.y.activate()
 
             #constraints
             self.instance.IsAlleleCovConst.activate()
@@ -277,7 +265,6 @@ class OptiTope(object):
             self.__changed = True
         except ValueError:
             getattr(self.instance, str(self.instance.t_allele)).set_value(mc)
-            self.instance.t_allele.deactivate()
             self.__changed = False
             raise ValueError(
                 'activate_allele_coverage_const","An error occurred during activation of of the allele coverage constraint. ' +
@@ -290,10 +277,6 @@ class OptiTope(object):
 
         # parameter
         self.__changed = True
-        self.instance.t_allele.deactivate()
-
-        #variables
-        self.instance.y.deactivate()
 
         #constraints
         self.instance.IsAlleleCovConst.deactivate()
@@ -309,15 +292,12 @@ class OptiTope(object):
         """
         tmp = self.instance.t_var.value
         try:
-            self.instance.t_var.activate()
             self.instance.z.activate()
             getattr(self.instance, str(self.instance.t_var)).set_value(int(len(self.instance.Q)*t_var))
             self.instance.IsAntigenCovConst.activate()
             self.instance.MinAntigenCovConst.activate()
             self.__changed = True
         except ValueError:
-            self.instance.t_var.deactivate()
-            self.instance.z.deactivate()
             getattr(self.instance, str(self.instance.t_var)).set_value(int(tmp))
             self.instance.IsAntigenCovConst.deactivate()
             self.instance.MinAntigenCovConst.deactivate()
@@ -330,8 +310,6 @@ class OptiTope(object):
             Deactivates the variation coverage constraint
         """
         self.__changed = True
-        self.instance.z.activate()
-        self.instance.t_var.deactivate()
         self.instance.IsAntigenCovConst.deactivate()
         self.instance.MinAntigenCovConst.deactivate()
 
@@ -350,8 +328,6 @@ class OptiTope(object):
                             "The conservation threshold is out of its numerical bound. It has to be between 0.0 and 1.0.")
 
         self.__changed = True
-        self.instance.c.activate()
-        self.instance.t_c.activate()
         getattr(self.instance, str(self.instance.t_c)).set_value(float(t_c))
         if conservation is not None:
             for e in self.instance.E:
@@ -367,8 +343,6 @@ class OptiTope(object):
             Deactivates epitope conservation constraint
         """
         self.__changed = True
-        self.instance.c.deactivate()
-        self.instance.t_c.deactivate()
         self.instance.EpitopeConsConst.deactivate()
 
     def solve(self, options=None):
