@@ -659,6 +659,8 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         getattr(instance, "tau_cleav").set_value(alpha*obj_cleav)
         #instance.pprint()
 
+        #print "Epitope pair: ", ei,ej, " initial cleavage ",obj_cleav,"Init imm ", sum(instance.y[i,a].value*instance.p[a] for a in instance.A
+        #                                             for i in instance.R)
         res2 = solver.solve(instance, options=options)#, tee=True)
         if (res2.solver.status == SolverStatus.ok) and (
             res2.solver.termination_condition == TerminationCondition.optimal):
@@ -674,7 +676,6 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                 instance.c_epi.activate()
 
                 getattr(instance, "tau_epi").set_value((2-beta)*obj_imm)
-                #print "imm",obj_imm,"tau_epi", (2-beta)*obj_imm
 
                 res3 = solver.solve(instance, options=options)#, tee=True)
                 if (res3.solver.status == SolverStatus.ok) and (res3.solver.termination_condition == TerminationCondition.optimal):
@@ -698,6 +699,10 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                                                             for j in instance.C
                                                                 for a in instance.S[i+j]
                                                                     if i != instance.ci and i != instance.cj))
+
+                #print "Epitope pair: ", ei,ej, "Second cleavage: ",0.5*(sum( instance.f[i,a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[model.ci+i] )
+                #             + sum(instance.f[j,a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[model.cj+j])+2*instance.bc), obj_cleav*alpha, "second imm ", instance.obj_epi()
+
                 return "".join([a for i in xrange(len(ei), len(ei) + k) for a in instance.S[i] if
                             instance.x[i, a].value]), float(ci+cj)/2, instance.obj_epi(),float(ci),float(cj),non_c
         else:
@@ -845,15 +850,18 @@ class EpitopeAssemblyWithSpacer(object):
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
+        if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
             pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            for j, v in pssm.iteritems():
-                for aa, score in v.iteritems():
-                    if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
-                    else:
+            if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                for j, v in pssm.iteritems():
+                        for aa, score in v.iteritems():
+                            epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+            else:
+                 for j, v in pssm.iteritems():
+                    for aa, score in v.iteritems():
                         epi_pssms[j, aa, a.name] = score
 
         #print "run spacer designs in parallel using multiprocessing"
@@ -923,15 +931,18 @@ class EpitopeAssemblyWithSpacer(object):
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
+        if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
             pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            for j, v in pssm.iteritems():
-                for aa, score in v.iteritems():
-                    if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                        epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-                        self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
-                    else:
+            if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                for j, v in pssm.iteritems():
+                        for aa, score in v.iteritems():
+                            epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+            else:
+                 for j, v in pssm.iteritems():
+                    for aa, score in v.iteritems():
                         epi_pssms[j, aa, a.name] = score
 
         if not epi_pssms:
