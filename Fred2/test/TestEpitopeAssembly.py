@@ -13,36 +13,20 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
     def setUp(self):
         self.peptides = [Peptide("KLLPRLPGV"), Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL")]
 
-    # def test_simple_assembly(self):
-    #     """
-    #     Simple test if everything works. Solution manually tested for optimality.
-    #
-    #     :return:
-    #     """
-    #     pred = CleavageSitePredictorFactory("PCM")
-    #     assembler = EpitopeAssembly(self.peptides, pred, solver="glpk", verbosity=0)
-    #     r = assembler.solve()
-    #     self.assertEqual(r, [Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL"), Peptide("KLLPRLPGV")])
+    def test_simple_assembly(self):
+        """
+        Simple test if everything works. Solution manually tested for optimality.
+
+        :return:
+        """
+        pred = CleavageSitePredictorFactory("PCM")
+        assembler = EpitopeAssembly(self.peptides, pred, solver="glpk", verbosity=0)
+        r = assembler.solve()
+        self.assertEqual(r, [Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL"), Peptide("KLLPRLPGV")])
 
 
 
-    # def test_pareto_assembly(self):
-    #     cl_pred = CleavageSitePredictorFactory("PCM")
-    #     ep_pred = EpitopePredictorFactory("SMM")
-    #     allele = [Allele("HLA-A*02:01")]
-    #     thresh = {a.name:10000 for a in allele}
-    #     comp = lambda a,b: a <= b
-    #
-    #     print ep_pred.predict(self.peptides,alleles=allele)
-    #     #cl_pred, ep_pred, alleles, threshold, comparator, length=9
-    #
-    #     assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="cplex", verbosity=1)
-    #     r = assembler.solve(eps=1e10, order=(1,0))
-    #     print r
-    #
-    #     #print assembler.solve(eps=2.0)
-
-    def test_pareto_front_assembly(self):
+    def test_pareto_assembly(self):
         cl_pred = CleavageSitePredictorFactory("PCM")
         ep_pred = EpitopePredictorFactory("SMM")
         allele = [Allele("HLA-A*02:01")]
@@ -52,7 +36,20 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
         print ep_pred.predict(self.peptides,alleles=allele)
         #cl_pred, ep_pred, alleles, threshold, comparator, length=9
 
-        assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="cplex", verbosity=0)
+        assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="glpk", verbosity=1)
+        r = assembler.solve(eps=1e10, order=(1,0))
+        print r
+
+        #print assembler.solve(eps=2.0)
+
+    def test_pareto_front_assembly(self):
+        cl_pred = CleavageSitePredictorFactory("PCM")
+        ep_pred = EpitopePredictorFactory("SMM")
+        allele = [Allele("HLA-A*02:01")]
+        thresh = {a.name:10000 for a in allele}
+        comp = lambda a,b: a <= b
+
+        assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="glpk", verbosity=0)
         r = assembler.paretosolve()
         print r
 
