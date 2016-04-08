@@ -230,7 +230,7 @@ class EpitopeAssembly(object):
 class ParetoEpitopeAssembly(object):
     """
         This implementation extends Toussaint et al.s TSP implementation which a bi-objective approach
-        that also minimizes the neoepitope formation at the junctions as second objective
+        that also minimizes the neoepitope formation at the junctions as second objective. (Unpublished)
 
         .. note::
 
