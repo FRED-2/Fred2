@@ -271,7 +271,8 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
                 for ttId, varSeq, varComb in _generate_combinations(tId, vars, list(tSeq), {}, 0, strand == REVERS):
                     prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(varSeq), geneid, ttId,
                                                                                        vars=varComb)))
-    return generate_peptides_from_proteins(prots, length, peptides=peptides)
+    return [ p for p in generate_peptides_from_proteins(prots, length, peptides=peptides)
+             if any(p.get_variants_by_protein(prot) for prot in p.proteins.iterkeys())]
 
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S

@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from Fred2.IO import MartsAdapter, read_annovar_exonic
+from Fred2.Core.Variant import VariationType
 from Fred2.test.DummyAdapter import DummyAdapter
 from Fred2.test.VariantsForTesting import *
 from Fred2.Core import Generator
@@ -262,6 +263,35 @@ class GeneratorTest(TestCase):
 
         self.assertTrue(len(peps - peps_from_prot) == 0)
         self.assertTrue(len(peps_from_prot - peps) == 0)
+
+    def test_peptides_from_varaints(self):
+        coding = {}
+        coding['NM_080751'] = MutationSyntax('NM_080751',2629,876,'c.2630C>T','p.Pro877Leu')
+        var = Variant('line0',0,20,2621905,'C','T',coding,True,False)
+        var.gene = 'TMC2'
+        ma = MartsAdapter(biomart="http://ensembl.org")
+
+        vars = [var, Variant("testInsertion", 2, 20, 2621899, "", "AAAAAA", {'NM_080751':MutationSyntax('NM_080751',2625,876,'c.2630C>T','p.Pro877Leu')}, True, False)]
+
+        test = Generator.generate_peptides_from_variants(vars, 9, ma, id_type=EIdentifierTypes.REFSEQ, peptides=None)
+        test2 = [x for x in test]
+        print(len(test2))
+
+        ts = list()
+        #using a tweaked generator that takes another sequence source if the sequence is too short in respect to the given variants
+        #in this case a newer/older sequence from mart in respect to what was given as reference in the annotation process
+        t = Generator.generate_transcripts_from_variants(vars, ma, id_type=EIdentifierTypes.REFSEQ)
+        ts = [x for x in t]
+        print(len(ts[0]))
+        p = Generator.generate_proteins_from_transcripts(ts, to_stop=True)
+        ps = [x for x in p]
+        e = Generator.generate_peptides_from_proteins(ps, 9)
+        es = [x for x in e]
+        print(len(es))
+
+        #print vars
+        print len(vars)
+
 
     def test_proteins_from_variants(self):
         """
