@@ -174,95 +174,96 @@ class GeneratorTest(TestCase):
         #         for trans_id in v.coding.iterkeys():
         #             transToVar.setdefault(trans_id, []).append(v)
 
-    def test_peptides_from_variants(self):
-        """
-        Create multiple peptides, given a set
-        containing heterozygous variants .
+    #TODO: tests have to be reimplemented
+    # def test_peptides_from_variants(self):
+    #     """
+    #     Create multiple peptides, given a set
+    #     containing heterozygous variants .
+    #
+    #     Variants:
+    #     3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
+    #     HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
+    #
+    #     Reference sequence:
+    #     AAAAACCCCCGGGGG
+    #     AAATTTGGGGG (DEL,INS,DEL)
+    #     AAATTTCCCCCGGGGG (DEL,INS)
+    #     AAAAATTTGGGGG (INS,DEL)
+    #     AAAAATTTCCCCCGGGGG (INS)
+    #
+    #     GGGGGCCCCCAAAAA
+    #     GGGTTTCAAAAA (DEL,INS,DEL)
+    #     GGGTTTCCCCCAAAAA (DEL,INS)
+    #     GGGGGTTTCAAAAA (INS,DEL)
+    #     GGGGGTTTCCCCCAAAAA (INS)
+    #
+    #
+    #     Resulting protein sequences:
+    #     KFG
+    #     KNLG
+    #     KFPPG
+    #     KNFPRG
+    #
+    #     GFK
+    #     GGLK
+    #     GFPPK
+    #     GGFPQK
+    #
+    #     Resulting peptides of length 3:
+    #     KFG +
+    #     KNL +
+    #     NLG +
+    #     KFP +
+    #     FPP +
+    #     PPG +
+    #     KNF +
+    #     NFP +
+    #     FPR +
+    #     PRG +
+    #
+    #     GFK +
+    #     GGL +
+    #     GLK +
+    #     GFP +
+    #     FPP +
+    #     PPK +
+    #     GGF +
+    #     GFP +
+    #     FPQ +
+    #     PQK +
+    #     """
+    #     dummy_db = DummyAdapter()
+    #
+    #     exp_peps = set(['PRG', 'GLK', 'PPG', 'KFP', 'GFK', 'PPK', 'GFP', 'PQK', 'KNL', 'KFG', 'GGF', 'FPQ',
+    #                     'FPP', 'NLG', 'FPR', 'KNF', 'GGL', 'NFP'])
+    #     # 1) INS, SNP, DEL
+    #     dummy_vars = [var_10, var_11, var_12]
+    #     peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(dummy_vars, 3, dummy_db, EIdentifierTypes.REFSEQ)))
+    #
+    #     peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(Generator.generate_proteins_from_transcripts(
+    #                        Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ)),
+    #         3)))
+    #
+    #     self.assertTrue(len(peps - peps_from_prot) == 0)
+    #     self.assertTrue(len(peps_from_prot - peps) == 0)
+    #     self.assertTrue(len(peps-exp_peps) == 0)
+    #     self.assertTrue(len(exp_peps-peps) == 0)
 
-        Variants:
-        3-DEL(-2)  , 5-INS(+3)  , 7-DEL(-4)
-        HET-DEL(-2), HOM-INS(+3), HET-DEL(-1)
-
-        Reference sequence:
-        AAAAACCCCCGGGGG
-        AAATTTGGGGG (DEL,INS,DEL)
-        AAATTTCCCCCGGGGG (DEL,INS)
-        AAAAATTTGGGGG (INS,DEL)
-        AAAAATTTCCCCCGGGGG (INS)
-
-        GGGGGCCCCCAAAAA
-        GGGTTTCAAAAA (DEL,INS,DEL)
-        GGGTTTCCCCCAAAAA (DEL,INS)
-        GGGGGTTTCAAAAA (INS,DEL)
-        GGGGGTTTCCCCCAAAAA (INS)
-
-
-        Resulting protein sequences:
-        KFG
-        KNLG
-        KFPPG
-        KNFPRG
-
-        GFK
-        GGLK
-        GFPPK
-        GGFPQK
-
-        Resulting peptides of length 3:
-        KFG +
-        KNL +
-        NLG +
-        KFP +
-        FPP +
-        PPG +
-        KNF +
-        NFP +
-        FPR +
-        PRG +
-
-        GFK +
-        GGL +
-        GLK +
-        GFP +
-        FPP +
-        PPK +
-        GGF +
-        GFP +
-        FPQ +
-        PQK +
-        """
-        dummy_db = DummyAdapter()
-
-        exp_peps = set(['PRG', 'GLK', 'PPG', 'KFP', 'GFK', 'PPK', 'GFP', 'PQK', 'KNL', 'KFG', 'GGF', 'FPQ',
-                        'FPP', 'NLG', 'FPR', 'KNF', 'GGL', 'NFP'])
-        # 1) INS, SNP, DEL
-        dummy_vars = [var_10, var_11, var_12]
-        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(dummy_vars, 3, dummy_db, EIdentifierTypes.REFSEQ)))
-
-        peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(Generator.generate_proteins_from_transcripts(
-                           Generator.generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ)),
-            3)))
-
-        self.assertTrue(len(peps - peps_from_prot) == 0)
-        self.assertTrue(len(peps_from_prot - peps) == 0)
-        self.assertTrue(len(peps-exp_peps) == 0)
-        self.assertTrue(len(exp_peps-peps) == 0)
-
-    def test_real_life_test(self):
-        mart = MartsAdapter(biomart="http://grch37.ensembl.org/biomart/martservice?query=")
-
-        ano_path = os.path.join(os.path.dirname(inspect.getfile(Fred2)), "Data/examples/test_annovar.out")
-        vars = read_annovar_exonic(ano_path)
-
-        peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart,
-                                                                                   EIdentifierTypes.REFSEQ)))
-
-        peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(
-            Generator.generate_proteins_from_transcripts(
-            Generator.generate_transcripts_from_variants(vars, mart, EIdentifierTypes.REFSEQ)), 9)))
-
-        self.assertTrue(len(peps - peps_from_prot) == 0)
-        self.assertTrue(len(peps_from_prot - peps) == 0)
+    # def test_real_life_test(self):
+    #     mart = MartsAdapter(biomart="http://grch37.ensembl.org/biomart/martservice?query=")
+    #
+    #     ano_path = os.path.join(os.path.dirname(inspect.getfile(Fred2)), "Data/examples/test_annovar.out")
+    #     vars = read_annovar_exonic(ano_path)
+    #
+    #     peps = set(map(lambda x: str(x), Generator.generate_peptides_from_variants(vars, 9, mart,
+    #                                                                                EIdentifierTypes.REFSEQ)))
+    #
+    #     peps_from_prot = set(map(str, Generator.generate_peptides_from_proteins(
+    #         Generator.generate_proteins_from_transcripts(
+    #         Generator.generate_transcripts_from_variants(vars, mart, EIdentifierTypes.REFSEQ)), 9)))
+    #
+    #     self.assertTrue(len(peps - peps_from_prot) == 0)
+    #     self.assertTrue(len(peps_from_prot - peps) == 0)
 
     def test_peptides_from_varaints(self):
         coding = {}
