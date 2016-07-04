@@ -69,7 +69,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
 
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
-            if length not in self.supportedLength:
+            if self.supportedLength is not None and length not in self.supportedLength:
                 warnings.warn("Peptide length of %i is not supported by %s"%(length, self.name))
                 continue
 
@@ -857,3 +857,103 @@ class TEPITOPEpan(APSSMEpitopePrediction):
         :rtype: list(str)
         """
         return ["%s_%s%s"%(a.locus, a.supertype, a.subtype) for a in alleles]
+
+
+class CalisImm(APSSMEpitopePrediction):
+    """
+    Implements the Immunogenicity propensity score proposed by Calis et al.
+
+    ..note:
+
+        Calis, Jorg JA, et al.(2013). Properties of MHC class I presented peptides that enhance immunogenicity.
+        PLoS Comput Biol 9.10 e1003266.
+
+    """
+
+    __alleles = frozenset([])
+    __supported_length = frozenset([9])
+    __name = "calisimm"
+    __version = "1.0"
+
+    __log_enrichment = {"A": 0.127, "C": -0.175, "D": 0.072, "E": 0.325, "F": 0.380, "G": 0.11, "H": 0.105, "I": 0.432,
+                        "K": -0.7, "L": -0.036, "M": -0.57, "N": -0.021, "P": -0.036, "Q": -0.376, "R": 0.168,
+                        "S": -0.537, "T": 0.126, "V": 0.134, "W": 0.719, "Y": -0.012}
+    __importance = [0.,0.,0.1,0.31,0.3,0.29,0.26,0.18,0.]
+
+    @property
+    def version(self):
+        """The version of the predictor"""
+        return self.__version
+
+    @property
+    def name(self):
+        """The name of the predictor"""
+        return self.__name
+
+    @property
+    def supportedAlleles(self):
+        """
+        A list of supported :class:`~Fred2.Core.Allele.Allele`
+        """
+        return self.__alleles
+
+    @property
+    def supportedLength(self):
+        """
+        A list of supported :class:`~Fred2.Core.Peptide.Peptide` lengths
+        """
+        return self.__supported_length
+
+    def predict(self, peptides,  **kwargs):
+        """
+        Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`. If no
+        :class:`~Fred2.Core.Allele.Allele` are given, predictions for all available models are made.
+
+        :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
+        :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
+        :param kwargs: optional parameter (not used yet)
+        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
+        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
+        """
+        def __load_allele_model(allele, length):
+            allele_model = "%s_%i"%(allele, length)
+            return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),
+                           allele_model)
+
+        if isinstance(peptides, Peptide):
+            pep_seqs = {str(peptides):peptides}
+        else:
+            pep_seqs = {}
+            for p in peptides:
+                if not isinstance(p, Peptide):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                pep_seqs[str(p)] = p
+
+
+        result = {self.__name:{}}
+        pep_groups = pep_seqs.keys()
+        pep_groups.sort(key=len)
+        for length, peps in itertools.groupby(pep_groups, key=len):
+
+            if self.supportedLength is not None and length not in self.supportedLength:
+                warnings.warn("Peptide length of %i is not supported by %s"%(length, self.name))
+                continue
+
+            peps = list(peps)
+
+            for p in peps:
+                score = sum(self.__log_enrichment.get(p[i], 0.0)*self.__importance[i] for i in xrange(length))
+                result[self.__name][pep_seqs[p]] = score
+
+        if not result:
+            raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
+                             "epitope length and HLA allele combination.")
+
+        df_result = EpitopePredictionResult.from_dict(result)
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
+                                                        names=['Seq', 'Method'])
+        return df_result
+
+
+    def convert_alleles(self, alleles):
+        pass
