@@ -68,7 +68,7 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
 
         tmp_out = NamedTemporaryFile(delete=False)
         tmp_file = NamedTemporaryFile(delete=False)
-        self.prepare_input(pep_seqs.iterkeys(), tmp_file)
+        self.prepare_input(pep_seqs.values(), tmp_file)
         tmp_file.close()
 
         #allowe customary executable specification
@@ -147,11 +147,13 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         """Parameter specifying the position of aa (within the prediction window) after which the sequence is cleaved"""
         return self.__cleavage_pos
 
-    def parse_external_result(self, file):
+    def parse_external_result(self, file, hash_dict):
         """
         Parses external results and returns the result
 
         :param str file: The file path or the external prediction results
+        :param dict(int,Protein) hash_dict: A hash dict mapping from internal ID to Protein object
+                                            du to ID length restriction of NetChop
         :return: Returns a dictionary with the prediction results
         :rtype: dict(str,dict((str,int),float))
         """
@@ -169,9 +171,9 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
             elif l[0] == "-":
                 is_new_seq += 1
             elif l[0].isdigit():
-                pos, aa, _, s, _ = l.split()
+                pos, aa, _, s, ident = l.split()
                 pos = int(pos) - 1
-                seq_id = "seq_%i"%count
+                seq_id = hash_dict[int(ident)].transcript_id
                 result["Seq"][(seq_id, pos)] = aa
                 result[self.name][(seq_id, pos)] = float(s)
 
@@ -198,7 +200,79 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         """
         Prepares the data and writes them to _file in the special format used by the external tool
 
-        :param list(str) input: The input data (here peptide sequences)
+        :param dict(int,Protein/Peptide) input: The input data (here peptide sequences)
         :param File file: A file handler with which the data are written to file
         """
-        file.write("\n".join(">pep_%i\n%s"%(i, str(p)) for i, p in enumerate(input)))
+        file.write("\n".join(">%i\n%s"%(i , str(p)) for i, p in input.iteritems()))
+
+    def predict(self, aa_seq, command=None, options=None, **kwargs):
+        """
+        Overwrites ACleavageSitePrediction.predict
+
+        :param aa_seq: A list of or a single :class:`~Fred2.Core.Peptide.Peptide` or :class:`~Fred2.Core.Protein.Protein` object
+        :type aa_seq: list(:class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`) or :class:`~Fred2.Core.Peptide.Peptide`/:class:`~Fred2.Core.Protein.Protein`
+        :param str command: The path to a alternative binary (can be used if binary is not globally executable)
+        :param str options: A string of additional options directly past to the external tool
+        :return: A :class:`~Fred2.Core.CleavageSitePredictionResult` object
+        :rtype: :class:`~Fred2.Core.CleavageSitePredictionResult`
+        """
+        if not self.is_in_path() and "path" not in kwargs:
+            raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
+                                                                                    version=self.version))
+        external_version = self.get_external_version(path=command)
+        if self.version != external_version and external_version is not None:
+            raise RuntimeError("Internal version {internal_version} does "
+                               "not match external version {external_version}".format(internal_version=self.version,
+                                                                                      external_version=external_version))
+
+        #Since NetChop 3.1 cuts identifiers to 10-digits we use
+        #An integer hashing to generate unique ids for
+        #With is we can predict 99999999999 protein sequences simultaniously
+        #After reaching the limit one could revers the counting in the negative
+        #direction
+        if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
+            pep_seqs = {str(aa_seq): aa_seq}
+        else:
+            pep_seqs = {}
+            for i,p in enumerate(aa_seq):
+                if not isinstance(p, Peptide) and not isinstance(p, Protein):
+                    raise ValueError("Input is not of type Protein or Peptide")
+                if i < 99999999999:
+                    pep_seqs[i] = p
+                else:
+                    pep_seqs[i-99999999999] = p
+
+        tmp_out = NamedTemporaryFile(delete=False)
+        tmp_file = NamedTemporaryFile(delete=False)
+        self.prepare_input(pep_seqs, tmp_file)
+        tmp_file.close()
+
+        #allowe customary executable specification
+        if command is not None:
+            exe = self.command.split()[0]
+            _command = self.command.replace(exe, command)
+        else:
+            _command = self.command
+
+        try:
+            stdo = None
+            stde = None
+            cmd = _command.format(input=tmp_file.name, options="" if options is None else options, out=tmp_out.name)
+            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdo, stde = p.communicate()
+            stdr = p.returncode
+            if stdr > 0:
+                raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
+        except Exception as e:
+            raise RuntimeError(e)
+
+        result = self.parse_external_result(tmp_out,pep_seqs)
+
+        df_result = CleavageSitePredictionResult.from_dict(result)
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i, j in df_result.index],
+                                                        names=['ID', 'Pos'])
+        os.remove(tmp_file.name)
+        tmp_out.close()
+        os.remove(tmp_out.name)
+
+        return df_result

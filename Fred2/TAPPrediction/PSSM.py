@@ -149,7 +149,9 @@ class SMMTAP(APSSMTAPPrediction):
                 pep_seqs[str(p)] = p
 
         result = {self.name: {}}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
+        pep_groups = pep_seqs.keys()
+        pep_groups.sort(key=len)
+        for length, peps in itertools.groupby(pep_groups, key=len):
             if length < 9:
                 warnings.warn("No model found for %s with length %i"%(self.name, length))
                 continue
