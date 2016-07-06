@@ -912,8 +912,8 @@ class CalisImm(APSSMEpitopePrediction):
         :param peptides: A single :class:`~Fred2.Core.Peptide.Peptide` or a list of :class:`~Fred2.Core.Peptide.Peptide`
         :type peptides: list(:class:`~Fred2.Core.Peptide.Peptide`) or :class:`~Fred2.Core.Peptide.Peptide`
         :param kwargs: optional parameter (not used yet)
-        :return: Returns a :class:`~Fred2.Core.Result.EpitopePredictionResult` object with the prediction results
-        :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
+        :return: Returns a :class:`pandas.DataFrame` object with the prediction results
+        :rtype: :class:`pandas.DataFrame`
         """
         def __load_allele_model(allele, length):
             allele_model = "%s_%i"%(allele, length)
@@ -949,7 +949,7 @@ class CalisImm(APSSMEpitopePrediction):
             raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
                              "epitope length and HLA allele combination.")
 
-        df_result = EpitopePredictionResult.from_dict(result)
+        df_result = pandas.DataFrame.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
         return df_result
