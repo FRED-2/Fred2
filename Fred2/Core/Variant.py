@@ -37,9 +37,10 @@ class MutationSyntax():
     :param str cds: The complete cds_mutation_syntax string
     :param str aas: The complete protein_mutation_syntax string
     """
-    def __init__(self, transID, transPos, protPos, cds, aas):
+    def __init__(self, transID, transPos, protPos, cds, aas, geneID=None):
         #TODO: is protPos always given? what about synonymous variants?
         self.transID = transID
+        self.geneID = geneID
         self.tranPos = transPos
         self.protPos = protPos
         self.cdsMutationSyntax = cds  #c. ...
@@ -79,7 +80,6 @@ class Variant(MetadataLogger):
         self.genomePos = genomePos
         self.ref = ref.upper()
         self.obs = obs.upper()
-        self.gene = None
         self.isHomozygous = isHomozygous
         self.isSynonymous = isSynonymous
         self.coding = coding  # dict transcript_id:MutationSyntax

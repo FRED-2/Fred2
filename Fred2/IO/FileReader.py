@@ -127,7 +127,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
     #fgd3:nm_001083536:exon6:c.g823a:p.v275i,fgd3:nm_001286993:exon6:c.g823a:p.v275i,fgd3:nm_033086:exon6:c.g823a:p.v275i
     #RE = re.compile("\w+:(\w+):exon\d+:c.(\D*)(\d+)_*(\d*)(\D\w*):p.\w+:\D*->\D*:(\D).*?,")
     #RE = re.compile("\w+:(\w+):exon\d+:c.(\D*)(\d+)_*(\d*)(\D\w*):p.(\D*)(\d+)_*(\d*)(\D\w*):(\D).*?,")
-    RE = re.compile("((\w+):exon\d+:c.\D*(\d+)\D\w*:p.\D*(\d+)\D\w*)")
+    RE = re.compile("((\w+):(\w+):exon\d+:c.\D*(\d+)\D\w*:p.\D*(\d+)\D\w*)")
     type_mapper = {('synonymous', 'snv'): VariationType.SNP,
                    ('nonsynonymous', 'snv'): VariationType.SNP,
                    ('stoploss', 'snv'): VariationType.SNP,
@@ -157,13 +157,14 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
             #print "Debug ", line, RE.findall(line), type, zygos
             coding = {}
             for nm_id_pos in RE.findall(line):
-                mutation_string, nm_id, trans_pos, prot_start = nm_id_pos
+                mutation_string, geneID, nm_id, trans_pos, prot_start = nm_id_pos
                 #print "Debug ",nm_id_pos
 
                 nm_id = nm_id.upper()
-                _, _, trans_coding, prot_coding = mutation_string.split(":")
+                _,_, _, trans_coding, prot_coding = mutation_string.split(":")
                 #internal transcript and protein position start at 0!
-                coding[nm_id] = MutationSyntax(nm_id, int(trans_pos)-1, int(prot_start)-1, trans_coding, prot_coding)
+                coding[nm_id] = MutationSyntax(nm_id, int(trans_pos)-1, int(prot_start)-1, trans_coding, prot_coding,
+                                               geneID=geneID.upper())
 
             ty = tuple(mut_type.split())
 
