@@ -12,10 +12,19 @@
 from Fred2.Core.Base import MetadataLogger
 
 
+class AlleleFactory(type):
+    def __call__(cls, name, prob=None):
+        if cls is Allele:
+            if name.count("*") > 1:
+                return CombinedAllele(name, prob=prob)
+        return type.__call__(cls, name, prob=prob)
+
+
 class Allele(MetadataLogger):
     """
     This class represents an HLA Allele and stores additional information
     """
+    __metaclass__ = AlleleFactory
 
     def __init__(self, name, prob=None):
         """
@@ -69,3 +78,15 @@ class CombinedAllele(Allele):
     def __repr__(self):
         return 'HLA-%s*%s:%s-%s*%s:%s' % (str(self.alpha_locus), str(self.alpha_supertype), str(self.alpha_subtype),
                                           str(self.beta_locus), str(self.beta_supertype), str(self.beta_subtype))
+
+    @property
+    def locus(self):
+        return self.alpha_locus, self.beta_locus
+
+    @property
+    def supertype(self):
+        return self.alpha_supertype, self.beta_supertype
+
+    @property
+    def subtype(self):
+        return self.alpha_subtype, self.beta_subtype
