@@ -29,7 +29,7 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
     def setUp(self):
         self.peptides_mhcI = [Peptide("SYFPEITHI"), Peptide("IHTIEPFYS")]
         self.peptides_mhcII = [Peptide("AAAAAASYFPEITHI"), Peptide("IHTIEPFYSAAAAAA")]
-        self.mhcI = [Allele("HLA-B*15:01"), Allele("HLA-A*02:01")]
+        self.mhcI = [Allele("HLA-B*07:02"), Allele("HLA-A*02:01")]
         self.mhcII = [Allele("HLA-DRB1*07:01"), Allele("HLA-DRB1*15:01")]
         self.mhcII_combined_alleles = [CombinedAllele("DPA1*01:03-DPB1*01:01"), CombinedAllele("DQA1*06:02-DQB1*06:31")]
         self.transcript = Transcript("")
