@@ -14,11 +14,12 @@ import csv
 import abc
 import shutil
 import warnings
+import itertools
 
 from tempfile import NamedTemporaryFile
 
 from Fred2.Core import AHLATyping, AExternal
-from Fred2.Core import Allele
+from Fred2.Core import Allele, CombinedAllele
 
 
 class AExternalHLATyping(AHLATyping, AExternal):
@@ -255,15 +256,25 @@ class Seq2HLA_2_2(AExternalHLATyping):
         try:
             with open(output+"-ClassI.HLAgenotype4digits") as c1:
                 for row in csv.DictReader(c1, delimiter="\t"):
-                    alleles.extend([Allele("HLA-"+row["Allele 1"]), Allele("HLA-"+row["Allele 2"])])
+                    alleles.extend([Allele("HLA-"+row["Allele 1"].replace("'","")), Allele("HLA-"+row["Allele 2"].replace("'",""))])
         except IOError as e:
             warnings.warn("Output file {c1} for HLA-I could not be found. {error}".format(
                 c1=output + "-ClassI.HLAgenotype4digits"), error=e)
 
         try:
             with open(output+"-ClassII.HLAgenotype4digits") as c2:
+                DQA = []
+                DQB = []
                 for row in csv.DictReader(c2, delimiter="\t"):
-                    alleles.extend([Allele("HLA-"+row["Allele 1"]), Allele("HLA-"+row["Allele 2"])])
+                    a1, a2 = row["Allele 1"], row["Allele 2"]
+                    if "DRB" in a1 or "DRB" in a2:
+                        alleles.extend([Allele("HLA-"+a1.replace("'","")), Allele("HLA-"+a2.replace("'",""))])
+                    elif "DQA" in a1 or "DQA" in a2:
+                        DQA.extend([a1.replace("'",""), a2.replace("'","")])
+                    else:
+                         DQB.extend([a1.replace("'",""), a2.replace("'","")])
+                    for dq in itertools.product(DQA, DQB):
+                        alleles.append(CombinedAllele("HLA-"+"-".join(dq)))
         except IOError as e:
             warnings.warn("Output file {c2} for HLA-I could not be found. {error}".format(
                 c2=output + "-ClassII.HLAgenotype4digits"), error=e)
