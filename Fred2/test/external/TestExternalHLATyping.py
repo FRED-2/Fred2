@@ -2,6 +2,7 @@
 Unittest for external HLA typing  methods
 """
 import sys
+sys.path.append("/home/schubert/Dropbox/PhD/Porgramming/Fred2/")
 import unittest
 import os
 import subprocess
@@ -25,50 +26,52 @@ class TestExternalHLATypingClass(unittest.TestCase):
         opti = HLATypingFactory("OptiType")
         print opti.predict("/Users/schubert/Dropbox/PhD/Porgramming/OptiType/test/exome/NA11995_SRR766010_1_fished.fastq", "/tmp/", options="-d")
 
-    # def test_seq2HLA(self):
-    #     origin = "/Users/schubert/Dropbox/PhD/software/seq2hla"
-    #     os.environ["PATH"] += os.pathsep + origin
-    #     seq2HLA = HLATypingFactory("Seq2HLA")
-    #     print seq2HLA.predict(origin+"/ERR009168_1.fastq.gz", origin+"/delete", options="-2 "+origin+"/ERR009168_2.fastq.gz")
-    #
-    # def test_athlates(self):
-    #     origin = "/Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/bin"
-    #     os.environ["PATH"] += os.pathsep + origin
-    #     atlates = HLATypingFactory("athlates")
-    #     print atlates.predict("/Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/demo/HG01756/HG01756_a.sort.bam",
-    #                           "/Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/demo/output/Fred2_",
-    #                           options="-msa /Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/db/msa/A_nuc.txt",
-    #                           delete=False)
+    def test_seq2HLA(self):
+        origin = "/home/schubert/Dropbox/PhD/software/seq2hla"
+        os.environ["PATH"] += os.pathsep + origin
+        seq2HLA = HLATypingFactory("Seq2HLA")
+        print seq2HLA.predict("/home/schubert/Desktop/ERR009105_1.fastq.gz", origin+"/delete", options="-2 /home/schubert/Desktop/ERR009105_2.fastq.gz")
+
+    def test_athlates(self):
+        origin = "/Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/bin"
+        os.environ["PATH"] += os.pathsep + origin
+        atlates = HLATypingFactory("athlates")
+        print atlates.predict("/Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/demo/HG01756/HG01756_a.sort.bam",
+                              "/Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/demo/output/Fred2_",
+                              options="-msa /Users/schubert/Dropbox/PhD/software/Athlates_2014_04_26/db/msa/A_nuc.txt",
+                              delete=False)
 
 
-    # def test_polysolver(self):
-    #     command = ['source /Users/schubert/Dropbox/phd/software/polysolver/scripts/config.bash && env']
-    #     proc = subprocess.Popen(command, stdout = subprocess.PIPE,shell=True)
-    #     for line in proc.stdout:
-    #         (key, _, value) = line.partition("=")
-    #         os.environ[key] = value.strip()
-    #     proc.communicate()
-    #     origin = "/Users/schubert/Dropbox/phd/software/polysolver/scripts/"
-    #     os.environ["PATH"] += os.pathsep + origin
-    #     pprint.pprint(dict(os.environ))
-    #
-    #
-    #
-    #     command = ["/Users/schubert/Dropbox/phd/software/polysolver/debugg.sh"]
-    #     proc = subprocess.Popen(command, stdout = subprocess.PIPE,shell=True)
-    #
-    #     print "SAMTool call"
-    #     print "\n".join( l for l in proc.stdout)
-    #     print
-    #     print str(proc.stderr)
-    #     proc.communicate()
-    #     #sys.exit()
-    #     polysolver = HLATypingFactory("polysolver")
-    #     print polysolver.predict("/Users/schubert/Dropbox/phd/software/polysolver/test/test.bam",
-    #                              "/Users/schubert/Dropbox/phd/software/polysolver/debugging2/", options="Unknown 1 hg19 STDFQ 0",
-    #                              delete=False,
-    #                              command=origin+"shell_call_hla_type")
+    def test_polysolver(self):
+        command = ['source /Users/schubert/Dropbox/phd/software/polysolver/scripts/config.bash && env']
+        proc = subprocess.Popen(command, stdout = subprocess.PIPE,shell=True)
+        for line in proc.stdout:
+            (key, _, value) = line.partition("=")
+            os.environ[key] = value.strip()
+        proc.communicate()
+        origin = "/Users/schubert/Dropbox/phd/software/polysolver/scripts/"
+        os.environ["PATH"] += os.pathsep + origin
+        pprint.pprint(dict(os.environ))
+
+
+
+        command = ["/Users/schubert/Dropbox/phd/software/polysolver/debugg.sh"]
+        proc = subprocess.Popen(command, stdout = subprocess.PIPE,shell=True)
+
+        print "SAMTool call"
+        print "\n".join( l for l in proc.stdout)
+        print
+        print str(proc.stderr)
+        proc.communicate()
+        #sys.exit()
+        polysolver = HLATypingFactory("polysolver")
+        print polysolver.predict("/Users/schubert/Dropbox/phd/software/polysolver/test/test.bam",
+                                 "/Users/schubert/Dropbox/phd/software/polysolver/debugging2/", options="Unknown 1 hg19 STDFQ 0",
+                                 delete=False,
+                                 command=origin+"shell_call_hla_type")
     #
 
 
+if __name__ == '__main__':
+    unittest.main()
 
