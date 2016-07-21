@@ -870,15 +870,19 @@ class CalisImm(APSSMEpitopePrediction):
 
     """
 
-    __alleles = frozenset([])
-    __supported_length = frozenset([9])
+    __alleles = frozenset(
+        ['B*40:02', 'B*07:02', 'B*08:01', 'B*44:03', 'B*44:02', 'A*68:01', 'A*24:02', 'B*40:01', 'A*31:01', 'B*39:01', 'A*01:01', 'B*58:01',
+         'B*57:01', 'A*30:02', 'A*30:01', 'B*35:01', 'B*51:01', 'A*32:01', 'B*53:01', 'A*26:01', 'A*03:01', 'B*15:02', 'B*15:01', 'B*45:01',
+         'B*54:01', 'B*18:01', 'A*68:02', 'A*69:01', 'A*02:11', 'A*11:01', 'A*23:01', 'A*33:01', 'B*46:01', 'A*02:06', 'A*02:01', 'A*02:02',
+         'A*02:03', 'A*29:02', 'B*27:05'])
+    __supported_length = frozenset([9,10,11])
     __name = "calisimm"
     __version = "1.0"
 
     __log_enrichment = {"A": 0.127, "C": -0.175, "D": 0.072, "E": 0.325, "F": 0.380, "G": 0.11, "H": 0.105, "I": 0.432,
                         "K": -0.7, "L": -0.036, "M": -0.57, "N": -0.021, "P": -0.036, "Q": -0.376, "R": 0.168,
                         "S": -0.537, "T": 0.126, "V": 0.134, "W": 0.719, "Y": -0.012}
-    __importance = [0.,0.,0.1,0.31,0.3,0.29,0.26,0.18,0.]
+    __importance = [0., 0., 0.1, 0.31, 0.3, 0.29, 0.26, 0.18, 0.]
 
     @property
     def version(self):
@@ -904,7 +908,7 @@ class CalisImm(APSSMEpitopePrediction):
         """
         return self.__supported_length
 
-    def predict(self, peptides,  **kwargs):
+    def predict(self, peptides, alleles=None, **kwargs):
         """
         Returns predictions for given peptides an :class:`~Fred2.Core.Allele.Allele`. If no
         :class:`~Fred2.Core.Allele.Allele` are given, predictions for all available models are made.
@@ -916,7 +920,7 @@ class CalisImm(APSSMEpitopePrediction):
         :rtype: :class:`pandas.DataFrame`
         """
         def __load_allele_model(allele, length):
-            allele_model = "%s_%i"%(allele, length)
+            allele_model = "%s"%allele
             return getattr(__import__("Fred2.Data.pssms."+self.name+".mat."+allele_model, fromlist=[allele_model]),
                            allele_model)
 
@@ -930,7 +934,17 @@ class CalisImm(APSSMEpitopePrediction):
                 pep_seqs[str(p)] = p
 
 
-        result = {self.__name:{}}
+        if alleles is None:
+            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+        else:
+            if isinstance(alleles, Allele):
+                alleles = [alleles]
+            if any(not isinstance(p, Allele) for p in alleles):
+                raise ValueError("Input is not of type Allele")
+            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
+
+        result = {}
         pep_groups = pep_seqs.keys()
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
@@ -940,20 +954,33 @@ class CalisImm(APSSMEpitopePrediction):
                 continue
 
             peps = list(peps)
+            for a, allele in alleles_string.iteritems():
 
-            for p in peps:
-                score = sum(self.__log_enrichment.get(p[i], 0.0)*self.__importance[i] for i in xrange(length))
-                result[self.__name][pep_seqs[p]] = score
+                if alleles_string[a] not in result:
+                    result[allele] = {}
+
+                #load matrix
+                try:
+                    pssm = __load_allele_model(a, length)
+                except ImportError:
+                    pssm = []
+
+                importance = self.__importance  if length <= 9 else \
+                             self.__importance[:5] + ((length - 9) * [0.30]) + self.__importance[5:]
+
+                for p in peps:
+                    score = sum(self.__log_enrichment.get(p[i], 0.0)*importance[i]
+                                for i in xrange(length) if i not in pssm)
+                    result[allele][pep_seqs[p]] = score
 
         if not result:
             raise ValueError("No predictions could be made with " +self.name+" for given input. Check your"
                              "epitope length and HLA allele combination.")
 
-        df_result = pandas.DataFrame.from_dict(result)
+        df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
                                                         names=['Seq', 'Method'])
         return df_result
 
-
     def convert_alleles(self, alleles):
-        pass
+        return map(lambda x: x.name.replace("*","").replace(":",""), alleles)
