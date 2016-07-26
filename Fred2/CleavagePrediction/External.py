@@ -173,7 +173,10 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
             elif l[0].isdigit():
                 pos, aa, _, s, ident = l.split()
                 pos = int(pos) - 1
-                seq_id = hash_dict[int(ident)].transcript_id
+                try:
+                    seq_id = hash_dict[int(ident)].transcript_id
+                except:
+                    seq_id = int(ident)
                 result["Seq"][(seq_id, pos)] = aa
                 result[self.name][(seq_id, pos)] = float(s)
 
