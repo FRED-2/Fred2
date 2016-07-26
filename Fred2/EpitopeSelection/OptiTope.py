@@ -292,7 +292,7 @@ class OptiTope(object):
         """
         tmp = self.instance.t_var.value
         try:
-            self.instance.z.activate()
+            self.instance.z
             getattr(self.instance, str(self.instance.t_var)).set_value(int(len(self.instance.Q)*t_var))
             self.instance.IsAntigenCovConst.activate()
             self.instance.MinAntigenCovConst.activate()
