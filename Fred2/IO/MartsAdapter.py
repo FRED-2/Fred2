@@ -108,8 +108,8 @@ class MartsAdapter(ADBAdapter):
             logging.warn("There seems to be no Proteinsequence for " + str(product_id))
             #print self.biomart_url+rq_n
             return None
-        self.sequence_proxy[product_id] = tsvselect[0]["Protein"][:-1] if tsvselect[0]["Protein"].endswith('*')\
-            else tsvselect[0]["Protein"]
+        self.sequence_proxy[product_id] = tsvselect[0]["Peptide"][:-1] if tsvselect[0]["Peptide"].endswith('*')\
+            else tsvselect[0]["Peptide"]
         return self.sequence_proxy[product_id]
 
     def get_transcript_sequence(self, transcript_id, **kwargs):
@@ -501,9 +501,9 @@ class MartsAdapter(ADBAdapter):
             logging.warn("No entry found for ID %s"%gene_id)
             return None
 
-        self.ids_proxy[gene_id] = [{EAdapterFields.PROTID: gtp.get('Ensembl Protein ID', ""),
-                                                  EAdapterFields.GENE: gtp.get('Ensembl Gene ID', ""),
-                                                  EAdapterFields.TRANSID: gtp.get('Ensembl Transcript ID', ""),
+        self.ids_proxy[gene_id] = [{EAdapterFields.PROTID: gtp.get('Protein ID', ""),
+                                                  EAdapterFields.GENE: gtp.get('Gene ID', ""),
+                                                  EAdapterFields.TRANSID: gtp.get('Transcript ID', ""),
                                                   EAdapterFields.STRAND: "-" if int(gtp['Strand']) < 0
                                                   else "+"} for gtp in tsvselect]
         return self.ids_proxy[gene_id]
