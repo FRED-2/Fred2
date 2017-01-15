@@ -8,12 +8,11 @@
 
 """
 
-import warnings
 import os
 import re
+import warnings
 
 import vcf
-
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 from Fred2.Core.Peptide import Peptide
@@ -257,7 +256,7 @@ def read_vcf(vcf_file, gene_filter=None, experimentalDesig=None):
                 for annraw in record.INFO['ANN']:  # for each ANN only add a new coding! see GSvar
                     annots = annraw.split('|')
 
-                    obs, a_mut_type, impact, a_gene, a_gene_id, feature_type, transcript_id, exon, tot_exon, trans_coding, prot_coding, cdna, cds, aa, distance, warnings = annots
+                    obs, a_mut_type, impact, a_gene, a_gene_id, feature_type, transcript_id, exon, tot_exon, trans_coding, prot_coding, cdna, cds, aa, distance, warns = annots
 
                     if a_mut_type in filter_variants:
                         tpos = 0
@@ -309,6 +308,6 @@ def read_vcf(vcf_file, gene_filter=None, experimentalDesig=None):
                     list_vars.append(var)
 
             else:
-                warnings.warn("Skipping unannotated variant")
+                warnings.warn("Skipping unannotated variant", UserWarning)
 
     return list_vars, transcript_ids
