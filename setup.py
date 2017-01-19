@@ -120,6 +120,6 @@ setup(
     #ext_modules=[d2s_module],
 
     # Run-time dependencies. (will be installed by pip when FRED2 is installed)
-    install_requires=['setuptools>=18.2', 'pandas', 'pyomo>=4.0','svmlight', 'MySQL-python >= 1.2.4', 'biopython'],
+    install_requires=['setuptools>=18.2', 'pandas', 'pyomo>=4.0','svmlight', 'MySQL-python >= 1.2.4', 'biopython', 'pyVCF'],
 
 )

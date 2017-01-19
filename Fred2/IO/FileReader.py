@@ -8,10 +8,11 @@
 
 """
 
-import warnings
 import os
 import re
+import warnings
 
+import vcf
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 from Fred2.Core.Peptide import Peptide
@@ -63,7 +64,6 @@ def read_fasta(files, in_type=Peptide, id_position=1):
                 except TypeError:
                     collect.add(in_type(seq.strip().upper()))
     return list(collect)
-
 
 
 ####################################
@@ -173,3 +173,141 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                         alt.upper(), coding, zygos == "hom", ty[0] == "synonymous",
                         experimentalDesign=experimentalDesig))
     return vars
+
+
+#####################################
+#       V C F  -  R E A D E R
+#####################################
+def read_vcf(vcf_file, gene_filter=None, experimentalDesig=None):
+    """
+    Reads an vcf v4.0 or 4.1 file and generates :class:`~Fred2.Core.Variant.Variant` objects containing
+    all annotated :class:`~Fred2.Core.Transcript.Transcript` ids an outputs a list :class:`~Fred2.Core.Variant.Variant`.
+    Only the following variants are considered by the reader where synonymous labeled variants will not be integrated into any variant:
+    filter_variants = ['missense_variant', 'frameshift_variant', 'stop_gained', 'missense_variant&splice_region_variant', "synonymous_variant", "inframe_deletion", "inframe_insertion"]
+
+    :param str vcf_file: The path ot the vcf file
+    :param list(str) gene_filter: A list of gene names of interest (only variants associated with these genes
+                                  are generated)
+    :return: List of :class:`~Fred2.Core.Variant.Variants fully annotated
+    :rtype: Tuple of (list(:class:`~Fred2.Core.Variant.Variant`), list(transcript_ids)
+    """
+    vl = list()
+    with open(vcf_file, 'rb') as tsvfile:
+        vcf_reader = vcf.Reader(open(vcf_file, 'r'))
+        vl = [r for r in vcf_reader]
+
+    list_vars = []
+    transcript_ids = []
+
+    genotye_dict = {"het": False, "hom": True, "ref": True}
+
+    for num, record in enumerate(vl):
+        c = record.CHROM.strip('chr')  # chrom
+        p = record.POS - 1  # vcf is 1-based & FRED2 0-based
+        variation_dbid = record.ID  # e.g. rs0123
+        r = str(record.REF)  # reference nuc (seq)
+        v_list = record.ALT  # list of variants
+        q = record.QUAL  # ?
+        f = record.FILTER  # empty if PASS, content otherwise
+        # I guess we shouldn't expect that keyword to be there ?!
+        #z = record.INFO['SOMATIC'] #if true somatic
+
+        vt = VariationType.UNKNOWN
+        if record.is_snp:
+            vt = VariationType.SNP
+        elif record.is_indel:
+            if len(v_list)%3 == 0:  # no frameshift
+                if record.is_deletion:
+                    vt = VariationType.DEL
+                else:
+                    vt = VariationType.INS
+            else:  # frameshift
+                if record.is_deletion:
+                    vt = VariationType.FSDEL
+                else:
+                    vt = VariationType.FSINS
+        gene = None
+
+        # WHICH VARIANTS TO FILTER ?
+        filter_variants = ['missense_variant', 'frameshift_variant', 'stop_gained', 'missense_variant&splice_region_variant', "synonymous_variant", "inframe_deletion", "inframe_insertion"]
+
+        for alt in v_list:
+            isHomozygous = False
+            if 'HOM' in record.INFO:
+                #TODO set by AF & FILTER as soon as available
+                isHomozygous = record.INFO['HOM'] == 1
+            elif 'SGT' in record.INFO:
+                zygosity = record.INFO['SGT'].split("->")[1]
+                if zygosity in genotye_dict:
+                    isHomozygous = genotye_dict[zygosity]
+                else:
+                    if zygosity[0] == zygosity[1]:
+                        isHomozygous = True
+                    else:
+                        isHomozygous = False
+            else:
+                for sample in record.samples:
+                    if 'GT' in sample.data:
+                        isHomozygous = sample.data['GT'] == '1/1'
+
+            if "ANN" in record.INFO and record.INFO['ANN']:
+                isSynonymous = False
+                coding = dict()
+                for annraw in record.INFO['ANN']:  # for each ANN only add a new coding! see GSvar
+                    annots = annraw.split('|')
+
+                    obs, a_mut_type, impact, a_gene, a_gene_id, feature_type, transcript_id, exon, tot_exon, trans_coding, prot_coding, cdna, cds, aa, distance, warns = annots
+
+                    if a_mut_type in filter_variants:
+                        tpos = 0
+                        ppos = 0
+
+                        # get cds/protein positions and convert mutation syntax to FRED2 format
+                        if trans_coding != '':
+                            positions = re.findall(r'\d+', trans_coding)
+                            ppos = int(positions[0]) - 1
+
+                        if prot_coding != '':
+                            positions = re.findall(r'\d+', prot_coding)
+                            tpos = int(positions[0]) - 1
+
+                        isSynonymous = (a_mut_type == "synonymous_variant")
+
+                        #rather take gene_id than gene name
+                        gene = a_gene_id
+
+                        #REFSEQ specific ? Do have to split because of biomart ?
+                        transcript_id = transcript_id.split(".")[0]
+
+                        #TODO vcf are not REFSEQ only
+
+                        #coding string not parsed anyway ? just use the one given by SnpEff
+                        coding[transcript_id] = MutationSyntax(transcript_id, ppos, tpos, trans_coding, prot_coding)
+                        transcript_ids.append(transcript_id)
+
+                if coding and not isSynonymous:
+                    if vt == VariationType.SNP:
+                        pos, reference, alternative = p, str(r), str(alt)
+                    elif vt == VariationType.DEL or vt == VariationType.FSDEL:
+                        if alt != '-':
+                            pos, reference, alternative = p + len(alt), r[len(alt):], '-'
+                        else:
+                            pos, reference, alternative = p, str(r), str(alt)
+                    elif vt == VariationType.INS or vt == VariationType.FSINS:
+                        if r != '-':
+                            if alt != '-':
+                                pos, reference, alternative = p + len(r), '-', str(alt)[len(r):]
+                            else:
+                                pos, reference, alternative = p + len(r), '-', str(alt)
+                        else:
+                            pos, reference, alternative = p, str(r), str(alt)
+
+                    var = Variant("line" + str(num), vt, c, pos, reference, alternative, coding, isHomozygous, isSynonymous, experimentalDesign=experimentalDesig)
+                    var.gene = gene
+                    var.log_metadata("vardbid", variation_dbid)
+                    list_vars.append(var)
+
+            else:
+                warnings.warn("Skipping unannotated variant", UserWarning)
+
+    return list_vars, transcript_ids

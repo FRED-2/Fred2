@@ -1,0 +1,66 @@
+##fileformat=VCFv4.1
+##fileDate=20160916
+##source=strelka
+##source_version=2.0.17.strelka1
+##startTime=Fri Sep 16 15:46:06 2016
+##reference=file:///lvcftest/reference_genomes/Homo_sapiens/DNA/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+##contig=<ID=chrM,length=16571>
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chr10,length=135534747>
+##contig=<ID=chr11,length=135006516>
+##contig=<ID=chr12,length=133851895>
+##contig=<ID=chr13,length=115169878>
+##contig=<ID=chr14,length=107349540>
+##contig=<ID=chr15,length=102531392>
+##contig=<ID=chr16,length=90354753>
+##contig=<ID=chr17,length=81195210>
+##contig=<ID=chr18,length=78077248>
+##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr20,length=63025520>
+##contig=<ID=chr21,length=48129895>
+##contig=<ID=chr22,length=51304566>
+##contig=<ID=chrX,length=155270560>
+##contig=<ID=chrY,length=59373566>
+##content=strelka somatic snv calls
+##germlineSnvTheta=0.001
+##priorSomaticSnvRate=1e-06
+##INFO=<ID=QSS,Number=1,Type=Integer,Description="Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
+##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
+##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
+##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
+##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+##FILTER=<ID=BCNoise,Description="Fraction of basecalls filtered at this site in either sample is at or above 0.4">
+##FILTER=<ID=SpanDel,Description="Fraction of reads crossing site with spanning deletions in either sample exceeeds 0.75">
+##FILTER=<ID=QSS_ref,Description="Normal sample is not homozygous ref or ssnv Q-score < 15, ie calls with NT!=ref or QSS_NT < 15">
+##cmdline=/lvcftest/strelka/1.0.14/libexec/consolidateResults.pl --config=/lvcftest/qeana10-IVAC_TEST_SPACE-QT003-QT003E18-QT003E18R1-0/somaticvariantCalling_v1_0_20161474032345786/analysis/config/run.config.ini
+##SnpEffVersion="4.1k (build 2015-09-07), by Pablo Cingolani"
+##SnpEffCmd="SnpEff  hg19 /vcftest/qeana10-IVAC_TEST_SPACE-QT003-QT003E21-QT003E21R1-0/variantannotation_v2_0_20161474536338921/data/QT003004R0_QT003009R6_passed_somatic_variants.vcf "
+##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
+##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+##INFO=<ID=NMD,Number=.,Type=String,Description="Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NORMAL	TUMOR
+chr1	17298913	.	C	G	.	PASS	NT=ref;QSS=402;QSS_NT=106;SGT=CC->GG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=G|missense_variant|MODERATE|CROCC|CROCC|transcript|NM_014675.4|Coding|37/37|c.6026C>G|p.Ser2009Cys|6095/6656|6026/6054|2009/2017||,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_002403.3|Coding||c.*2502G>C|||||2086|,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_001135248.1|Coding||c.*2502G>C|||||2086|,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_001135247.1|Coding||c.*2502G>C|||||2086|,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_017459.2|Coding||c.*2502G>C|||||2086|	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	80:0:0:0:0,0:80,80:0,0:0,0	81:0:0:0:0,0:1,1:80,83:0,0
+chr1	92643966	.	C	T	.	PASS	NT=ref;QSS=15;QSS_NT=15;SGT=CC->CT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=T|stop_gained|HIGH|KIAA1107|KIAA1107|transcript|NM_015237.2|Coding|7/9|c.1225C>T|p.Gln409*|1323/4556|1225/4065|409/1354||;LOF=(KIAA1107|KIAA1107|1|1.00);NMD=(KIAA1107|KIAA1107|1|1.00)	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	64:0:0:0:0,0:64,65:0,0:0,0	113:0:0:0:2,2:106,106:0,0:5,5
+chr1	117122299	.	C	CCTA	.	PASS	IC=1;IHP=4;NT=ref;QSI=84;QSI_NT=83;RC=0;RU=CTA;SGT=ref->het;SOMATIC;TQSI=1;TQSI_NT=1;ANN=CCTA|stop_gained&inframe_insertion|HIGH|IGSF3|IGSF3|transcript|NM_001542.3|Coding|10/11|c.3108_3109insTAG|p.Glu1036_Glu1037insTer|3738/7189|3108/3645|1036/1214||,CCTA|stop_gained&inframe_insertion|HIGH|IGSF3|IGSF3|transcript|NM_001007237.2|Coding|10/11|c.3048_3049insTAG|p.Glu1016_Glu1017insTer|3816/7267|3048/3585|1016/1194||;LOF=(IGSF3|IGSF3|2|1.00);NMD=(IGSF3|IGSF3|2|1.00)	DP:DP2:TAR:TIR:TOR:DP50:FDP50:SUBDP50	42:42:47,48:0,0:6,5:50.69:0.08:0.00	39:39:17,17:14,14:12,12:49.02:0.01:0.00
+chr1	227279607	.	GC	G	.	PASS	IC=0;IHP=9;NT=ref;QSI=103;QSI_NT=103;RC=1;RU=C;SGT=ref->het;SOMATIC;TQSI=1;TQSI_NT=1;ANN=G|frameshift_variant|HIGH|CDC42BPA|CDC42BPA|transcript|NM_003607.3|Coding|16/36|c.2334delG|p.Lys778fs|3277/10506|2334/5160|778/1719||,G|frameshift_variant|HIGH|CDC42BPA|CDC42BPA|transcript|NM_014826.4|Coding|15/35|c.2091delG|p.Lys697fs|3034/10263|2091/4917|697/1638||;LOF=(CDC42BPA|CDC42BPA|2|1.00)	DP:DP2:TAR:TIR:TOR:DP50:FDP50:SUBDP50	114:114:112,113:0,0:0,0:111.51:0.33:0.00	143:143:98,98:33,33:10,10:139.34:0.15:0.00
+chr8	23225702	.	TGGCCACGTTGGCGGGGGCCTG	T	.	PASS	IC=0;IHP=4;NT=ref;QSI=631;QSI_NT=137;RC=1;RU=GGCCACGTTGGCGGGGGCCTG;SGT=ref->het;SOMATIC;TQSI=1;TQSI_NT=1;ANN=T|inframe_deletion|MODERATE|LOXL2|LOXL2|transcript|NM_002318.2|Coding|2/14|c.142_162delCAGGCCCCCGCCAACGTGGCC|p.Gln48_Ala54del|501/3810|142/2325|48/774||,T|downstream_gene_variant|MODIFIER|LOC100507156|LOC100507156|transcript|NR_038323.1|Noncoding||n.*2065_*2085delGGCCACGTTGGCGGGGGCCTG|||||2065|	DP:DP2:TAR:TIR:TOR:DP50:FDP50:SUBDP50	154:154:179,181:0,0:6,5:144.63:0.00:0.00	113:113:1,1:76,76:35,35:102.17:0.09:0.00
+chr8	139749820	.	C	A	.	PASS	NT=ref;QSS=54;QSS_NT=54;SGT=CC->AC;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|missense_variant&splice_region_variant|MODERATE|COL22A1|COL22A1|transcript|NM_152888.1|Coding|23/65|c.2086G>T|p.Gly696Trp|2533/6346|2086/4881|696/1626||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	62:0:0:0:0,0:62,62:0,0:0,0	118:0:0:0:24,24:94,94:0,0:0,0
+

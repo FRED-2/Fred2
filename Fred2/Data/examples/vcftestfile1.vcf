@@ -1,0 +1,81 @@
+##fileformat=VCFv4.1
+##fileDate=20160916
+##source=strelka
+##source_version=2.0.17.strelka1
+##startTime=Fri Sep 16 15:46:06 2016
+##reference=file:///lvcftest/reference_genomes/Homo_sapiens/DNA/UCSC/hg19/Sequence/WholeGenomeFasta/genome.fa
+##contig=<ID=chrM,length=16571>
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chr10,length=135534747>
+##contig=<ID=chr11,length=135006516>
+##contig=<ID=chr12,length=133851895>
+##contig=<ID=chr13,length=115169878>
+##contig=<ID=chr14,length=107349540>
+##contig=<ID=chr15,length=102531392>
+##contig=<ID=chr16,length=90354753>
+##contig=<ID=chr17,length=81195210>
+##contig=<ID=chr18,length=78077248>
+##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr20,length=63025520>
+##contig=<ID=chr21,length=48129895>
+##contig=<ID=chr22,length=51304566>
+##contig=<ID=chrX,length=155270560>
+##contig=<ID=chrY,length=59373566>
+##content=strelka somatic snv calls
+##germlineSnvTheta=0.001
+##priorSomaticSnvRate=1e-06
+##INFO=<ID=QSS,Number=1,Type=Integer,Description="Quality score for any somatic snv, ie. for the ALT allele to be present at a significantly different frequency in the tumor and normal">
+##INFO=<ID=TQSS,Number=1,Type=Integer,Description="Data tier used to compute QSS">
+##INFO=<ID=NT,Number=1,Type=String,Description="Genotype of the normal in all data tiers, as used to classify somatic variants. One of {ref,het,hom,conflict}.">
+##INFO=<ID=QSS_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">
+##INFO=<ID=TQSS_NT,Number=1,Type=Integer,Description="Data tier used to compute QSS_NT">
+##INFO=<ID=SGT,Number=1,Type=String,Description="Most likely somatic genotype excluding normal noise states">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
+##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+##FILTER=<ID=BCNoise,Description="Fraction of basecalls filtered at this site in either sample is at or above 0.4">
+##FILTER=<ID=SpanDel,Description="Fraction of reads crossing site with spanning deletions in either sample exceeeds 0.75">
+##FILTER=<ID=QSS_ref,Description="Normal sample is not homozygous ref or ssnv Q-score < 15, ie calls with NT!=ref or QSS_NT < 15">
+##cmdline=/lvcftest/strelka/1.0.14/libexec/consolidateResults.pl --config=/lvcftest/qeana10-IVAC_TEST_SPACE-QT003-QT003E18-QT003E18R1-0/somaticvariantCalling_v1_0_20161474032345786/analysis/config/run.config.ini
+##SnpEffVersion="4.1k (build 2015-09-07), by Pablo Cingolani"
+##SnpEffCmd="SnpEff  hg19 /vcftest/qeana10-IVAC_TEST_SPACE-QT003-QT003E21-QT003E21R1-0/variantannotation_v2_0_20161474536338921/data/QT003004R0_QT003009R6_passed_somatic_variants.vcf "
+##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
+##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+##INFO=<ID=NMD,Number=.,Type=String,Description="Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NORMAL	TUMOR
+chr1	12835731	.	C	T	.	PASS	NT=ref;QSS=134;QSS_NT=134;SGT=CC->CT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=T|synonymous_variant|LOW|PRAMEF12|PRAMEF12|transcript|NM_001080830.4|Coding|2/3|c.333C>T|p.Asn111Asn|353/1778|333/1452|111/483||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	288:0:0:0:0,0:288,291:0,0:0,0	373:1:0:0:0,0:357,358:1,1:14,14
+chr1	16332629	.	G	T	.	PASS	NT=ref;QSS=866;QSS_NT=103;SGT=GG->TT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=T|missense_variant|MODERATE|C1orf64|C1orf64|transcript|NM_178840.2|Coding|2/2|c.298G>T|p.Gly100Trp|366/921|298/510|100/169||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	139:1:0:0:0,0:0,0:137,140:1,1	180:1:0:0:0,0:0,0:0,0:179,180
+chr1	17298913	.	C	G	.	PASS	NT=ref;QSS=402;QSS_NT=106;SGT=CC->GG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=G|missense_variant|MODERATE|CROCC|CROCC|transcript|NM_014675.4|Coding|37/37|c.6026C>G|p.Ser2009Cys|6095/6656|6026/6054|2009/2017||,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_002403.3|Coding||c.*2502G>C|||||2086|,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_001135248.1|Coding||c.*2502G>C|||||2086|,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_001135247.1|Coding||c.*2502G>C|||||2086|,G|downstream_gene_variant|MODIFIER|MFAP2|MFAP2|transcript|NM_017459.2|Coding||c.*2502G>C|||||2086|	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	80:0:0:0:0,0:80,80:0,0:0,0	81:0:0:0:0,0:1,1:80,83:0,0
+chr1	22902919	.	C	A	.	PASS	NT=ref;QSS=85;QSS_NT=85;SGT=CC->AC;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|missense_variant|MODERATE|EPHA8|EPHA8|transcript|NM_020526.3|Coding|3/17|c.369C>A|p.Asn123Lys|494/4996|369/3018|123/1005||,A|missense_variant|MODERATE|EPHA8|EPHA8|transcript|NM_001006943.1|Coding|3/5|c.369C>A|p.Asn123Lys|494/1853|369/1488|123/495||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	81:0:0:0:0,0:81,82:0,0:0,0	114:0:0:0:30,30:84,84:0,0:0,0
+chr1	22987484	.	G	A	.	PASS	NT=ref;QSS=298;QSS_NT=94;SGT=GG->AA;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|missense_variant|MODERATE|C1QB|C1QB|transcript|NM_000491.3|Coding|3/3|c.367G>A|p.Ala123Thr|499/1044|367/762|123/253||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	52:0:0:0:0,0:0,0:52,53:0,0	65:0:0:0:62,62:2,2:0,0:1,1
+chr1	27686354	.	T	G	.	PASS	NT=ref;QSS=75;QSS_NT=75;SGT=TT->GT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=G|missense_variant|MODERATE|MAP3K6|MAP3K6|transcript|NM_004672.4|Coding|17/29|c.2314A>C|p.Ile772Leu|2583/4348|2314/3867|772/1288||,G|missense_variant|MODERATE|MAP3K6|MAP3K6|transcript|NM_001297609.1|Coding|16/28|c.2290A>C|p.Ile764Leu|2559/4324|2290/3843|764/1280||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	71:1:0:0:0,0:0,0:0,0:70,73	128:0:0:0:0,0:0,0:33,33:95,95
+chr1	28120118	.	C	G	.	PASS	NT=ref;QSS=607;QSS_NT=112;SGT=CC->GG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=G|missense_variant|MODERATE|STX12|STX12|transcript|NM_177424.2|Coding|3/9|c.263C>G|p.Pro88Arg|388/3079|263/831|88/276||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	93:0:0:0:0,0:93,94:0,0:0,0	123:0:0:0:0,0:0,0:123,124:0,0
+chr1	36645328	.	G	A	.	PASS	NT=ref;QSS=79;QSS_NT=79;SGT=GG->AG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|synonymous_variant|LOW|MAP7D1|MAP7D1|transcript|NM_018067.4|Coding|15/17|c.2292G>A|p.Glu764Glu|2745/3571|2292/2526|764/841||,A|synonymous_variant|LOW|MAP7D1|MAP7D1|transcript|NM_001286365.1|Coding|14/16|c.2178G>A|p.Glu726Glu|2631/3457|2178/2412|726/803||,A|synonymous_variant|LOW|MAP7D1|MAP7D1|transcript|NM_001286366.1|Coding|16/18|c.2193G>A|p.Glu731Glu|2646/3472|2193/2427|731/808||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	61:0:0:0:0,0:0,0:61,61:0,0	82:0:0:0:27,28:0,0:55,55:0,0
+chr1	36645329	.	G	A	.	PASS	NT=ref;QSS=74;QSS_NT=73;SGT=GG->AG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|missense_variant|MODERATE|MAP7D1|MAP7D1|transcript|NM_018067.4|Coding|15/17|c.2293G>A|p.Glu765Lys|2746/3571|2293/2526|765/841||,A|missense_variant|MODERATE|MAP7D1|MAP7D1|transcript|NM_001286365.1|Coding|14/16|c.2179G>A|p.Glu727Lys|2632/3457|2179/2412|727/803||,A|missense_variant|MODERATE|MAP7D1|MAP7D1|transcript|NM_001286366.1|Coding|16/18|c.2194G>A|p.Glu732Lys|2647/3472|2194/2427|732/808||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	61:0:0:0:0,0:0,0:61,61:0,0	81:0:0:0:25,26:0,0:56,56:0,0
+chr1	38187353	.	G	T	.	PASS	NT=ref;QSS=232;QSS_NT=152;SGT=GG->GT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=T|missense_variant|MODERATE|EPHA10|EPHA10|transcript|NM_001099439.1|Coding|11/17|c.2125C>A|p.Leu709Met|2211/5511|2125/3027|709/1008||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	180:0:0:0:0,0:0,0:180,180:0,0	154:0:0:0:0,0:0,0:96,96:58,59
+chr1	39895594	.	G	C	.	PASS	NT=ref;QSS=138;QSS_NT=118;SGT=GG->CG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=C|missense_variant|MODERATE|MACF1|MACF1|transcript|NM_012090.5|Coding|59/93|c.10798G>C|p.Glu3600Gln|10850/17689|10798/16293|3600/5430||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	106:1:0:0:0,0:0,0:105,107:0,0	154:0:0:0:0,0:52,52:102,104:0,0
+chr1	41976563	.	G	C	.	PASS	NT=ref;QSS=66;QSS_NT=66;SGT=GG->CG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=C|synonymous_variant|LOW|HIVEP3|HIVEP3|transcript|NM_024503.4|Coding|9/9|c.6780C>G|p.Val2260Val|7875/12402|6780/7221|2260/2406||,C|synonymous_variant|LOW|HIVEP3|HIVEP3|transcript|NM_001127714.2|Coding|8/8|c.6777C>G|p.Val2259Val|7792/12319|6777/7218|2259/2405||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	62:0:0:0:0,0:0,0:62,62:0,0	78:0:0:0:0,0:21,21:57,57:0,0
+chr1	43240959	.	A	G	.	PASS	NT=ref;QSS=20;QSS_NT=20;SGT=AA->AG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=G|missense_variant|MODERATE|C1orf50|C1orf50|transcript|NM_024097.3|Coding|5/5|c.494A>G|p.Asp165Gly|561/1015|494/600|165/199||,G|non_coding_exon_variant|MODIFIER|C1orf50|C1orf50|transcript|NR_040733.1|Noncoding|4/4|n.445A>G||||||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	39:0:0:0:39,39:0,0:0,0:0,0	69:0:0:0:62,62:0,0:7,7:0,0
+chr1	43260097	.	A	T	.	PASS	NT=ref;QSS=98;QSS_NT=92;SGT=AA->AT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=T|synonymous_variant|LOW|LOC100129924|LOC100129924|transcript|NM_001242750.1|Coding|6/7|c.423A>T|p.Thr141Thr|663/983|423/738|141/245||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	121:0:0:0:120,120:0,0:0,0:1,1	191:0:0:0:136,136:0,0:0,0:55,55
+chr1	43897967	.	G	C	.	PASS	NT=ref;QSS=126;QSS_NT=114;SGT=GG->CG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=C|missense_variant|MODERATE|SZT2|SZT2|transcript|NM_015284.3|Coding|36/71|c.5128G>C|p.Gly1710Arg|5212/13979|5128/10128|1710/3375||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	96:0:0:0:0,0:0,0:96,97:0,0	132:0:0:0:0,0:45,45:87,87:0,0
+chr1	45524347	.	G	A	.	PASS	NT=ref;QSS=245;QSS_NT=129;SGT=GG->AG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|missense_variant|MODERATE|ZSWIM5|ZSWIM5|transcript|NM_020883.1|Coding|4/14|c.1186C>T|p.Leu396Phe|1414/5836|1186/3558|396/1185||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	191:0:0:0:0,0:1,1:190,190:0,0	224:0:0:0:79,79:0,0:145,145:0,0
+chr1	53427242	.	C	A	.	PASS	NT=ref;QSS=336;QSS_NT=164;SGT=CC->AC;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|missense_variant|MODERATE|SCP2|SCP2|transcript|NM_002979.4|Coding|6/16|c.464C>A|p.Ala155Asp|632/2725|464/1644|155/547||,A|missense_variant|MODERATE|SCP2|SCP2|transcript|NM_001007098.2|Coding|5/11|c.332C>A|p.Ala111Asp|500/2092|332/969|111/322||,A|missense_variant|MODERATE|SCP2|SCP2|transcript|NM_001193599.1|Coding|5/15|c.392C>A|p.Ala131Asp|560/2653|392/1572|131/523||,A|missense_variant|MODERATE|SCP2|SCP2|transcript|NM_001193600.1|Coding|5/15|c.332C>A|p.Ala111Asp|500/2593|332/1512|111/503||,A|missense_variant|MODERATE|SCP2|SCP2|transcript|NM_001193617.1|Coding|5/15|c.221C>A|p.Ala74Asp|574/2667|221/1401|74/466||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	205:0:0:0:0,0:205,205:0,0:0,0	164:0:0:0:78,79:86,86:0,0:0,0
+chr1	60324155	.	C	T	.	PASS	NT=ref;QSS=95;QSS_NT=94;SGT=CC->CT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=T|missense_variant|MODERATE|HOOK1|HOOK1|transcript|NM_015888.4|Coding|13/22|c.1298C>T|p.Ser433Leu|1555/5857|1298/2187|433/728||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	65:0:0:0:0,0:65,65:0,0:0,0	66:0:0:0:0,0:40,40:0,0:26,26
+chr1	67299689	.	C	G	.	PASS	NT=ref;QSS=237;QSS_NT=117;SGT=CC->CG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=G|missense_variant|MODERATE|WDR78|WDR78|transcript|NM_024763.4|Coding|12/17|c.1876G>C|p.Gly626Arg|1932/3844|1876/2547|626/848||,G|downstream_gene_variant|MODIFIER|WDR78|WDR78|transcript|NM_207014.2|Coding||c.*3647G>C|||||3593|	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	103:0:0:0:0,0:103,103:0,0:0,0	86:0:0:0:0,0:34,34:52,52:0,0
+chr1	86919157	.	G	A	.	PASS	NT=ref;QSS=371;QSS_NT=131;SGT=GG->AG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=A|missense_variant|MODERATE|CLCA2|CLCA2|transcript|NM_006536.5|Coding|13/14|c.2261G>A|p.Gly754Glu|2423/4024|2261/2832|754/943||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	133:0:0:0:0,0:0,0:133,134:0,0	322:0:0:0:185,185:0,0:137,138:0,0
+chr1	91180132	.	G	C	.	PASS	NT=ref;QSS=144;QSS_NT=130;SGT=GG->CG;SOMATIC;TQSS=1;TQSS_NT=1;ANN=C|synonymous_variant|LOW|BARHL2|BARHL2|transcript|NM_020063.1|Coding|2/3|c.807C>G|p.Leu269Leu|849/1496|807/1164|269/387||	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	132:0:0:0:0,0:0,0:132,135:0,0	184:0:0:0:0,0:51,51:132,132:1,1
+chr1	92643966	.	C	T	.	PASS	NT=ref;QSS=15;QSS_NT=15;SGT=CC->CT;SOMATIC;TQSS=1;TQSS_NT=1;ANN=T|stop_gained|HIGH|KIAA1107|KIAA1107|transcript|NM_015237.2|Coding|7/9|c.1225C>T|p.Gln409*|1323/4556|1225/4065|409/1354||;LOF=(KIAA1107|KIAA1107|1|1.00);NMD=(KIAA1107|KIAA1107|1|1.00)	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	64:0:0:0:0,0:64,65:0,0:0,0	113:0:0:0:2,2:106,106:0,0:5,5
