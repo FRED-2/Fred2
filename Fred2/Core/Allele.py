@@ -35,13 +35,14 @@ class Allele(MetadataLogger):
         """
         MetadataLogger.__init__(self)
         name = name.split("-")[-1].replace("HLA-", "")
+        self.organism = "HLA"
         self.name = name
         self.locus, rest = name.split('*')
         self.supertype, self.subtype = rest.split(':')[:2]
         self.prob = prob
 
     def __repr__(self):
-        return 'HLA-%s*%s:%s' % (str(self.locus), str(self.supertype), str(self.subtype))
+        return '%s-%s*%s:%s' % (str(self.organism), str(self.locus), str(self.supertype), str(self.subtype))
 
     def __str__(self):
         return self.name
@@ -69,6 +70,7 @@ class CombinedAllele(Allele):
         name = alpha_chain+"-"+beta_chain
 
         self.name = name
+        self.organism = "HLA"
         self.alpha_chain = alpha_chain
         self.beta_chain = beta_chain
         self.alpha_locus, alpha_rest = self.alpha_chain.split('*')
@@ -103,8 +105,9 @@ class MouseAllele(Allele):
     """
     def __init__(self, name, prob=None):
         MetadataLogger.__init__(self)
-        allele = name.replace("H2-","")
+        allele = name.replace("H2-", "")
 
+        self.organism = "H2"
         self.name = allele
         self.prob = prob
 
