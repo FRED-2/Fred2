@@ -206,7 +206,8 @@ class NetMHC_3_4(AExternalEpitopePrediction):
                            'B*35:03', 'B*38:01', 'B*39:01', 'B*40:01', 'B*40:02', 'B*40:13', 'B*42:01', 'B*44:02',
                            'B*44:03', 'B*45:01', 'B*46:01', 'B*48:01', 'B*51:01', 'B*53:01', 'B*54:01', 'B*57:01',
                            'B*58:01', 'B*73:01', 'B*83:01', 'C*03:03', 'C*04:01', 'C*05:01', 'C*06:02', 'C*07:01',
-                           'C*07:02', 'C*08:02', 'C*12:03', 'C*14:02', 'C*15:02', 'E*01:01'])
+                           'C*07:02', 'C*08:02', 'C*12:03', 'C*14:02', 'C*15:02', 'E*01:01',
+                           'H2-Db', 'H2-Dd', 'H2-Kb', 'H2-Kd', 'H2-Kk', 'H2-Ld'])
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhc"
     __command = "netMHC -p {peptides} -a {alleles} -x {out} {options}"
@@ -216,6 +217,19 @@ class NetMHC_3_4(AExternalEpitopePrediction):
     def version(self):
         """The version of the predictor"""
         return self.__version
+
+    def _represent(self, allele):
+        """
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
+        """
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        else:
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -228,7 +242,7 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     @property
     def supportedAlleles(self):
@@ -327,7 +341,8 @@ class NetMHC_3_0(NetMHC_3_4):
                            'A*26:02', 'A*29:02', 'A*30:01', 'A*30:02', 'A*31:01', 'A*33:01', 'A*68:01', 'A*68:02',
                            'A*69:01', 'B*07:02', 'B*08:01', 'B*08:02', 'B*15:01', 'B*18:01', 'B*27:05', 'B*35:01',
                            'B*39:01', 'B*40:01', 'B*40:02', 'B*44:02', 'B*44:03', 'B*45:01', 'B*51:01', 'B*53:01',
-                           'B*54:01', 'B*57:01', 'B*58:01'])  # no PSSM predictors
+                           'B*54:01', 'B*57:01', 'B*58:01',
+                           'H2-Db', 'H2-Dd', 'H2-Kb', 'H2-Kd', 'H2-Kk', 'H2-Ld'])  # no PSSM predictors
 
     __supported_length = frozenset([8, 9, 10, 11])
     __name = "netmhc"
@@ -365,17 +380,18 @@ class NetMHC_3_0(NetMHC_3_4):
         """
         return self.__supported_length
 
-    def convert_alleles(self, alleles):
+    def _represent(self, allele):
         """
-        Converts alleles into the internal allele representation of the predictor
-        and returns a string representation
-
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
-        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
-        :rtype: list(str)
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
         """
-        return ["%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        else:
+            return "%s%s%s" % (a.locus, a.supertype, a.subtype)
 
     def parse_external_result(self, file):
         """
@@ -403,7 +419,6 @@ class NetMHC_3_0(NetMHC_3_4):
         return dict(result)
 
 
-
 class NetMHC_4_0(NetMHC_3_4):
     """
     Implements the NetMHC 4.0 binding
@@ -426,19 +441,6 @@ class NetMHC_4_0(NetMHC_3_4):
         Defines the commandline call for external tool
         """
         return self.__command
-
-    def convert_alleles(self, alleles):
-        """
-        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
-        of the predictor and returns a string representation
-
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
-                        needed
-        :type alleles: :class:`~Fred2.Core.Allele.Allele`
-        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
-        :rtype: list(str)
-        """
-        return ["HLA-%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -826,7 +828,8 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
          'C*16:14', 'C*16:15', 'C*16:17', 'C*16:18', 'C*16:19', 'C*16:20', 'C*16:21', 'C*16:22', 'C*16:23',
          'C*16:24', 'C*16:25', 'C*16:26', 'C*17:01', 'C*17:02', 'C*17:03', 'C*17:04', 'C*17:05', 'C*17:06',
          'C*17:07', 'C*18:01', 'C*18:02', 'C*18:03', 'E*01:01', 'G*01:01', 'G*01:02', 'G*01:03', 'G*01:04',
-         'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09'])
+         'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09',
+         'H2-Db', 'H2-Dd', 'H2-Kb', 'H2-Kd', 'H2-Kk', 'H2-Ld'])
     __version = "2.4"
 
     @property
@@ -860,18 +863,31 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         """
         return self.__supported_length
 
+    def _represent(self, allele):
+        """
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
+        """
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        else:
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
+
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
-        and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
 
-        :param  alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-                         internal predictor representation is needed
-        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -1267,24 +1283,39 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
          'C*16:14', 'C*16:15', 'C*16:17', 'C*16:18', 'C*16:19', 'C*16:20', 'C*16:21', 'C*16:22', 'C*16:23',
          'C*16:24', 'C*16:25', 'C*16:26', 'C*17:01', 'C*17:02', 'C*17:03', 'C*17:04', 'C*17:05', 'C*17:06',
          'C*17:07', 'C*18:01', 'C*18:02', 'C*18:03', 'E*01:01', 'G*01:01', 'G*01:02', 'G*01:03', 'G*01:04',
-         'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09'])
+         'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09',
+         'H2-Db', 'H2-Dd', 'H2-Kb', 'H2-Kd', 'H2-Kk', 'H2-Ld', "H2-Qa1", "H2-Qa2"])
 
     @property
     def version(self):
         """The version of the predictor"""
         return self.__version
 
+    def _represent(self, allele):
+        """
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
+        """
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        else:
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
+
     def convert_alleles(self, alleles):
         """
-        Converts alleles into the internal allele representation of the predictor
-        and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
 
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     @property
     def supportedAlleles(self):
@@ -1896,7 +1927,8 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
     __command = 'netMHCII {peptides} -a {alleles} {options} | grep -v "#" > {out}'
     __alleles = frozenset(
         ['DRB1*01:01', 'DRB1*03:01', 'DRB1*04:01', 'DRB1*04:04', 'DRB1*04:05', 'DRB1*07:01', 'DRB1*08:02', 'DRB1*09:01',
-         'DRB1*11:01', 'DRB1*13:02', 'DRB1*15:01', 'DRB3*01:01', 'DRB4*01:01', 'DRB5*01:01'])
+         'DRB1*11:01', 'DRB1*13:02', 'DRB1*15:01', 'DRB3*01:01', 'DRB4*01:01', 'DRB5*01:01',
+         'H2-IAb', 'H2-IAd'])
     __version = "2.2"
 
     @property
@@ -1927,6 +1959,32 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
     def name(self):
         """The name of the predictor"""
         return self.__name
+
+    def _represent(self, allele):
+        """
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
+        """
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        else:
+            return "HLA-%s%s%s" % (a.locus, a.supertype, a.subtype)
+
+    def convert_alleles(self, alleles):
+        """
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
+
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :rtype: list(str)
+        """
+        return [_represent(a) for a in alleles]
 
     def convert_alleles(self, alleles):
         """
@@ -3769,7 +3827,8 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
          'DQA1*06:02-DQB1*06:33', 'DQA1*06:02-DQB1*06:34', 'DQA1*06:02-DQB1*06:35', 'DQA1*06:02-DQB1*06:36',
          'DQA1*06:02-DQB1*06:37', 'DQA1*06:02-DQB1*06:38',
          'DQA1*06:02-DQB1*06:39', 'DQA1*06:02-DQB1*06:40', 'DQA1*06:02-DQB1*06:41', 'DQA1*06:02-DQB1*06:42',
-         'DQA1*06:02-DQB1*06:43', 'DQA1*06:02-DQB1*06:44'])
+         'DQA1*06:02-DQB1*06:43', 'DQA1*06:02-DQB1*06:44',
+         'H2-IAb', 'H2-IAd'])
     __version = "3.0"
 
     @property
@@ -3801,23 +3860,34 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         """The name of the predictor"""
         return self.__name
 
+    def _represent(self, allele):
+        """
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
+        """
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        elif isinstance(allele, CombinedAllele):
+            return "HLA-%s%s%s-%s%s%s" % (a.alpha_locus, a.alpha_supertype, a.alpha_subtype,
+                                          a.beta_locus, a.beta_supertype, a.beta_subtype)
+        else:
+            return "%s_%s%s" % (a.locus, a.supertype, a.subtype)
+
     def convert_alleles(self, alleles):
         """
-        Converts alleles into the internal allele representation of the predictor
-        and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
 
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
-        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
-        :return: Returns a string representation of the input alleles
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        converted_alleles = list()
-        for a in alleles:
-            if not isinstance(a, CombinedAllele):
-                converted_alleles.append("%s_%s%s" % (a.locus, a.supertype, a.subtype))
-            else:
-                converted_alleles.append("HLA-%s%s%s-%s%s%s" % (a.alpha_locus, a.alpha_supertype, a.alpha_subtype, a.beta_locus, a.beta_supertype, a.beta_subtype ))
-        return converted_alleles
+        return [_represent(a) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -5644,7 +5714,8 @@ class NetMHCIIpan_3_1(NetMHCIIpan_3_0):
          'DQA1*06:02-DQB1*06:33', 'DQA1*06:02-DQB1*06:34', 'DQA1*06:02-DQB1*06:35', 'DQA1*06:02-DQB1*06:36',
          'DQA1*06:02-DQB1*06:37', 'DQA1*06:02-DQB1*06:38',
          'DQA1*06:02-DQB1*06:39', 'DQA1*06:02-DQB1*06:40', 'DQA1*06:02-DQB1*06:41', 'DQA1*06:02-DQB1*06:42',
-         'DQA1*06:02-DQB1*06:43', 'DQA1*06:02-DQB1*06:44'])
+         'DQA1*06:02-DQB1*06:43', 'DQA1*06:02-DQB1*06:44',
+         'H2-IAd', 'H2-IAb'])
 
     __version = "3.1"
 
@@ -6286,7 +6357,8 @@ class PickPocket_1_1(AExternalEpitopePrediction):
                                      'C*17:01', 'C*17:02', 'C*17:03', 'C*17:04', 'C*17:05', 'C*17:06', 'C*17:07',
                                      'C*18:01', 'C*18:02', 'C*18:03',
                                      'G*01:01', 'G*01:02', 'G*01:03', 'G*01:04', 'G*01:06', 'G*01:07', 'G*01:08',
-                                     'G*01:09', 'E*01:01'])
+                                     'G*01:09', 'E*01:01',
+                                     'H2-Db', 'H2-Dd', 'H2-Kb', 'H2-Kd', 'H2-Kk', 'H2-Ld'])
     __version = "1.1"
 
     @property
@@ -6320,17 +6392,31 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         """The name of the predictor"""
         return self.__name
 
+    def _represent(self, allele):
+        """
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
+        """
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        else:
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
+
     def convert_alleles(self, alleles):
         """
-        Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
-        and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
 
-        :param alleles: The alleles for which the internal predictor representation is needed
-        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
-        :return: Returns a string representation of the input alleles
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -6722,7 +6808,8 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
          'C*16:14', 'C*16:15', 'C*16:17', 'C*16:18', 'C*16:19', 'C*16:20', 'C*16:21', 'C*16:22', 'C*16:23',
          'C*16:24', 'C*16:25', 'C*16:26', 'C*17:01', 'C*17:02', 'C*17:03', 'C*17:04', 'C*17:05', 'C*17:06',
          'C*17:07', 'C*18:01', 'C*18:02', 'C*18:03', 'E*01:01', 'G*01:01', 'G*01:02', 'G*01:03', 'G*01:04',
-         'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09'])
+         'G*01:06', 'G*01:07', 'G*01:08', 'G*01:09',
+         'H2-Db', 'H2-Dd', 'H2-Kb', 'H2-Kd', 'H2-Kk', 'H2-Ld'])
     __version = "1.1"
 
     @property
@@ -6730,18 +6817,31 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         """The version of the predictor"""
         return self.__version
 
+    def _represent(self, allele):
+        """
+        Internal function transforming an allele object into its representative string
+        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: str
+        """
+        if isinstance(allele, MouseAllele):
+            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+        else:
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
+
     def convert_alleles(self, alleles):
         """
-        Converts alleles into the internal allele representation of the predictor
-        and returns a string representation
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal :class:`~Fred2.Core.Allele.Allele` representation
+        of the predictor and returns a string representation
 
-        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the
-                        internal predictor representation is needed
-        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
-        :return: Returns a string representation of the input alleles
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
+                        needed
+        :type alleles: :class:`~Fred2.Core.Allele.Allele`
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return ["HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     @property
     def supportedAlleles(self):

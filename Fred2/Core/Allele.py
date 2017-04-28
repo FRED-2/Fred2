@@ -15,6 +15,8 @@ from Fred2.Core.Base import MetadataLogger
 class AlleleFactory(type):
     def __call__(cls, name, prob=None):
         if cls is Allele:
+            if name.startswith("H2-"):
+                return MouseAllele(name, prob=prob)
             if name.count("*") > 1:
                 return CombinedAllele(name, prob=prob)
         return type.__call__(cls, name, prob=prob)
@@ -90,3 +92,30 @@ class CombinedAllele(Allele):
     @property
     def subtype(self):
         return self.alpha_subtype, self.beta_subtype
+
+
+class MouseAllele(Allele):
+    """
+    This class represents a mouse MHC allele with the following nomenclature:
+    H2-Xxx
+
+    http://www.imgt.org/IMGTrepertoireMHC/LocusGenes/index.php?repertoire=listIG_TR&species=mouse&group=MHC
+    """
+    def __init__(self, name, prob=None):
+        MetadataLogger.__init__(self)
+        allele = name.replace("H2-","")
+
+        self.name = allele
+        self.prob = prob
+
+    @property
+    def locus(self):
+        return self.name[0]
+
+    @property
+    def supertype(self):
+            return self.name[1]
+
+    @property
+    def subtype(self):
+        return self.name[2:]
