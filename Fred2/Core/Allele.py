@@ -45,13 +45,13 @@ class Allele(MetadataLogger):
         return '%s-%s*%s:%s' % (str(self.organism), str(self.locus), str(self.supertype), str(self.subtype))
 
     def __str__(self):
-        return self.name
+        return repr(self)
 
     def __eq__(self, other):
-        return str(self.name) == str(other)
+        return str(self) == str(other)
 
     def __cmp__(self, other):
-        return cmp(self.name, str(other))
+        return cmp(str(self), str(other))
 
     def __hash__(self):
         return hash(repr(self))

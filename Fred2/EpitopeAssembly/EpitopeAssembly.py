@@ -758,7 +758,7 @@ class EpitopeAssemblyWithSpacer(object):
         if en not in epi_pred.supportedLength:
             raise ValueError("Specified epitope length of en=%i is not supported by %s"%(en,epi_pred.name))
 
-        _alleles = [copy.deepcopy(a) for a in alleles if a.name in epi_pred.supportedAlleles]
+        _alleles = [copy.deepcopy(a) for a in alleles if a in epi_pred.supportedAlleles]
 
         if not _alleles:
             raise ValueError("Specified alleles are not supported by %s"%epi_pred.name)

@@ -21,7 +21,7 @@ class MartsAdapter(ADBAdapter):
     def __init__(self, usr=None, host=None, pwd=None, db=None, biomart=None):
         """
         Used to fetch sequences from given RefSeq id's either from BioMart if no credentials given else from a MySQLdb
-
+co
         :param str usr: db user e.g. = 'ucsc_annot_query'
         :param str host: db host e.g. = "pride"
         :param str pwd: pw for user e.g. = 'an0q3ry'
