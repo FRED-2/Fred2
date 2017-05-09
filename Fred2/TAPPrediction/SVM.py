@@ -40,6 +40,9 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
                 pep_seqs[str(p)] = p
 
         #group peptides by length and
+        chunksize = len(pep_seqs)
+        if 'chunks' in kwargs:
+            chunksize = kwargs['chunks']
 
         result = {self.name: {}}
         pep_groups = pep_seqs.keys()
@@ -50,15 +53,16 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
                 warnings.warn("Peptide length of %i is not supported by %s"%(length,self.name))
                 continue
 
+            peps = list(peps)
+            for i in xrange(0, len(peps), chunksize):
+                encoding = self.encode(peps[i:i+chunksize])
 
-            encoding = self.encode(peps)
+                model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s_%i"%(self.name, length))
+                model = svmlight.read_model(model_path)
 
-            model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s_%i"%(self.name, length))
-            model = svmlight.read_model(model_path)
-
-            pred = svmlight.classify(model, encoding.values())
-            for pep, score in itertools.izip(encoding.keys(), pred):
-                    result[self.name][pep_seqs[pep]] = score
+                pred = svmlight.classify(model, encoding.values())
+                for pep, score in itertools.izip(encoding.keys(), pred):
+                        result[self.name][pep_seqs[pep]] = score
 
         if not result[self.name]:
             raise ValueError("No predictions could be made with "+self.name+" for given input.")
