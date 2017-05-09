@@ -15,7 +15,7 @@ class TestAllele(TestCase):
         """
         self.assertTrue(repr(self.simple) == "HLA-A*02:01")
         self.assertEqual(self.simple, Allele("HLA-A*02:01"))
-        self.assertNotEqual(repr(self.simple), Allele("HLA-A*02:01:666"))
+        self.assertNotEqual(repr(self.simple), Allele("HLA-A*02:04:666"))
 
     def test_combined_allele(self):
         comb = CombinedAllele("HLA-DPA1*01:03-DPB1*01:01")
@@ -30,3 +30,9 @@ class TestAllele(TestCase):
         self.assertEqual(a.prob,1)
         self.assertIsInstance(b, Allele)
         self.assertEqual(b.prob, 2)
+
+    def test_hash_function(self):
+        s = set([self.simple])
+        s_string = set(["HLA-A*02:01"])
+        self.assertTrue(self.simple in s)
+        self.assertTrue(self.simple in s_string)
