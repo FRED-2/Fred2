@@ -53,6 +53,9 @@ class Allele(MetadataLogger):
     def __cmp__(self, other):
         return cmp(self.name, str(other))
 
+    def __hash__(self):
+        return hash(repr(self))
+
 
 class CombinedAllele(Allele):
     """
@@ -105,11 +108,14 @@ class MouseAllele(Allele):
     """
     def __init__(self, name, prob=None):
         MetadataLogger.__init__(self)
-        allele = name.replace("H2-", "")
+        allele = name.split("-")[-1].replace("H-2-", "")
 
-        self.organism = "H2"
+        self.organism = "H-2"
         self.name = allele
         self.prob = prob
+
+    def __repr__(self):
+        return '%s-%s%s%s' % (str(self.organism), str(self.locus), str(self.supertype), str(self.subtype))
 
     @property
     def locus(self):
@@ -117,7 +123,7 @@ class MouseAllele(Allele):
 
     @property
     def supertype(self):
-            return self.name[1]
+        return self.name[1]
 
     @property
     def subtype(self):
