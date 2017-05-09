@@ -158,7 +158,7 @@ def _check_for_problematic_variants(vars):
 #################################################################
 # Public transcript generator functions
 def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=None,
-                                    table='Standard', stop_symbol='*', to_stop=True, cds=False):
+                                    table='Standard', stop_symbol='*', to_stop=True, cds=False, db="hsapiens_gene_ensembl"):
     """
     Generates :class:`~Fred2.Core.Peptide.Peptide` from :class:`~Fred2.Core.Variant.Variant` and avoids the
     construction of all possible combinations of heterozygous variants by considering only those within the peptide
@@ -241,7 +241,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
     prots = []
     for tId, vs in transToVar.iteritems():
         #print tId
-        query = dbadapter.get_transcript_information(tId, type=id_type)
+        query = dbadapter.get_transcript_information(tId, type=id_type, _db=db)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
             continue
@@ -279,7 +279,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
 ################################################################################
 
 
-def generate_transcripts_from_variants(vars, dbadapter, id_type):
+def generate_transcripts_from_variants(vars, dbadapter, id_type, db="hsapiens_gene_ensembl"):
     """
     Generates all possible transcript :class:`~Fred2.Core.Transcript.Transcript` based on the given
     :class:`~Fred2.Core.Variant.Variant`.
@@ -347,7 +347,7 @@ def generate_transcripts_from_variants(vars, dbadapter, id_type):
             transToVar.setdefault(trans_id, []).append(v)
 
     for tId, vs in transToVar.iteritems():
-        query = dbadapter.get_transcript_information(tId, type=id_type)
+        query = dbadapter.get_transcript_information(tId, type=id_type, _db=db)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
             continue
