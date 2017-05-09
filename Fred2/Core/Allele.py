@@ -83,7 +83,7 @@ class CombinedAllele(Allele):
         self.prob = prob
 
     def __repr__(self):
-        return 'HLA-%s*%s:%s-%s*%s:%s' % (str(self.alpha_locus), str(self.alpha_supertype), str(self.alpha_subtype),
+        return '%s-%s*%s:%s-%s*%s:%s' % (self.organism, str(self.alpha_locus), str(self.alpha_supertype), str(self.alpha_subtype),
                                           str(self.beta_locus), str(self.beta_supertype), str(self.beta_subtype))
 
     @property

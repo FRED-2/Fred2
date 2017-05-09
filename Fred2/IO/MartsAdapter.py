@@ -11,7 +11,7 @@ import csv
 import urllib2
 import warnings
 import logging
-import MySQLdb
+import pymysql as MySQLdb
 from operator import itemgetter
 
 from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields, EIdentifierTypes
@@ -88,7 +88,7 @@ co
             elif kwargs["type"] == EIdentifierTypes.ENSEMBL:
                 query_filter = "ensembl_peptide_id"
             else:
-                logging.warn("Could not infer the origin of product id" + str(product_id))
+                logging.warn("Could not infer the origin of product id " + str(product_id))
                 return None
 
         if product_id in self.sequence_proxy:
@@ -140,7 +140,7 @@ co
             elif kwargs["type"] == EIdentifierTypes.ENSEMBL:
                 query_filter = "ensembl_transcript_id"
             else:
-                logging.warn("Could not infer the origin of transcript id" + str(transcript_id))
+                logging.warn("Could not infer the origin of transcript id " + str(transcript_id))
                 return None
 
         if transcript_id in self.gene_proxy:
@@ -157,7 +157,7 @@ co
                                                    urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
-            logging.warn("There seems to be no Transcriptsequence for " + str(transcript_id))
+            logging.warn("There seems to be no transcript sequence for " + str(transcript_id))
             #print self.biomart_url+rq_n
             return None
 
@@ -191,7 +191,7 @@ co
             elif kwargs["type"] == EIdentifierTypes.ENSEMBL:
                 query_filter = "ensembl_transcript_id"
             else:
-                logging.warn("Could not infer the origin of transcript id" + str(transcript_id))
+                logging.warn("Could not infer the origin of transcript id " + str(transcript_id))
                 return None
 
         if transcript_id in self.ids_proxy:
@@ -255,7 +255,7 @@ co
             elif kwargs["type"] == EIdentifierTypes.ENSEMBL:
                 query_filter = "ensembl_transcript_id"
             else:
-                logging.warn("Could not infer the origin of transcript id" + str(transcript_id))
+                logging.warn("Could not infer the origin of transcript id " + str(transcript_id))
                 return None
 
         if str(start) + str(stop) + transcript_id in self.gene_proxy:
@@ -272,9 +272,9 @@ co
 
         tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url +
                                                     urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
-        exons = [ex for ex in tsvreader if ex["CDS Start"] and ex["CDS End"]]
+        exons = [ex for ex in tsvreader if ex["CDS start"] and ex["CDS end"]]
         cds = [dict([k, int(v)] for k, v in e.iteritems()) for e in exons] # cast to int
-        cds = sorted(cds, key=itemgetter("CDS Start")) #sort by CDS Start(position in the CDS)
+        cds = sorted(cds, key=itemgetter("CDS start")) #sort by CDS Start(position in the CDS)
 
         cds_sum = 0
         if not cds:
@@ -282,12 +282,12 @@ co
             return None
 
         for e in cds:
-            sc = e["CDS Start"]
-            ec = e["CDS End"]
+            sc = e["CDS start"]
+            ec = e["CDS end"]
             if not sc or not ec:
                 continue
-            se = e["Exon Chr Start (bp)"]
-            ee = e["Exon Chr End (bp)"]
+            se = e["Exon region start (bp)"]
+            ee = e["Exon region end (bp)"]
 
             if not cds_sum < sc < ec:
                 logging.warn("unable to follow the CDS, aborting genome-positional lookup in transcript!")
@@ -346,7 +346,7 @@ co
                                                     urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if tsvselect and tsvselect[0]:
-            self.gene_proxy[str(chrom) + str(start) + str(stop)] = tsvselect[0]['Associated Gene Name']
+            self.gene_proxy[str(chrom) + str(start) + str(stop)] = tsvselect[0]['Gene name']
             return self.gene_proxy[str(chrom) + str(start) + str(stop)]
         else:
             logging.warning(','.join([str(chrom), str(start), str(stop)]) + ' does not denote a known gene location')
@@ -378,7 +378,7 @@ co
             elif kwargs["type"] == EIdentifierTypes.ENSEMBL:
                 query_filter = "ensembl_peptide_id"
             else:
-                logging.warn("Could not infer the origin of product id" + str(product_id))
+                logging.warn("Could not infer the origin of product id " + str(product_id))
                 return None
 
         if product_id in self.ids_proxy:
@@ -395,7 +395,7 @@ co
         tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
-            warnings.warn("No entry found for ID %s"%product_id)
+            warnings.warn("No entry found for id %s"%product_id)
             return None
 
         self.ids_proxy[product_id] = {EAdapterFields.SEQ: tsvselect[0]['Coding sequence'],
@@ -430,7 +430,7 @@ co
             elif kwargs["type"] == EIdentifierTypes.ENSEMBL:
                 query_filter = "ensembl_transcript_id"
             else:
-                logging.warn("Could not infer the origin of transcript id" + str(transcript_id))
+                logging.warn("Could not infer the origin of transcript id " + str(transcript_id))
                 return None
 
         rq_n = self.biomart_head%(_db, _dataset) \
@@ -448,7 +448,7 @@ co
         tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
-            warnings.warn("No entry found for ID %s"%transcript_id)
+            warnings.warn("No entry found for id %s"%transcript_id)
             return None
 
         return tsvselect
@@ -481,7 +481,7 @@ co
             elif kwargs["type"] == EIdentifierTypes.ENSEMBL:
                 query_filter = "ensemble_gene_id"
             else:
-                logging.warn("Could not infer the origin of gene id" + str(gene_id))
+                logging.warn("Could not infer the origin of gene id " + str(gene_id))
                 return None
 
         if gene_id in self.ids_proxy:
@@ -498,7 +498,7 @@ co
                                                    urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
-            logging.warn("No entry found for ID %s"%gene_id)
+            logging.warn("No entry found for id %s"%gene_id)
             return None
 
         self.ids_proxy[gene_id] = [{EAdapterFields.PROTID: gtp.get('Protein ID', ""),
