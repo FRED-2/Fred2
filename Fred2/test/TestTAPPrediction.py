@@ -35,3 +35,9 @@ class TAPPredictionTestCaste(unittest.TestCase):
         smmtap = TAPPredictorFactory("smmtap")
         peptides = [Peptide("SYFPEITHI"), Peptide("IHTIEPFYSA"), Peptide("IHTIEPFYSAA")]
         print smmtap.predict(peptides)
+
+    def test_peptide_chunksize(self):
+        for m in TAPPredictorFactory.available_methods():
+            pred = TAPPredictorFactory(m)
+            r = pred.predict(self.peptides, chunksize=1)
+            print r

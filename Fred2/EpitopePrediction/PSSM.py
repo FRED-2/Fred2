@@ -581,7 +581,7 @@ class ARB(APSSMEpitopePrediction):
                 pep_seqs[str(p)] = p
 
         if alleles is None:
-            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            al = [Allele(a) for a in self.supportedAlleles]
             alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
@@ -935,7 +935,7 @@ class CalisImm(APSSMEpitopePrediction):
 
 
         if alleles is None:
-            al = [Allele("HLA-"+a) for a in self.supportedAlleles]
+            al = [Allele(a) for a in self.supportedAlleles]
             alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):

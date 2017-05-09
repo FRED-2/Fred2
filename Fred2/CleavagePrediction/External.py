@@ -66,38 +66,46 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
                     raise ValueError("Input is not of type Protein or Peptide")
                 pep_seqs[str(p)] = p
 
-        tmp_out = NamedTemporaryFile(delete=False)
-        tmp_file = NamedTemporaryFile(delete=False)
-        self.prepare_input(pep_seqs.values(), tmp_file)
-        tmp_file.close()
+        chunksize = len(pep_seqs)
+        if 'chunks' in kwargs:
+            chunksize = kwargs['chunks']
 
-        #allowe customary executable specification
-        if command is not None:
-            exe = self.command.split()[0]
-            _command = self.command.replace(exe, command)
-        else:
-            _command = self.command
+        result = {}
+        peps = list(pep_seqs.values())
 
-        try:
-            stdo = None
-            stde = None
-            cmd = _command.format(input=tmp_file.name, options="" if options is None else options, out=tmp_out.name)
-            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdo, stde = p.communicate()
-            stdr = p.returncode
-            if stdr > 0:
-                raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
-        except Exception as e:
-            raise RuntimeError(e)
+        for i in xrange(0, len(peps), chunksize):
+            tmp_out = NamedTemporaryFile(delete=False)
+            tmp_file = NamedTemporaryFile(delete=False)
+            self.prepare_input(peps[i:i+chunksize], tmp_file)
+            tmp_file.close()
 
-        result = self.parse_external_result(tmp_out)
+            #allowe customary executable specification
+            if command is not None:
+                exe = self.command.split()[0]
+                _command = self.command.replace(exe, command)
+            else:
+                _command = self.command
+
+            try:
+                stdo = None
+                stde = None
+                cmd = _command.format(input=tmp_file.name, options="" if options is None else options, out=tmp_out.name)
+                p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdo, stde = p.communicate()
+                stdr = p.returncode
+                if stdr > 0:
+                    raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
+            except Exception as e:
+                raise RuntimeError(e)
+
+            result.update(self.parse_external_result(tmp_out))
+            os.remove(tmp_file.name)
+            tmp_out.close()
+            os.remove(tmp_out.name)
 
         df_result = CleavageSitePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i, j in df_result.index],
                                                         names=['ID', 'Pos'])
-        os.remove(tmp_file.name)
-        tmp_out.close()
-        os.remove(tmp_out.name)
 
         return df_result
 
@@ -206,7 +214,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         :param dict(int,Protein/Peptide) input: The input data (here peptide sequences)
         :param File file: A file handler with which the data are written to file
         """
-        file.write("\n".join(">%i\n%s"%(i , str(p)) for i, p in input.iteritems()))
+        file.write("\n".join(">%i\n%s"%(i , str(p)) for i, p in input))
 
     def predict(self, aa_seq, command=None, options=None, **kwargs):
         """
@@ -245,37 +253,47 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
                 else:
                     pep_seqs[i-99999999999] = p
 
-        tmp_out = NamedTemporaryFile(delete=False)
-        tmp_file = NamedTemporaryFile(delete=False)
-        self.prepare_input(pep_seqs, tmp_file)
-        tmp_file.close()
+        chunksize = len(pep_seqs)
+        if 'chunks' in kwargs:
+            chunksize = kwargs['chunks']
 
-        #allowe customary executable specification
-        if command is not None:
-            exe = self.command.split()[0]
-            _command = self.command.replace(exe, command)
-        else:
-            _command = self.command
+        result = {}
+        peps = list(pep_seqs.items())
 
-        try:
-            stdo = None
-            stde = None
-            cmd = _command.format(input=tmp_file.name, options="" if options is None else options, out=tmp_out.name)
-            p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdo, stde = p.communicate()
-            stdr = p.returncode
-            if stdr > 0:
-                raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
-        except Exception as e:
-            raise RuntimeError(e)
+        for i in xrange(0, len(peps), chunksize):
 
-        result = self.parse_external_result(tmp_out,pep_seqs)
+            tmp_out = NamedTemporaryFile(delete=False)
+            tmp_file = NamedTemporaryFile(delete=False)
+            self.prepare_input(peps[i:i+chunksize], tmp_file)
+            tmp_file.close()
+
+            #allowe customary executable specification
+            if command is not None:
+                exe = self.command.split()[0]
+                _command = self.command.replace(exe, command)
+            else:
+                _command = self.command
+
+            try:
+                stdo = None
+                stde = None
+                cmd = _command.format(input=tmp_file.name, options="" if options is None else options, out=tmp_out.name)
+                p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdo, stde = p.communicate()
+                stdr = p.returncode
+                if stdr > 0:
+                    raise RuntimeError("Unsuccessful execution of " + cmd + " (EXIT!=0) with error: " + stde)
+            except Exception as e:
+                raise RuntimeError(e)
+
+            result.update(self.parse_external_result(tmp_out, pep_seqs))
+
+            os.remove(tmp_file.name)
+            tmp_out.close()
+            os.remove(tmp_out.name)
 
         df_result = CleavageSitePredictionResult.from_dict(result)
-        df_result.index = pandas.MultiIndex.from_tuples([tuple((i,j)) for i, j in df_result.index],
+        df_result.index = pandas.MultiIndex.from_tuples([tuple((i, j)) for i, j in df_result.index],
                                                         names=['ID', 'Pos'])
-        os.remove(tmp_file.name)
-        tmp_out.close()
-        os.remove(tmp_out.name)
 
         return df_result
