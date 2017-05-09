@@ -1446,7 +1446,7 @@ class NetMHCstabpan_1_0(AExternalEpitopePrediction):
     __length = frozenset([8, 9, 10, 11])
     __version = "1.0"
     __command = "netMHCstabpan -p {peptides} -a {alleles} {options} -xls -xlsfile {out}"
-    __alleles = frozenset(['HLA-A*01:02', 'HLA-A*01:03', 'HLA-A*01:06', 'HLA-A*01:07', 'HLA-A*01:08', 'HLA-A*01:09', 'HLA-A*01:10', 'HLA-A*01:12',
+    __alleles = frozenset(['HLA-A*01:01', 'HLA-A*01:02', 'HLA-A*01:03', 'HLA-A*01:06', 'HLA-A*01:07', 'HLA-A*01:08', 'HLA-A*01:09', 'HLA-A*01:10', 'HLA-A*01:12',
                             'HLA-A*01:13', 'HLA-A*01:14', 'HLA-A*01:17', 'HLA-A*01:19', 'HLA-A*01:20', 'HLA-A*01:21', 'HLA-A*01:23', 'HLA-A*01:24',
                             'HLA-A*01:25', 'HLA-A*01:26', 'HLA-A*01:28', 'HLA-A*01:29', 'HLA-A*01:30', 'HLA-A*01:32', 'HLA-A*01:33', 'HLA-A*01:35',
                             'HLA-A*01:36', 'HLA-A*01:37', 'HLA-A*01:38', 'HLA-A*01:39', 'HLA-A*01:40', 'HLA-A*01:41', 'HLA-A*01:42', 'HLA-A*01:43',
