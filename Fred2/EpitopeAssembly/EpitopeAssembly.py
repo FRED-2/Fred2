@@ -850,19 +850,31 @@ class EpitopeAssemblyWithSpacer(object):
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
+        delete_alleles = []
         if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
                 self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
-            pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                for j, v in pssm.iteritems():
+            try:
+                pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+                if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                    for j, v in pssm.iteritems():
+                            for aa, score in v.iteritems():
+                                epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+                else:
+                     for j, v in pssm.iteritems():
                         for aa, score in v.iteritems():
-                            epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-            else:
-                 for j, v in pssm.iteritems():
-                    for aa, score in v.iteritems():
-                        epi_pssms[j, aa, a.name] = score
+                            epi_pssms[j, aa, a.name] = score
+            except ImportError:
+                delete_alleles.append(a)
+
+        #delete alleles from model that generated an error while loading matrices
+        for a in delete_alleles:
+            del allele_prob[a.name]
+            del self.__thresh[a.name]
+
+        if not epi_pssms:
+            raise ValueError("Selected alleles with epitope length are not supported by the prediction method.")
 
         #print "run spacer designs in parallel using multiprocessing"
         res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
@@ -924,31 +936,41 @@ class EpitopeAssemblyWithSpacer(object):
         pool = mp.Pool(threads)
 
 
-        #prepare parameters
+        # prepare parameters
         cn = min(self.__clev_pred.supportedLength)
         cl_pssm = __load_model(self.__clev_pred.name, self.__clev_pred.name+"_"+str(cn))
         cleav_pos = self.__clev_pred.cleavagePos
         en = self.__en
         epi_pssms = {}
         allele_prob = {}
+        delete_alleles = []
+
         if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
                 self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
-            pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
-            if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                for j, v in pssm.iteritems():
+            try:
+                pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
+                if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
+                    for j, v in pssm.iteritems():
+                            for aa, score in v.iteritems():
+                                epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
+                else:
+                     for j, v in pssm.iteritems():
                         for aa, score in v.iteritems():
-                            epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
-            else:
-                 for j, v in pssm.iteritems():
-                    for aa, score in v.iteritems():
-                        epi_pssms[j, aa, a.name] = score
+                            epi_pssms[j, aa, a.name] = score
+            except ImportError:
+                delete_alleles.append(a)
+
+        # delete alleles from model that generated an error while loading matrices
+        for a in delete_alleles:
+            del allele_prob[a.name]
+            del self.__thresh[a.name]
 
         if not epi_pssms:
             raise ValueError("Selected alleles with epitope length are not supported by the prediction method.")
 
-        #print "run spacer designs in parallel using multiprocessing"
+        # print "run spacer designs in parallel using multiprocessing"
         res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                        self.__alpha, self.__thresh, self.__solver, self.__beta, options)
                                       for i in xrange(start, self.__k+1)
@@ -960,8 +982,8 @@ class EpitopeAssemblyWithSpacer(object):
         opt_spacer = {}
         adj_matrix = {}
         inf = float("inf")
-        #print res
-        #print "find best scoring spacer for each epitope pair"
+        # print res
+        # print "find best scoring spacer for each epitope pair"
         for ei, ej, score, epi, spacer, c1, c2, non_c in res:
                 if adj_matrix.get((ei, ej), inf) > -min(c1, c2):
                     adj_matrix[(ei, ej)] = -min(c1, c2)
