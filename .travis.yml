@@ -10,12 +10,15 @@
 #From: http://pablissimo.com/381/get-travis-ci-to-do-your-python-packaging-tests-for-you
 
 language: python
+
+dist: trusty
+
 python:
   - "2.7"
 before_install:
  - pip install -U nose-exclude setuptools
  - sudo apt-get update -qq
- - sudo apt-get install glpk-utils
+ - sudo apt-get install coinor-cbc
  - sudo apt-get install -qq python-dev libboost-python-dev libboost-serialization-dev
 # command to package and install
 install:

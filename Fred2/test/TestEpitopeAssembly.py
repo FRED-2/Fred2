@@ -20,7 +20,7 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
         :return:
         """
         pred = CleavageSitePredictorFactory("PCM")
-        assembler = EpitopeAssembly(self.peptides, pred, solver="glpk", verbosity=0)
+        assembler = EpitopeAssembly(self.peptides, pred, solver="cbc", verbosity=0)
         r = assembler.solve()
         self.assertEqual(r, [Peptide("YLYDHLAPM"), Peptide("ALYDVVSTL"), Peptide("KLLPRLPGV")])
 
@@ -36,7 +36,7 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
         print ep_pred.predict(self.peptides,alleles=allele)
         #cl_pred, ep_pred, alleles, threshold, comparator, length=9
 
-        assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="glpk", verbosity=1)
+        assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="cbc", verbosity=1)
         r = assembler.solve(eps=1e10, order=(1,0))
         print r
 
@@ -49,7 +49,7 @@ class EpitopeAssemblyTestCase(unittest.TestCase):
         thresh = {a.name:10000 for a in allele}
         comp = lambda a,b: a <= b
 
-        assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="glpk", verbosity=0)
+        assembler = ParetoEpitopeAssembly(self.peptides,cl_pred, ep_pred, allele, thresh, comp, solver="cbc", verbosity=0)
         r = assembler.paretosolve()
         print r
 
