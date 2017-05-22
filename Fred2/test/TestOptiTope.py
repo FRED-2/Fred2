@@ -53,7 +53,7 @@ YFVIFFVAA""".split()]
 
         :return:
         """
-        opt = OptiTope(self.result, self.thresh, k=3, solver="glpk", verbosity=0)
+        opt = OptiTope(self.result, self.thresh, k=3, solver="cbc", verbosity=0)
         r =opt.solve()
 
         self.assertTrue(len(set(str(p) for p in r) - set(["GPTPLLYRL", "QYLAGLSTL", "ALYDVVSTL"])) == 0)
@@ -67,7 +67,7 @@ YFVIFFVAA""".split()]
         #self.alleles.extend([Allele("HLA-A*02:01"),Allele("HLA-B*15:01")])
         #self.thresh.update({"A*02:01":0,"B*15:01":0})
         self.result= EpitopePredictorFactory("BIMAS").predict(self.peptides, self.alleles)
-        opt = OptiTope(self.result, self.thresh, k=3, solver="glpk", verbosity=0)
+        opt = OptiTope(self.result, self.thresh, k=3, solver="cbc", verbosity=0)
         opt.activate_allele_coverage_const(0.99)
         r = opt.solve()
 
@@ -79,7 +79,7 @@ YFVIFFVAA""".split()]
         conservation = {}
         for e in self.result.index.levels[0]:
             conservation[str(e)] = random.random()
-        pt = OptiTope(self.result, self.thresh, k=3, solver="glpk", verbosity=0)
+        pt = OptiTope(self.result, self.thresh, k=3, solver="cbc", verbosity=0)
         pt.activate_epitope_conservation_const(0.5, conservation=conservation)
         for e in pt.solve():
             print e, conservation[e]
