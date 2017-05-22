@@ -1909,7 +1909,6 @@ class NetMHCstabpan_1_0(AExternalEpitopePrediction):
         file.write("\n".join(input))
 
 
-
 class NetMHCII_2_2(AExternalEpitopePrediction):
     """
     Implements a wrapper for NetMHCII
