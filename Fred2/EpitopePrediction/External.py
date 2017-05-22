@@ -20,7 +20,7 @@ import math
 
 from collections import defaultdict
 
-from Fred2.Core.Allele import Allele, CombinedAllele, MouseAllele
+from Fred2.Core.Allele import Allele, CombinedAllele
 from Fred2.Core.Peptide import Peptide
 from Fred2.Core.Result import EpitopePredictionResult
 from Fred2.Core.Base import AEpitopePrediction, AExternal
@@ -62,6 +62,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         :return: A :class:`~Fred2.Core.Result.EpitopePredictionResult` object
         :rtype: :class:`~Fred2.Core.Result.EpitopePredictionResult`
         """
+
         if not self.is_in_path() and command is None:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
                                                                                     version=self.version))
@@ -152,7 +153,6 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                         stde = None
                         cmd = _command.format(peptides=tmp_file.name, alleles=",".join(allele_group),
                                               options="" if options is None else options, out=tmp_out.name, length=str(length))
-                        print cmd
                         p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE)
                         # p.wait() communicate already waits for the process https://docs.python.org/2.7/library/subprocess.html#subprocess.Popen.communicate
@@ -229,7 +229,7 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         else:
-            return "HLA-%s%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -242,7 +242,7 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return [self._represent(a) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     @property
     def supportedAlleles(self):
@@ -391,7 +391,7 @@ class NetMHC_3_0(NetMHC_3_4):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         else:
-            return "HLA-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "%s%s%s" % (a.locus, a.supertype, a.subtype)
 
     def parse_external_result(self, file):
         """
@@ -441,19 +441,6 @@ class NetMHC_4_0(NetMHC_3_4):
         Defines the commandline call for external tool
         """
         return self.__command
-
-    def _represent(self, allele):
-        """
-        Internal function transforming an allele object into its representative string
-        :param allele: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is
-                        needed
-        :type alleles: :class:`~Fred2.Core.Allele.Allele`
-        :return: str
-        """
-        if isinstance(allele, MouseAllele):
-            return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
-        else:
-            return "HLA-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
 
     def parse_external_result(self, file):
         """
@@ -887,7 +874,7 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         else:
-            return "HLA-%s%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -900,7 +887,7 @@ class NetMHCpan_2_4(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return [self._represent(a) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -1315,7 +1302,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         else:
-            return "HLA-%s%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -1328,7 +1315,7 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return [self._represent(a) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     @property
     def supportedAlleles(self):
@@ -1984,7 +1971,7 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         else:
-            return "HLA-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "HLA-%s%s%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -1997,7 +1984,19 @@ class NetMHCII_2_2(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return [self._represent(a) for a in alleles]
+        return [_represent(a) for a in alleles]
+
+    def convert_alleles(self, alleles):
+        """
+        Converts :class:`~Fred2.Core.Allele.Allele` into the internal allele representation of the predictor
+        and returns a string representation
+
+        :param alleles: The :class:`~Fred2.Core.Allele.Allele` for which the internal predictor representation is needed
+        :type alleles: list(:class:`~Fred2.Core.Allele.Allele`)
+        :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
+        :rtype: list(str)
+        """
+        return ["HLA-%s%s%s" % (a.locus, a.supertype, a.subtype) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -3872,10 +3871,10 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         elif isinstance(allele, CombinedAllele):
-            return "HLA-%s%s%s-%s%s%s" % (allele.alpha_locus, allele.alpha_supertype, allele.alpha_subtype,
-                                          allele.beta_locus, allele.beta_supertype, allele.beta_subtype)
+            return "HLA-%s%s%s-%s%s%s" % (a.alpha_locus, a.alpha_supertype, a.alpha_subtype,
+                                          a.beta_locus, a.beta_supertype, a.beta_subtype)
         else:
-            return "%s_%s%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "%s_%s%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -3888,7 +3887,7 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return [self._represent(a) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -6404,7 +6403,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         else:
-            return "HLA-%s%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -6417,7 +6416,7 @@ class PickPocket_1_1(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return [self._represent(a) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     def parse_external_result(self, file):
         """
@@ -6829,7 +6828,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         if isinstance(allele, MouseAllele):
             return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
         else:
-            return "HLA-%s%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+            return "HLA-%s%s:%s" % (a.locus, a.supertype, a.subtype)
 
     def convert_alleles(self, alleles):
         """
@@ -6842,7 +6841,7 @@ class NetCTLpan_1_1(AExternalEpitopePrediction):
         :return: Returns a string representation of the input :class:`~Fred2.Core.Allele.Allele`
         :rtype: list(str)
         """
-        return [self._represent(a) for a in alleles]
+        return [_represent(a) for a in alleles]
 
     @property
     def supportedAlleles(self):
