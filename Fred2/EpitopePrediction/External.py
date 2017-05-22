@@ -152,7 +152,6 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                         stde = None
                         cmd = _command.format(peptides=tmp_file.name, alleles=",".join(allele_group),
                                               options="" if options is None else options, out=tmp_out.name, length=str(length))
-                        print cmd
                         p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                              stderr=subprocess.PIPE)
                         # p.wait() communicate already waits for the process https://docs.python.org/2.7/library/subprocess.html#subprocess.Popen.communicate
