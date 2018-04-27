@@ -227,7 +227,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         :return: A :class:`~Fred2.Core.CleavageSitePredictionResult` object
         :rtype: :class:`~Fred2.Core.CleavageSitePredictionResult`
         """
-        if not self.is_in_path() and "path" not in kwargs:
+        if not self.is_in_path() and "path" not in kwargs and command is None:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
                                                                                     version=self.version))
         external_version = self.get_external_version(path=command)
