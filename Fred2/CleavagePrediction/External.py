@@ -48,7 +48,7 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         :return: A :class:`~Fred2.Core.CleavageSitePredictionResult` object
         :rtype: :class:`~Fred2.Core.CleavageSitePredictionResult`
         """
-        if not self.is_in_path() and "path" not in kwargs:
+        if not self.is_in_path() and "path" not in kwargs and command is None:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
                                                                                     version=self.version))
         external_version = self.get_external_version(path=command)
@@ -123,7 +123,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
     __supported_length = [sys.maxint]
     __name = "netchop"
     __cleavage_pos = 0
-    __command = "netChop {input} {options} | grep -v '#' > {out}"
+    __command = "netchop {input} {options} | grep -v '#' > {out}"
     __version = "3.1"
 
     @property
@@ -227,7 +227,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         :return: A :class:`~Fred2.Core.CleavageSitePredictionResult` object
         :rtype: :class:`~Fred2.Core.CleavageSitePredictionResult`
         """
-        if not self.is_in_path() and "path" not in kwargs:
+        if not self.is_in_path() and "path" not in kwargs and command is None:
             raise RuntimeError("{name} {version} could not be found in PATH".format(name=self.name,
                                                                                     version=self.version))
         external_version = self.get_external_version(path=command)
@@ -242,7 +242,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         #After reaching the limit one could revers the counting in the negative
         #direction
         if isinstance(aa_seq, Peptide) or isinstance(aa_seq, Protein):
-            pep_seqs = {str(aa_seq): aa_seq}
+            pep_seqs = {0: str(aa_seq)}
         else:
             pep_seqs = {}
             for i,p in enumerate(aa_seq):
