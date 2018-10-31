@@ -18,6 +18,24 @@ Installation
 use the following commands:
 
     $ pip install git+https://github.com/FRED-2/Fred2
+    
+Dependencies
+------------
+
+**Python Packages**
+- pandas 
+- pyomo>=4.0 
+- svmlight 
+- MySQL-python>=1.2.4 
+- Biopython 
+- pyVCF
+    
+**Thrid-Party Software (not installed through pip)**
+   - NetMHC predictor family (NetMHC(pan)-(I/II), NetChop, NetCTL) (http://www.cbs.dtu.dk/services/software.php)
+   - PickPocket (http://www.cbs.dtu.dk/services/software.php)
+   - Integer Linear Programming Solver (recommended CBC: https://projects.coin-or.org/Cbc)
+   
+Please pay attanention to the different licensings of the third party tools.
 
 Getting Started
 ---------------
