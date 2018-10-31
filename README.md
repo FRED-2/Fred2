@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/FRED-2/Fred2.svg)](https://travis-ci.org/FRED-2/Fred2)
+[![Build Status](https://travis-ci.org/FRED-2/Fred2.svg)](https://travis-ci.org/FRED-2/Fred2) [![Anaconda-Server Badge](https://anaconda.org/bioconda/fred2/badges/installer/conda.svg)](https://conda.anaconda.org/bioconda)
 
 FRED2 - An Immunoinformatics Framework for Python
 -------------------------------------------------
