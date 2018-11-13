@@ -11,7 +11,7 @@ import csv
 import urllib2
 import warnings
 import logging
-import MySQLdb
+import pymysql.cursors
 from operator import itemgetter
 
 from Fred2.IO.ADBAdapter import ADBAdapter, EAdapterFields, EIdentifierTypes
@@ -32,7 +32,7 @@ co
         self.sequence_proxy = dict()
 
         if usr and host and pwd and db:
-            self.connection = MySQLdb.connect(user=usr, host=host, passwd=pwd, db=db)
+            self.connection = pymysql.connect(user=usr, host=host, password=pwd, db=db)
         else:
             self.connection = None
 
