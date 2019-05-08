@@ -36,4 +36,4 @@ class HLATypingFactory(object):
 
         :return: dict(str, list(str)) - A dictionary of epitope predictors represented as string and a list of versions
         """
-        return {k:sorted(versions.iterkeys()) for k,versions in AHLATyping.registry.iteritems() }
+        return {k:sorted(versions.keys()) for k,versions in AHLATyping.registry.items() }

@@ -149,8 +149,8 @@ class OptiType_1_0(AExternalHLATyping):
         latest_subdir = max(all_subdirs, key=os.path.getmtime)
         result_file = latest_subdir+"/"+os.path.basename(os.path.normpath(latest_subdir))+"_result.tsv"
         with open(result_file, "r") as f:
-            row = csv.DictReader(f, delimiter="\t").next()
-            return map(lambda x: Allele("HLA-"+x), [ row[k] for k in ["A1","A2","B1","B2","C1","C2"]])
+            row = next(csv.DictReader(f, delimiter="\t"))
+            return [Allele("HLA-"+x) for x in [ row[k] for k in ["A1","A2","B1","B2","C1","C2"]]]
 
     def clean_up(self, output):
         """

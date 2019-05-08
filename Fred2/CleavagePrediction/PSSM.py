@@ -66,7 +66,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
             raise KeyError("No model found for %s with length %i"%(self.name, length))
 
         diff = length - self.cleavagePos
-        for j,seq in enumerate(pep_seqs.iterkeys()):
+        for j,seq in enumerate(pep_seqs.keys()):
 
             seq_id = "seq_%i"%j
             p = pep_seqs[seq]
@@ -75,7 +75,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
                 if p.transcript_id:
                     seq_id = p.transcript_id
             else:
-                for t in p.proteins.iterkeys():
+                for t in p.proteins.keys():
                     if t:
                         seq_id = t
                         break
@@ -85,7 +85,7 @@ class APSSMCleavageSitePredictor(ACleavageSitePrediction):
                 warnings.warn("Sequence length of %i is to small for specified window of %i"%(len(seq),length), RuntimeWarning)
                 continue
 
-            for i in xrange(len(seq)):
+            for i in range(len(seq)):
                 if i < (length-1):
 
                     result["Seq"][(seq_id, i)] = seq[i]
@@ -332,7 +332,7 @@ class APSSMCleavageFragmentPredictor(ACleavageFragmentPrediction):
                 pep_seqs[str(p)] = p
 
         result = {self.name:{}}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key= lambda x: len(x)):
+        for length, peps in itertools.groupby(iter(pep_seqs.keys()), key= lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:
@@ -438,7 +438,7 @@ class PSSMGinodi(APSSMCleavageFragmentPredictor):
                 pep_seqs[str(p)] = p
 
         result = {self.name: {}}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
+        for length, peps in itertools.groupby(iter(pep_seqs.keys()), key=lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:

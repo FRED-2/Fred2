@@ -86,7 +86,7 @@ class APluginRegister(abc.ABCMeta):
         return cls.registry[name][version]
 
     def __iter__(cls):
-        return iter(cls.registry.values())
+        return iter(list(cls.registry.values()))
 
     def __str__(cls):
         if cls in cls.registry:
@@ -94,9 +94,7 @@ class APluginRegister(abc.ABCMeta):
         return cls.__name__ + ": " + ", ".join([sc.__name__ for sc in cls])
 
 
-class ACleavageSitePrediction(object):
-    __metaclass__ = APluginRegister
-
+class ACleavageSitePrediction(object, metaclass=APluginRegister):
     @abc.abstractproperty
     def name(self):
         """
@@ -140,9 +138,7 @@ class ACleavageSitePrediction(object):
         raise NotImplementedError
 
 
-class ACleavageFragmentPrediction(object):
-    __metaclass__ = APluginRegister
-
+class ACleavageFragmentPrediction(object, metaclass=APluginRegister):
     @abc.abstractproperty
     def name(self):
         """
@@ -185,9 +181,7 @@ class ACleavageFragmentPrediction(object):
         raise NotImplementedError
 
 
-class AEpitopePrediction(object):
-    __metaclass__ = APluginRegister
-
+class AEpitopePrediction(object, metaclass=APluginRegister):
     @abc.abstractproperty
     def name(self):
         """
@@ -246,11 +240,10 @@ class AEpitopePrediction(object):
         raise NotImplementedError
 
 
-class ASVM(object):
+class ASVM(object, metaclass=abc.ABCMeta):
     """
         Base class for SVM prediction tools
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def encode(self, peptides):
@@ -265,11 +258,10 @@ class ASVM(object):
         raise NotImplementedError
 
 
-class AExternal(object):
+class AExternal(object, metaclass=abc.ABCMeta):
     """
      Base class for external tools
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
     def command(self):
@@ -333,9 +325,7 @@ class AExternal(object):
         return str(stdo).strip()
 
 
-class ATAPPrediction(object):
-    __metaclass__ = APluginRegister
-
+class ATAPPrediction(object, metaclass=APluginRegister):
     @abc.abstractproperty
     def name(self):
         """
@@ -371,9 +361,7 @@ class ATAPPrediction(object):
         raise NotImplementedError
 
 
-class AHLATyping(object):
-    __metaclass__ = APluginRegister
-
+class AHLATyping(object, metaclass=APluginRegister):
     @abc.abstractproperty
     def name(self):
         """

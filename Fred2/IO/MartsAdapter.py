@@ -8,7 +8,7 @@
 """
 
 import csv
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import warnings
 import logging
 import pymysql.cursors
@@ -101,8 +101,8 @@ co
             + self.biomart_tail
 
         # logging.warn(rq_n)
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url
-                                                   + urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib.request.urlopen(self.biomart_url
+                                                   + urllib.parse.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
             logging.warn("There seems to be no Proteinsequence for " + str(product_id))
@@ -153,8 +153,8 @@ co
             + self.biomart_attribute%("strand")  \
             + self.biomart_tail
 
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url +
-                                                   urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib.request.urlopen(self.biomart_url +
+                                                   urllib.parse.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
             logging.warn("There seems to be no transcript sequence for " + str(transcript_id))
@@ -204,7 +204,7 @@ co
             + self.biomart_attribute%("strand")  \
             + self.biomart_tail
 
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib.request.urlopen(self.biomart_url+urllib.parse.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
             logging.warn("No Information on transcript %s"%transcript_id)
@@ -270,10 +270,10 @@ co
             + self.biomart_attribute%("cds_end")  \
             + self.biomart_tail
 
-        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url +
-                                                    urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader((urllib.request.urlopen(self.biomart_url +
+                                                    urllib.parse.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         exons = [ex for ex in tsvreader if ex["CDS start"] and ex["CDS end"]]
-        cds = [dict([k, int(v)] for k, v in e.iteritems()) for e in exons] # cast to int
+        cds = [dict([k, int(v)] for k, v in e.items()) for e in exons] # cast to int
         cds = sorted(cds, key=itemgetter("CDS start")) #sort by CDS Start(position in the CDS)
 
         cds_sum = 0
@@ -291,8 +291,8 @@ co
 
             if not cds_sum < sc < ec:
                 logging.warn("unable to follow the CDS, aborting genome-positional lookup in transcript!")
-                print exons
-                print cds
+                print(exons)
+                print(cds)
                 return None
                 #after sorting and filtering if this occurs points to corrupt data in mart
 
@@ -342,8 +342,8 @@ co
             + self.biomart_attribute%("external_gene_name")  \
             + self.biomart_tail
 
-        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url +
-                                                    urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader((urllib.request.urlopen(self.biomart_url +
+                                                    urllib.parse.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if tsvselect and tsvselect[0]:
             self.gene_proxy[str(chrom) + str(start) + str(stop)] = tsvselect[0]['Gene name']
@@ -392,7 +392,7 @@ co
                + self.biomart_attribute%("strand") \
                + self.biomart_tail
 
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib.request.urlopen(self.biomart_url+urllib.parse.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
             warnings.warn("No entry found for id %s"%product_id)
@@ -445,7 +445,7 @@ co
                + self.biomart_attribute%("peptide_location") \
                + self.biomart_tail
         #tsvreader = csv.DictReader(urllib2.urlopen(self.new_biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab') #what? brachvogel?
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib.request.urlopen(self.biomart_url+urllib.parse.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
             warnings.warn("No entry found for id %s"%transcript_id)
@@ -494,8 +494,8 @@ co
                + self.biomart_attribute%("ensembl_transcript_id") \
                + self.biomart_attribute%("ensembl_peptide_id") \
                + self.biomart_tail
-        tsvreader = csv.DictReader(urllib2.urlopen(self.biomart_url +
-                                                   urllib2.quote(rq_n)).read().splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader(urllib.request.urlopen(self.biomart_url +
+                                                   urllib.parse.quote(rq_n)).read().splitlines(), dialect='excel-tab')
         tsvselect = [x for x in tsvreader]
         if not tsvselect:
             logging.warn("No entry found for id %s"%gene_id)
@@ -595,7 +595,7 @@ co
 
         # logging.warning(rq_n)
 
-        tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+        tsvreader = csv.DictReader((urllib.request.urlopen(self.biomart_url+urllib.parse.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
         if ensemble_only:
             result = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader}
         else:
@@ -614,7 +614,7 @@ co
                 + self.biomart_attribute%("strand")  \
                 + self.biomart_tail
 
-            tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
+            tsvreader = csv.DictReader((urllib.request.urlopen(self.biomart_url+urllib.parse.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
 
             result2 = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader
                        if (x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]'])
@@ -622,11 +622,11 @@ co
             result.update(result2)
 
         g = None
-        for k, v in result.iteritems():
+        for k, v in result.items():
             if 'uniprot_swissprot' in v:
                 g = v['uniprot_swissprot']
-        self.ids_proxy[g] = result.values()
-        return result.values()
+        self.ids_proxy[g] = list(result.values())
+        return list(result.values())
 
     #TODO: refactor ... function based on old code
     def get_all_variant_ids(self, **kwargs):
@@ -655,8 +655,8 @@ co
             #         + self.biomart_filter%("start", kwargs['start'])  \
             #         + self.biomart_filter%("end", kwargs['stop'])
         elif 'genes' in kwargs:
-            queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+250])) for x in xrange(0, len(kwargs['genes']), 250)]
-            logging.warning('***'+self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+250])) for x in xrange(0, len(kwargs['genes']), 250))
+            queries = [self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+250])) for x in range(0, len(kwargs['genes']), 250)]
+            logging.warning('***'+self.biomart_filter%("uniprot_genename", ','.join(kwargs['genes'][x:x+250])) for x in range(0, len(kwargs['genes']), 250))
         else:
             logging.warning("wrong arguments to get_variant_ids")
         for query in queries:
@@ -676,7 +676,7 @@ co
             # logging.warning(rq_n)
 
             try:
-                tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
+                tsvreader = csv.DictReader((urllib.request.urlopen(self.biomart_url+urllib.parse.quote(rq_n)).read()).splitlines(), dialect='excel-tab')
                 if ensemble_only:
                     result = {x['Ensembl Gene ID']+x['Ensembl Transcript ID']+x['Ensembl Protein ID']: x for x in tsvreader}
                 else:
@@ -699,7 +699,7 @@ co
                     + self.biomart_tail
 
                 try:
-                    tsvreader = csv.DictReader((urllib2.urlopen(self.biomart_url+urllib2.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
+                    tsvreader = csv.DictReader((urllib.request.urlopen(self.biomart_url+urllib.parse.quote(rq_x)).read()).splitlines(), dialect='excel-tab')
 
                     for x in tsvreader:
                         if (x['RefSeq Predicted Protein ID [e.g. XP_001720922]'] and x['RefSeq mRNA predicted [e.g. XM_001125684]']):
@@ -716,4 +716,4 @@ co
         #     if 'uniprot_swissprot' in v:
         #         g = v['uniprot_swissprot']
         # self.ids_proxy[g] = result.values()
-        return end_result.values()
+        return list(end_result.values())

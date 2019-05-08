@@ -73,7 +73,7 @@ class AExternalCleavageSitePrediction(ACleavageSitePrediction, AExternal):
         result = {}
         peps = list(pep_seqs.values())
 
-        for i in xrange(0, len(peps), chunksize):
+        for i in range(0, len(peps), chunksize):
             tmp_out = NamedTemporaryFile(delete=False)
             tmp_file = NamedTemporaryFile(delete=False)
             self.prepare_input(peps[i:i+chunksize], tmp_file)
@@ -120,7 +120,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         T-cell epitopes: insights obtained from improved predictions of proteasomal cleavage.
         Immunogenetics, 57(1-2), 33-41.
     """
-    __supported_length = [sys.maxint]
+    __supported_length = [sys.maxsize]
     __name = "netchop"
     __cleavage_pos = 0
     __command = "netchop {input} {options} | grep -v '#' > {out}"
@@ -260,7 +260,7 @@ class NetChop_3_1(AExternalCleavageSitePrediction, AExternal):
         result = {}
         peps = list(pep_seqs.items())
 
-        for i in xrange(0, len(peps), chunksize):
+        for i in range(0, len(peps), chunksize):
 
             tmp_out = NamedTemporaryFile(delete=False)
             tmp_file = NamedTemporaryFile(delete=False)

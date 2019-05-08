@@ -39,7 +39,7 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
             for v in EpitopePredictorFactory.available_methods()[m]:
                 mo = EpitopePredictorFactory(m, version=v)
                 if isinstance(mo, AExternalEpitopePrediction) and not (mo.version=="0.1" and mo.name=="netmhc"):
-                    print "Testing", mo.name, "version", mo.version
+                    print("Testing", mo.name, "version", mo.version)
                     try:
                         if any(a.name in mo.supportedAlleles for a in self.mhcII):
                             mo.predict(self.peptides_mhcII, alleles=self.mhcII)
@@ -47,19 +47,19 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
                             mo.predict(self.peptides_mhcII, alleles=self.mhcII_combined_alleles)
                         if any(a.name in mo.supportedAlleles for a in self.mhcI):
                             mo.predict(self.peptides_mhcI, alleles=self.mhcI)
-                        print "Success"
+                        print("Success")
                     except RuntimeError as e: #catch only those stemming from binary unavailability
                         if "could not be found in PATH" not in e.message:
                             raise e #all others do not except
                         else:
-                            print mo.name, "not available"
+                            print(mo.name, "not available")
 
     def test_single_epitope_input(self):
         for m in EpitopePredictorFactory.available_methods():
             for v in EpitopePredictorFactory.available_methods()[m]:
                 mo = EpitopePredictorFactory(m, version=v)
                 if isinstance(mo, AExternalEpitopePrediction) and not (mo.version=="0.1" and mo.name=="netmhc"):
-                    print "Testing", mo.name, "version", mo.version
+                    print("Testing", mo.name, "version", mo.version)
                     try:
                         if any(a.name in mo.supportedAlleles for a in self.mhcII):
                             mo.predict(self.peptides_mhcII[0], alleles=self.mhcII)
@@ -67,19 +67,19 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
                             mo.predict(self.peptides_mhcII[0], alleles=self.mhcII_combined_alleles)
                         if any(a.name in mo.supportedAlleles for a in self.mhcI):
                             mo.predict(self.peptides_mhcI[0], alleles=self.mhcI)
-                        print "Success"
+                        print("Success")
                     except RuntimeError as e: #catch only those stemming from binary unavailability
                         if "could not be found in PATH" not in e.message:
                             raise e #all others do not except
                         else:
-                            print mo.name, "not available"
+                            print(mo.name, "not available")
 
     def test_single_allele_input(self):
         for m in EpitopePredictorFactory.available_methods():
             for v in EpitopePredictorFactory.available_methods()[m]:
                 mo = EpitopePredictorFactory(m, version=v)
                 if isinstance(mo, AExternalEpitopePrediction) and not (mo.version=="0.1" and mo.name=="netmhc"):
-                    print "Testing", mo.name, "version", mo.version
+                    print("Testing", mo.name, "version", mo.version)
                     try:
                         if any(a.name in mo.supportedAlleles for a in self.mhcII):
                             mo.predict(self.peptides_mhcII, alleles=self.mhcII[0])
@@ -87,12 +87,12 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
                             mo.predict(self.peptides_mhcII, alleles=self.mhcII_combined_alleles[0])
                         if any(a.name in mo.supportedAlleles for a in self.mhcI):
                             mo.predict(self.peptides_mhcI, alleles=self.mhcI[0])
-                        print "Success"
+                        print("Success")
                     except RuntimeError as e: #catch only those stemming from binary unavailability
                         if "could not be found in PATH" not in e.message:
                             raise e #all others do not except
                         else:
-                            print mo.name, "not available"
+                            print(mo.name, "not available")
 
     def test_wrong_epitope_input(self):
         with self.assertRaises(ValueError):
@@ -125,9 +125,9 @@ class TestExternalEpitopePredictionClass(unittest.TestCase):
             try_path = try_path.strip('"')
             exe_try = os.path.join(try_path, exe).strip()
             if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
-                print netctlpan.predict(self.peptides_mhcI, alleles=self.mhcI,
+                print(netctlpan.predict(self.peptides_mhcI, alleles=self.mhcI,
                                         commad=exe_try,
-                                        options="-wt 0.05 -wc 0.225 -ethr 0.5")
+                                        options="-wt 0.05 -wc 0.225 -ethr 0.5"))
 
 if __name__ == '__main__':
     unittest.main()

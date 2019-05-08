@@ -14,14 +14,13 @@ import numpy
 import pandas
 
 
-class AResult(pandas.DataFrame):
+class AResult(pandas.DataFrame, metaclass=abc.ABCMeta):
     """
         A :class:`~Fred2.Core.Result.AResult` object is a :class:`pandas.DataFrame` with with multi-indexing.
 
         This class is used as interface and can be extended with custom short-cuts for the sometimes often tedious
         calls in pandas
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def filter_result(self, expressions):
@@ -86,8 +85,8 @@ class EpitopePredictionResult(AResult):
             expressions = [expressions]
 
         #builde logical expression
-        masks = map(list, [comp(self.loc[(slice(None), method), :], thr).any(axis=1)
-                    for method, comp, thr in expressions])
+        masks = list(map(list, [comp(self.loc[(slice(None), method), :], thr).any(axis=1)
+                    for method, comp, thr in expressions]))
         if len(masks) > 1:
             masks = numpy.logical_and(*masks)
         else:
@@ -95,7 +94,7 @@ class EpitopePredictionResult(AResult):
 
         #apply to all rows
         idx = [f for f in masks
-               for _ in xrange(len(self.index.levels[1]))]
+               for _ in range(len(self.index.levels[1]))]
         return EpitopePredictionResult(self.loc[idx, :])
 
     def merge_results(self, others):
@@ -112,7 +111,7 @@ class EpitopePredictionResult(AResult):
         if type(others) == type(self):
             others = [others]
 
-        for i in xrange(len(others)):
+        for i in range(len(others)):
             df1a, df2a = df.align(others[i])
             zero1 = df1a == 0
             zero2 = df2a == 0
@@ -205,7 +204,7 @@ class CleavageSitePredictionResult(AResult):
             others = [others]
         df = self
 
-        for i in xrange(len(others)):
+        for i in range(len(others)):
             o = others[i]
             df1a, df2a = df.align(o,)
 

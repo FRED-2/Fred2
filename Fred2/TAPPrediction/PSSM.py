@@ -45,7 +45,7 @@ class APSSMTAPPrediction(ATAPPrediction):
                 pep_seqs[str(p)] = p
 
         result = {self.name: {}}
-        pep_groups = pep_seqs.keys()
+        pep_groups = list(pep_seqs.keys())
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
             try:
@@ -149,7 +149,7 @@ class SMMTAP(APSSMTAPPrediction):
                 pep_seqs[str(p)] = p
 
         result = {self.name: {}}
-        pep_groups = pep_seqs.keys()
+        pep_groups = list(pep_seqs.keys())
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
             if length < 9:
@@ -166,7 +166,7 @@ class SMMTAP(APSSMTAPPrediction):
                 if length <= 9:
                     score = sum(pssm[i].get(aa, 0.0) for i, aa in enumerate(p))
                 else:
-                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(3))+pssm[8].get(p[-1], 0.0)
+                    score = sum(pssm[i].get(p[i], 0.0) for i in range(3))+pssm[8].get(p[-1], 0.0)
                 result[self.name][pep_seqs[p]] = score
 
         if not result[self.name]:

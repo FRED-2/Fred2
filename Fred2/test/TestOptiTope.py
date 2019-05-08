@@ -82,4 +82,4 @@ YFVIFFVAA""".split()]
         pt = OptiTope(self.result, self.thresh, k=3, solver="cbc", verbosity=0)
         pt.activate_epitope_conservation_const(0.5, conservation=conservation)
         for e in pt.solve():
-            print e, conservation[e]
+            print(e, conservation[e])

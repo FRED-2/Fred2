@@ -49,4 +49,4 @@ class EpitopePredictorFactory(object):
         :return: dict(str,list(str) - dictionary of epitope predictors represented as string and a list of supported
                                       versions
         """
-        return {k: sorted(versions.iterkeys()) for k, versions in AEpitopePrediction.registry.iteritems()}
+        return {k: sorted(versions.keys()) for k, versions in AEpitopePrediction.registry.items()}

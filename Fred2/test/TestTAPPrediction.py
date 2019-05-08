@@ -18,7 +18,7 @@ class TAPPredictionTestCaste(unittest.TestCase):
         for m in TAPPredictorFactory.available_methods():
             pred = TAPPredictorFactory(m)
             r = pred.predict(self.peptides)
-            print r
+            print(r)
 
     def test_tap_single_peptide_input(self):
         """
@@ -29,15 +29,15 @@ class TAPPredictionTestCaste(unittest.TestCase):
         for m in TAPPredictorFactory.available_methods():
             pred = TAPPredictorFactory(m)
             r = pred.predict(self.peptides[0])
-            print r
+            print(r)
 
     def test_smmtap_abitrary_peptide_length(self):
         smmtap = TAPPredictorFactory("smmtap")
         peptides = [Peptide("SYFPEITHI"), Peptide("IHTIEPFYSA"), Peptide("IHTIEPFYSAA")]
-        print smmtap.predict(peptides)
+        print(smmtap.predict(peptides))
 
     def test_peptide_chunksize(self):
         for m in TAPPredictorFactory.available_methods():
             pred = TAPPredictorFactory(m)
             r = pred.predict(self.peptides, chunksize=1)
-            print r
+            print(r)

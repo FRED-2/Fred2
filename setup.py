@@ -123,3 +123,4 @@ setup(
     install_requires=['setuptools>=18.2', 'pandas', 'pyomo>=4.0','svmlight', 'PyMySQL', 'biopython', 'pyVCF'],
 
 )
+

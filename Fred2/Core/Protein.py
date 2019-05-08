@@ -29,7 +29,7 @@ class Protein(MetadataLogger, Seq):
         (from Biopython)
 
     """
-    newid = itertools.count().next #this is evil and has no other purpose? it does not help that there may be more than one protein from one transcript - due to variants
+    newid = itertools.count().__next__ #this is evil and has no other purpose? it does not help that there may be more than one protein from one transcript - due to variants
 
     def __init__(self, _seq, gene_id="unknown", transcript_id=None, orig_transcript=None, vars=None):
         """
@@ -79,15 +79,15 @@ class Protein(MetadataLogger, Seq):
             if start > stop:
                 raise ValueError("start has to be greater than stop")
             if index.step:
-                slice = set(xrange(start, step, stop))
+                slice = set(range(start, step, stop))
             else:
-                slice = set(xrange(start, stop))
+                slice = set(range(start, stop))
 
             _vars = {}
             _fs = {}
             shift = 0
             #collect also all frame shift variants that are not canceled out
-            for pos, vs in sorted(self.vars.iteritems()):
+            for pos, vs in sorted(self.vars.items()):
                 if pos < start:
                     for v in vs:
                         if v.type in [VariationType.FSINS, VariationType.FSDEL]:
@@ -111,7 +111,7 @@ class Protein(MetadataLogger, Seq):
 
         # Variants:
         lines += ["\t VARIANTS:"]
-        for vpos, vset in self.vars.iteritems():
+        for vpos, vset in self.vars.items():
             for v in vset:
                 lines.append('\t pos %i: %s'%(vpos, v))
 

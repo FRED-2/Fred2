@@ -31,7 +31,7 @@ class Transcript(MetadataLogger, Seq):
                  :class:`~Fred2.Core.Transcript.Transcript`. key=position, value=Variant
     :type vars: dict(int,:class:`Fred2.Core.Variant.Variant`)
     """
-    newid = itertools.count().next #this is evil
+    newid = itertools.count().__next__ #this is evil
 
     def __init__(self, seq, gene_id="unknown", transcript_id=None, vars=None):
         """
@@ -68,15 +68,15 @@ class Transcript(MetadataLogger, Seq):
                 raise ValueError("start has to be greater than stop")
 
             if index.step:
-                slice = set(xrange(start, step, stop))
+                slice = set(range(start, step, stop))
             else:
-                slice = set(xrange(start, stop))
+                slice = set(range(start, stop))
 
             _vars = {}
             _fs = {}
             shift = 0
             #collect also all frame shift variants that are not canceled out
-            for pos, v in sorted(self.vars.iteritems()):
+            for pos, v in sorted(self.vars.items()):
                 if pos < start:
                     if v.type in [VariationType.FSINS, VariationType.FSDEL]:
                         shift = (v.get_shift()+shift) % 3
@@ -96,7 +96,7 @@ class Transcript(MetadataLogger, Seq):
         lines = ["TRANSCRIPT: %s" % self.transcript_id]
         # get all variants:
         lines += ["VARIANTS:"]
-        for vpos, var in self.vars.iteritems():
+        for vpos, var in self.vars.items():
             lines.append('\tpos %i: %s'%(vpos, var))
         lines += ["SEQUENCE: %s (mRNA)"%str(self)]
         return '\n\t'.join(lines)

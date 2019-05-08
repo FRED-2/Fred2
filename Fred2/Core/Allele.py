@@ -22,11 +22,10 @@ class AlleleFactory(type):
         return type.__call__(cls, name, prob=prob)
 
 
-class Allele(MetadataLogger):
+class Allele(MetadataLogger, metaclass=AlleleFactory):
     """
     This class represents an HLA Allele and stores additional information
     """
-    __metaclass__ = AlleleFactory
 
     def __init__(self, name, prob=None):
         """
