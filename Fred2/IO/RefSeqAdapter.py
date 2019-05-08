@@ -28,14 +28,14 @@ class RefSeqAdapter(ADBAdapter):
         try:
             with open(filename, "rU") as f:
                 for record in SeqIO.parse(f, "fasta"):
-                    ridv = filter(None, record.id.split('|'))[-1]  # NP_001639.1
+                    ridv = [_f for _f in record.id.split('|') if _f][-1]  # NP_001639.1
                     rid = ridv.split('.')[0]  # NP_001639
                     if rid not in refseq_records:
                         refseq_records[rid] = record
                         refseq_records[rid].dbxrefs.append(ridv)
                         refseq_records[rid].id = rid
                     else:
-                        print 'claaaash!!'  # TODO no clashes in v.66 but ever?! use logging.warning or something
+                        print('claaaash!!')  # TODO no clashes in v.66 but ever?! use logging.warning or something
         except:
             pass
         return refseq_records

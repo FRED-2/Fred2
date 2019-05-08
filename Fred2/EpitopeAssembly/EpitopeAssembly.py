@@ -7,7 +7,7 @@
 .. moduleauthor:: schubert
 
 """
-from __future__ import division
+
 
 import os
 import subprocess
@@ -90,7 +90,7 @@ class EpitopeAssembly(object):
                     fragments[frag] = (start_str, stop_str)
                     fragments[garf] = (stop_str, start_str)
 
-            cleave_pred = pred.predict(fragments.keys())
+            cleave_pred = pred.predict(list(fragments.keys()))
             #cleave_site_df = cleave_pred.xs((slice(None), (cleavage_pos-1)))
             for i in set(cleave_pred.index.get_level_values(0)):
                 fragment = "".join(cleave_pred.ix[i]["Seq"])
@@ -98,14 +98,14 @@ class EpitopeAssembly(object):
 
                 cleav_pos = len(str(start)) - 1
                 edge_matrix[(start, stop)] = -1.0 * (cleave_pred.loc[(i, len(str(start)) - 1), pred.name] - weight * sum(
-                    cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1,cleav_pos+4,1) if j != cleav_pos))
+                    cleave_pred.loc[(i, j), pred.name] for j in range(cleav_pos-1,cleav_pos+4,1) if j != cleav_pos))
 
-                self.neo_cleavage[(start, stop)] = sum(cleave_pred.loc[(i, j), pred.name] for j in xrange(cleav_pos-1, cleav_pos+4,1) if j != cleav_pos)
+                self.neo_cleavage[(start, stop)] = sum(cleave_pred.loc[(i, j), pred.name] for j in range(cleav_pos-1, cleav_pos+4,1) if j != cleav_pos)
                 self.good_cleavage[(start, stop)] = cleave_pred.loc[(i, len(str(start)) - 1), pred.name]
         else:
             edge_matrix = matrix
             seq_to_pep = {str(p): p for p in pep_tmp}
-            for p in seq_to_pep.iterkeys():
+            for p in seq_to_pep.keys():
                 if p != "Dummy":
                     edge_matrix[(p,"Dummy")] = 0
                     edge_matrix[("Dummy",p)] = 0
@@ -115,9 +115,9 @@ class EpitopeAssembly(object):
         self.__solver = SolverFactory(solver)
         model = ConcreteModel()
 
-        E = filter(lambda x: x != "Dummy", seq_to_pep.keys())
+        E = [x for x in list(seq_to_pep.keys()) if x != "Dummy"]
         model.E = Set(initialize=E)
-        model.E_prime = Set(initialize=seq_to_pep.keys())
+        model.E_prime = Set(initialize=list(seq_to_pep.keys()))
         model.ExE = Set(initialize=itr.permutations(E,2), dimen=2)
 
         model.w_ab = Param(model.E_prime, model.E_prime, initialize=edge_matrix)
@@ -143,7 +143,7 @@ class EpitopeAssembly(object):
 
         self.instance = model
         if self.__verbosity > 0:
-            print "MODEL INSTANCE"
+            print("MODEL INSTANCE")
             self.instance.pprint()
 
     def solve(self, options=None):
@@ -292,7 +292,7 @@ class ParetoEpitopeAssembly(object):
             for a in prob:
                 prob_grouped.setdefault(a.locus, []).append(a)
 
-            for g, v in no_prob_grouped.iteritems():
+            for g, v in no_prob_grouped.items():
                 total_loc_a = len(v)
                 if g in prob_grouped:
                     remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
@@ -304,7 +304,7 @@ class ParetoEpitopeAssembly(object):
         probs = {a.name:a.prob for a in _alleles}
         if verbosity:
             for a in _alleles:
-                print a.name, a.prob
+                print(a.name, a.prob)
 
 
         #Generate model
@@ -339,15 +339,15 @@ class ParetoEpitopeAssembly(object):
                     fragments[frag] = (start_str, stop_str)
                     fragments[garf] = (stop_str, start_str)
 
-            epi_pred = ep_pred.predict(generate_peptides_from_proteins(fragments.keys(), length), alleles=_alleles)
+            epi_pred = ep_pred.predict(generate_peptides_from_proteins(list(fragments.keys()), length), alleles=_alleles)
             for index,row in epi_pred.iterrows():
                 nof_epis = sum(comparator(row[a],threshold.get(a.name, 0)) for a in _alleles) \
 
-                for protein in index[0].proteins.itervalues():
+                for protein in index[0].proteins.values():
                     start, stop = fragments[protein]
                     ep_edge_matrix[start,stop] += len(index[0].proteinPos[protein.transcript_id])*nof_epis
 
-            cleave_pred = cl_pred.predict(fragments.keys())
+            cleave_pred = cl_pred.predict(list(fragments.keys()))
             #cleave_site_df = cleave_pred.xs((slice(None), (cleavage_pos-1)))
             for i in set(cleave_pred.index.get_level_values(0)):
                 fragment = "".join(cleave_pred.ix[i]["Seq"])
@@ -356,11 +356,11 @@ class ParetoEpitopeAssembly(object):
                 cleav_pos = len(str(start)) - 1
                 cl_edge_matrix[(start, stop)] = -1.0 * (
                 cleave_pred.loc[(i, len(str(start)) - 1), cl_pred.name] - weight * sum(
-                    cleave_pred.loc[(i, j), cl_pred.name] for j in xrange(cleav_pos - 1, cleav_pos + 4, 1) if
+                    cleave_pred.loc[(i, j), cl_pred.name] for j in range(cleav_pos - 1, cleav_pos + 4, 1) if
                     j != cleav_pos))
 
                 self.neo_cleavage[(start, stop)] = sum(
-                    cleave_pred.loc[(i, j), cl_pred.name] for j in xrange(cleav_pos - 1, cleav_pos + 4, 1) if
+                    cleave_pred.loc[(i, j), cl_pred.name] for j in range(cleav_pos - 1, cleav_pos + 4, 1) if
                     j != cleav_pos)
                 self.good_cleavage[(start, stop)] = cleave_pred.loc[(i, len(str(start)) - 1), cl_pred.name]
 
@@ -368,7 +368,7 @@ class ParetoEpitopeAssembly(object):
         else:
             cl_edge_matrix = matrix
             seq_to_pep = {str(p): p for p in pep_tmp}
-            for p in seq_to_pep.iterkeys():
+            for p in seq_to_pep.keys():
                 if p != "Dummy":
                     cl_edge_matrix[(p,"Dummy")] = 0
                     cl_edge_matrix[("Dummy",p)] = 0
@@ -380,9 +380,9 @@ class ParetoEpitopeAssembly(object):
         self.__solver = SolverFactory(solver)
         model = ConcreteModel()
 
-        E = filter(lambda x: x != "Dummy", seq_to_pep.keys())
+        E = [x for x in list(seq_to_pep.keys()) if x != "Dummy"]
         model.E = Set(initialize=E)
-        model.E_prime = Set(initialize=seq_to_pep.keys())
+        model.E_prime = Set(initialize=list(seq_to_pep.keys()))
         model.ExE = Set(initialize=itr.permutations(E,2), dimen=2)
 
         model.w_ab = Param(model.E_prime, model.E_prime, initialize=cl_edge_matrix)
@@ -424,7 +424,7 @@ class ParetoEpitopeAssembly(object):
         self.epsilons = [model.eps2, model.eps1]
         self.instance = model
         if self.__verbosity > 0:
-            print "MODEL INSTANCE"
+            print("MODEL INSTANCE")
             self.instance.pprint()
 
     def solve(self, eps=1e6, order=(0,1), options={}):
@@ -450,7 +450,7 @@ class ParetoEpitopeAssembly(object):
         objs[order[0]] = self.objectsives[order[0]].expr()
         if self.__verbosity > 0:
             res.write(num=1)
-            print "Objective {nof_obj}:{value}".format(nof_obj=order[0],value=objs[order[0]])
+            print("Objective {nof_obj}:{value}".format(nof_obj=order[0],value=objs[order[0]]))
 
         self.objectsives[order[1]].activate()
         self.objectsives[order[0]].deactivate()
@@ -464,7 +464,7 @@ class ParetoEpitopeAssembly(object):
         objs[order[1]] = self.objectsives[order[1]].expr()
         if self.__verbosity > 0:
             res.write(num=1)
-            print "Objective {nof_obj}:{value}".format(nof_obj=order[1],value=objs[order[1]])
+            print("Objective {nof_obj}:{value}".format(nof_obj=order[1],value=objs[order[1]]))
 
         return objs[0], objs[1], [self.__seq_to_pep[u] for u in
                                                        sorted(self.instance.u, key=lambda x: self.instance.u[x].value)]
@@ -539,14 +539,14 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         seq = ei+ej
         i = len(ei)-cleav_pos
         g=len(ei)+k-cleav_pos
-        c1=sum(cl_pssm[j][seq[i+j]] for j in xrange(cn))+cl_pssm.get(-1,{}).get("con",0)
-        c2=sum(cl_pssm[j][seq[g+j]] for j in xrange(cn))+cl_pssm.get(-1,{}).get("con",0)
-        non_c = sum(sum(cl_pssm[j][seq[k+j]] for j in xrange(cn) if k != i and k != g)+cl_pssm.get(-1,{}).get("con",0)
-                                                        for k in xrange(len(seq)-(cn-1)))
+        c1=sum(cl_pssm[j][seq[i+j]] for j in range(cn))+cl_pssm.get(-1,{}).get("con",0)
+        c2=sum(cl_pssm[j][seq[g+j]] for j in range(cn))+cl_pssm.get(-1,{}).get("con",0)
+        non_c = sum(sum(cl_pssm[j][seq[k+j]] for j in range(cn) if k != i and k != g)+cl_pssm.get(-1,{}).get("con",0)
+                                                        for k in range(len(seq)-(cn-1)))
 
-        imm = sum(prob*sum(max(sum(epi_pssms[j,seq[i+j],a] for j in xrange(en))+epi_pssms.get((-1,"con",a),0)-thresh[a],0)
-                                                                    for i in xrange(len(seq)-en))
-                                                                        for a,prob in allele_prob.iteritems())
+        imm = sum(prob*sum(max(sum(epi_pssms[j,seq[i+j],a] for j in range(en))+epi_pssms.get((-1,"con",a),0)-thresh[a],0)
+                                                                    for i in range(len(seq)-en))
+                                                                        for a,prob in allele_prob.items())
 
         return "",(c1+c2)/2, imm,c1,c2,non_c
 
@@ -554,15 +554,15 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
         max_p = -float("inf")
         min_p = float("inf")
         norm = {}
-        for i,v in p.iteritems():
+        for i,v in p.items():
             max_tmp = max(v.values())
             min_tmp = min(v.values())
             if max_tmp > max_p:
                 max_p = max_tmp
             if min_tmp < min_p:
                 min_p = min_tmp
-        for i,v in p.iteritems():
-            for a,score in v.iteritems():
+        for i,v in p.items():
+            for a,score in v.items():
                 norm.setdefault(i,{}).update({a:(score-min_p)/(max_p - min_p)})
         return norm
 
@@ -581,14 +581,14 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                 return alphabet
             else:
                 return [ej[i-len(ei)-k]]
-    model.A = Set(initialize=allele_prob.keys())
-    model.C = Set(initialize=range(cn))
-    model.EN = Set(initialize=range(en))
-    model.L = Set(initialize=range(le))
+    model.A = Set(initialize=list(allele_prob.keys()))
+    model.C = Set(initialize=list(range(cn)))
+    model.EN = Set(initialize=list(range(en)))
+    model.L = Set(initialize=list(range(le)))
     model.Sigma = Set(initialize=alphabet)
     model.S = Set(model.L, initialize=sequence_set)
-    model.AUX = Set(dimen=2, initialize=lambda model: [(i,a) for i in xrange(le) for a in model.S[i]])
-    model.R = Set(initialize=range(le-(en-1)))
+    model.AUX = Set(dimen=2, initialize=lambda model: [(i,a) for i in range(le) for a in model.S[i]])
+    model.R = Set(initialize=list(range(le-(en-1))))
 
     #param
     model.f = Param(model.C, model.Sigma, initialize=lambda model,i,a: cl_pssm_norm[i][a])
@@ -614,7 +614,7 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
     model.obj_epi = Objective(rule=lambda model: sum(model.y[i,a]*model.p[a] for a in model.A
                                                      for i in model.R), sense=minimize)
 
-    model.obj_non_cleav = Objective(rule=lambda model: sum( model.f[j,a]*model.x[j+i,a] for i in xrange(le-(cn-1))
+    model.obj_non_cleav = Objective(rule=lambda model: sum( model.f[j,a]*model.x[j+i,a] for i in range(le-(cn-1))
                                                             for j in model.C
                                                                 for a in model.S[i+j]
                                                                     if i != model.ci and i != model.cj)+(le-(cn-1)-2)*model.bc, sense=minimize)
@@ -683,19 +683,19 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                     ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
                     cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
                     imm = float(sum(instance.y[i,a].value*instance.p[a] for a in instance.A for i in instance.R))
-                    non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a].value for i in xrange(le-(cn-1))
+                    non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a].value for i in range(le-(cn-1))
                                                             for j in instance.C
                                                                 for a in instance.S[i+j]
                                                                     if i != instance.ci and i != instance.cj))
 
-                    return "".join([a for i in xrange(len(ei), len(ei) + k) for a in instance.S[i] if
+                    return "".join([a for i in range(len(ei), len(ei) + k) for a in instance.S[i] if
                             instance.x[i, a].value]), float(ci+cj)/2, imm, float(ci),float(cj),non_c
                 else:
                     raise RuntimeError("Problem could not be solved. Please check your input.")
             else:
                 ci = float(sum(cl_pssm[i][a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[instance.ci+i] ))+cl_pssm.get(-1,{}).get("con",0)
                 cj = float(sum(cl_pssm[j][a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[instance.cj+j]))+cl_pssm.get(-1,{}).get("con",0)
-                non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a].value for i in xrange(le-(cn-1))
+                non_c = float(sum(cl_pssm[j][a]*instance.x[j+i,a].value for i in range(le-(cn-1))
                                                             for j in instance.C
                                                                 for a in instance.S[i+j]
                                                                     if i != instance.ci and i != instance.cj))
@@ -703,7 +703,7 @@ def _spacer_design(ei, ej, k, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob
                 #print "Epitope pair: ", ei,ej, "Second cleavage: ",0.5*(sum( instance.f[i,a]*instance.x[model.ci+i,a].value for i in instance.C for a in instance.S[model.ci+i] )
                 #             + sum(instance.f[j,a]*instance.x[model.cj+j,a].value for j in instance.C for a in instance.S[model.cj+j])+2*instance.bc), obj_cleav*alpha, "second imm ", instance.obj_epi()
 
-                return "".join([a for i in xrange(len(ei), len(ei) + k) for a in instance.S[i] if
+                return "".join([a for i in range(len(ei), len(ei) + k) for a in instance.S[i] if
                             instance.x[i, a].value]), float(ci+cj)/2, instance.obj_epi(),float(ci),float(cj),non_c
         else:
             raise RuntimeError("Problem could not be solved. Please check your input.")
@@ -786,7 +786,7 @@ class EpitopeAssemblyWithSpacer(object):
                 prob_grouped.setdefault(a.locus, []).append(a)
 
             #print no_prob_grouped, prob_grouped
-            for g, v in no_prob_grouped.iteritems():
+            for g, v in no_prob_grouped.items():
                 total_loc_a = len(v)
                 if g in prob_grouped:
                     remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
@@ -798,7 +798,7 @@ class EpitopeAssemblyWithSpacer(object):
         probs = {a.name:a.prob for a in _alleles}
         if verbosity:
             for a in _alleles:
-                print a.name, a.prob
+                print(a.name, a.prob)
 
 
         self.spacer = {}
@@ -852,18 +852,18 @@ class EpitopeAssemblyWithSpacer(object):
         allele_prob = {}
         delete_alleles = []
         if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
+                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.items()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
             try:
                 pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
                 if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                    for j, v in pssm.iteritems():
-                            for aa, score in v.iteritems():
+                    for j, v in pssm.items():
+                            for aa, score in v.items():
                                 epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
                 else:
-                     for j, v in pssm.iteritems():
-                        for aa, score in v.iteritems():
+                     for j, v in pssm.items():
+                        for aa, score in v.items():
                             epi_pssms[j, aa, a.name] = score
             except ImportError:
                 delete_alleles.append(a)
@@ -879,7 +879,7 @@ class EpitopeAssemblyWithSpacer(object):
         #print "run spacer designs in parallel using multiprocessing"
         res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                       self.__alpha, self.__thresh, self.__solver, self.__beta, options)
-                                      for i in xrange(start, self.__k+1)
+                                      for i in range(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
         pool.close()
         pool.join()
@@ -903,7 +903,7 @@ class EpitopeAssemblyWithSpacer(object):
 
         #generate output
         sob = []
-        for i in xrange(len(res)-1):
+        for i in range(len(res)-1):
             ei = str(res[i])
             ej = str(res[i+1])
             if not i:
@@ -946,18 +946,18 @@ class EpitopeAssemblyWithSpacer(object):
         delete_alleles = []
 
         if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.iteritems()}
+                self.__thresh = {k: (1-math.log(v, 50000) if v != 0 else 0) for k, v in self.__thresh.items()}
         for a in self.__alleles:
             allele_prob[a.name] = a.prob
             try:
                 pssm = __load_model(self.__epi_pred.name, "%s_%i"%(self.__epi_pred.convert_alleles([a])[0], en))
                 if self.__epi_pred.name in ["smm", "smmpmbec", "comblibsidney"]:
-                    for j, v in pssm.iteritems():
-                            for aa, score in v.iteritems():
+                    for j, v in pssm.items():
+                            for aa, score in v.items():
                                 epi_pssms[j, aa, a.name] = 1/10. - math.log(math.pow(10, score), 50000)
                 else:
-                     for j, v in pssm.iteritems():
-                        for aa, score in v.iteritems():
+                     for j, v in pssm.items():
+                        for aa, score in v.items():
                             epi_pssms[j, aa, a.name] = score
             except ImportError:
                 delete_alleles.append(a)
@@ -973,7 +973,7 @@ class EpitopeAssemblyWithSpacer(object):
         # print "run spacer designs in parallel using multiprocessing"
         res = pool.map(_runs_lexmin, ((str(ei), str(ej), i, en, cn, cl_pssm, epi_pssms, cleav_pos, allele_prob,
                                        self.__alpha, self.__thresh, self.__solver, self.__beta, options)
-                                      for i in xrange(start, self.__k+1)
+                                      for i in range(start, self.__k+1)
                                       for ei, ej in itr.product(self.__peptides, repeat=2) if ei != ej))
         pool.close()
         pool.join()
@@ -996,7 +996,7 @@ class EpitopeAssemblyWithSpacer(object):
 
         #generate output
         sob = []
-        for i in xrange(len(res)-1):
+        for i in range(len(res)-1):
             ei = str(res[i])
             ej = str(res[i+1])
             if not i:

@@ -45,4 +45,4 @@ class TAPPredictorFactory(object):
 
         :return: dict(str, list(str)) - A dictionary of TAP predictors represented as string and supported versions
         """
-        return {k:sorted(versions.iterkeys()) for k,versions in ATAPPrediction.registry.iteritems()}
+        return {k:sorted(versions.keys()) for k,versions in ATAPPrediction.registry.items()}

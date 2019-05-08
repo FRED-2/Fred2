@@ -48,7 +48,7 @@ class CleavageSitePredictorFactory(object):
 
         :return: dict(str,list(int)) - dict of cleavage site predictor represented as string and the supported versions
         """
-        return {k: sorted(versions.iterkeys()) for k, versions in ACleavageSitePrediction.registry.iteritems()}
+        return {k: sorted(versions.keys()) for k, versions in ACleavageSitePrediction.registry.items()}
 
 
 class CleavageFragmentPredictorFactory(object):
@@ -80,4 +80,4 @@ class CleavageFragmentPredictorFactory(object):
 
         :return: dict(str,list(str)) - dict of cleavage site predictor represented as string and the supported versions
         """
-        return {k: sorted(versions.iterkeys()) for k, versions in ACleavageFragmentPrediction.registry.iteritems()}
+        return {k: sorted(versions.keys()) for k, versions in ACleavageFragmentPrediction.registry.items()}

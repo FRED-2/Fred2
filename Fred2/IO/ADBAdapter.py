@@ -21,9 +21,7 @@ EAdapterFields = (lambda **enums: type('Enum', (), enums))(GENE=0, STRAND=1, SEQ
 EIdentifierTypes = (lambda **enums: type('Enum', (), enums))(ENSEMBL=0, REFSEQ=1, PREDREFSEQ=2, UNIPROT=3, GENENAME=4, HGNC=4)
 
 
-class ADBAdapter:
-
-    __metaclass__ = ABCMeta
+class ADBAdapter(metaclass=ABCMeta):
 
     @abstractmethod
     def get_product_sequence(self, product_id, **kwargs):

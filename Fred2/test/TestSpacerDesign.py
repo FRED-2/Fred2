@@ -18,7 +18,7 @@ class SpacerDesignTestCase(unittest.TestCase):
         epis = """GHRMAWDMM
                  VYEADDVIL""".split("\n")
 
-        self.epis = map(lambda x: Peptide(x.strip()), epis)
+        self.epis = [Peptide(x.strip()) for x in epis]
         self.alleles = [Allele("HLA-A*02:01", prob=0.5)]
 
     def test_standart_functions(self):
@@ -32,7 +32,7 @@ class SpacerDesignTestCase(unittest.TestCase):
 
         sbws = EpitopeAssemblyWithSpacer(self.epis, cl_pred, epi_pred, self.alleles, solver="cbc")
         sol = sbws.solve()
-        print sol
+        print(sol)
         assert all(i == str(j) for i, j in zip(["GHRMAWDMM", "HH", "VYEADDVIL"], sol))
 
     def test_unsupported_allele_length_combination(self):
@@ -46,7 +46,7 @@ class SpacerDesignTestCase(unittest.TestCase):
         alleles = [Allele("HLA-A*02:01", prob=0.5), Allele("HLA-A*26:01", prob=0.5)]
         sbws = EpitopeAssemblyWithSpacer(self.epis, cl_pred, epi_pred, alleles, solver="cbc")
         sol = sbws.solve()
-        print sol
+        print(sol)
         assert all(i == str(j) for i, j in zip(["GHRMAWDMM", "HH", "VYEADDVIL"], sol))
 
     def test_unsupported_allele_length_combination_exception(self):

@@ -54,16 +54,16 @@ class APSSMEpitopePrediction(AEpitopePrediction):
 
         if alleles is None:
             al = [Allele(a) for a in self.supportedAlleles]
-            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            alleles_string = {conv_a:a for conv_a, a in zip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
+            alleles_string = {conv_a:a for conv_a, a in zip(self.convert_alleles(alleles), alleles)}
 
         result = {}
-        pep_groups = pep_seqs.keys()
+        pep_groups = list(pep_seqs.keys())
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
 
@@ -73,7 +73,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
                 warnings.warn("Peptide length of %i is not supported by %s"%(length, self.name))
                 continue
 
-            for a in alleles_string.keys():
+            for a in list(alleles_string.keys()):
                 try:
                     pssm = __load_allele_model(a, length)
                 except ImportError:
@@ -84,7 +84,7 @@ class APSSMEpitopePrediction(AEpitopePrediction):
                     result[alleles_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
-                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1, {}).get("con", 0)
+                    score = sum(pssm[i].get(p[i], 0.0) for i in range(length))+pssm.get(-1, {}).get("con", 0)
                     result[alleles_string[a]][pep_seqs[p]] = score
 
         if not result:
@@ -582,23 +582,23 @@ class ARB(APSSMEpitopePrediction):
 
         if alleles is None:
             al = [Allele(a) for a in self.supportedAlleles]
-            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            alleles_string = {conv_a:a for conv_a, a in zip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
+            alleles_string = {conv_a:a for conv_a, a in zip(self.convert_alleles(alleles), alleles)}
 
         result = {}
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
+        for length, peps in itertools.groupby(iter(pep_seqs.keys()), key=lambda x: len(x)):
             peps = list(peps)
             #dynamicaly import prediction PSSMS for alleles and predict
             if length not in self.supportedLength:
                 warnings.warn("Peptide length of %i is not supported by %s"%(length, self.name))
                 continue
 
-            for a in alleles_string.keys():
+            for a in list(alleles_string.keys()):
                 try:
                     pssm = __load_allele_model(a, length)
                 except ImportError:
@@ -608,7 +608,7 @@ class ARB(APSSMEpitopePrediction):
                 result[alleles_string[a]] = {}
                 ##here is the prediction and result object missing##
                 for p in peps:
-                    score = sum(pssm[i].get(p[i], 0.0) for i in xrange(length))+pssm.get(-1, {}).get("con", 0)
+                    score = sum(pssm[i].get(p[i], 0.0) for i in range(length))+pssm.get(-1, {}).get("con", 0)
                     score /= -length
                     score -= pssm[-1]["intercept"]
                     score /= pssm[-1]["slope"]
@@ -936,16 +936,16 @@ class CalisImm(APSSMEpitopePrediction):
 
         if alleles is None:
             al = [Allele(a) for a in self.supportedAlleles]
-            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            alleles_string = {conv_a:a for conv_a, a in zip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            alleles_string = {conv_a:a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
+            alleles_string = {conv_a:a for conv_a, a in zip(self.convert_alleles(alleles), alleles)}
 
         result = {}
-        pep_groups = pep_seqs.keys()
+        pep_groups = list(pep_seqs.keys())
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
 
@@ -954,7 +954,7 @@ class CalisImm(APSSMEpitopePrediction):
                 continue
 
             peps = list(peps)
-            for a, allele in alleles_string.iteritems():
+            for a, allele in alleles_string.items():
 
                 if alleles_string[a] not in result:
                     result[allele] = {}
@@ -970,7 +970,7 @@ class CalisImm(APSSMEpitopePrediction):
 
                 for p in peps:
                     score = sum(self.__log_enrichment.get(p[i], 0.0)*importance[i]
-                                for i in xrange(length) if i not in pssm)
+                                for i in range(length) if i not in pssm)
                     result[allele][pep_seqs[p]] = score
 
         if not result:
@@ -983,4 +983,4 @@ class CalisImm(APSSMEpitopePrediction):
         return df_result
 
     def convert_alleles(self, alleles):
-        return map(lambda x: x.name.replace("*","").replace(":",""), alleles)
+        return [x.name.replace("*","").replace(":","") for x in alleles]

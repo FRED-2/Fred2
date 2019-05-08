@@ -37,7 +37,7 @@ class TestExternalCleavagePredictonClass(unittest.TestCase):
             try_path = try_path.strip('"')
             exe_try = os.path.join(try_path, exe).strip()
             if os.path.isfile(exe_try) and os.access(exe_try, os.X_OK):
-                print exe_try
+                print(exe_try)
                 netchop.predict(self.seqs, path=exe_try, options="-v 1")
 
 if __name__ == '__main__':

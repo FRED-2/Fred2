@@ -50,7 +50,7 @@ class TestProteinClass(unittest.TestCase):
         #     print pep, pep.transcripts.items()
 
         # get the number of peptides generated for each protein in self.prot_set and sum up
-        number_of_peps = sum(len(pep.proteins.keys()) for pep in pep_set)
+        number_of_peps = sum(len(list(pep.proteins.keys())) for pep in pep_set)
         # The total number of peptides of length 3 from all proteins in self.pro_set should be 14
         self.assertEqual(number_of_peps, 14)
 
@@ -82,7 +82,7 @@ class TestProteinClass(unittest.TestCase):
         t = list(generate_transcripts_from_variants(dummy_vars, dummy_db, EIdentifierTypes.REFSEQ))
         for trans in t:
             # check gene id field:
-            print trans
+            print(trans)
             self.assertEqual(trans.gene_id, "gene_1")
 
             # check trans id name:
@@ -101,7 +101,7 @@ class TestProteinClass(unittest.TestCase):
             ### GET PROTS:
             # IGNORE invalid sequence lengths
             try:
-                proteins.append(generate_proteins_from_transcripts(trans).next())
+                proteins.append(next(generate_proteins_from_transcripts(trans)))
             except ValueError:
                 pass
 
@@ -119,7 +119,7 @@ class TestProteinClass(unittest.TestCase):
 
             orig = prot.orig_transcript
             self.assertEqual(prot.transcript_id, orig.transcript_id)
-            self.assertEqual(len(set(e for subl in prot.vars.itervalues() for e in subl)), len(orig.vars))
+            self.assertEqual(len(set(e for subl in prot.vars.values() for e in subl)), len(orig.vars))
 
             # check sequence:
             self.assertTrue(str(prot) > 2)
@@ -176,7 +176,7 @@ class TestProteinClass(unittest.TestCase):
             ### GET PROTS:
             # IGNORE invalid sequence lengths
             try:
-                proteins.append(generate_proteins_from_transcripts(trans).next())
+                proteins.append(next(generate_proteins_from_transcripts(trans)))
             except ValueError:
                 pass
 
@@ -200,12 +200,12 @@ class TestProteinClass(unittest.TestCase):
         for prot in proteins:
             for p in peptides:
                 try:
-                    vars_ = map(str, p.get_variants_by_protein(prot.transcript_id))
-                    expected_vars = [str(v) for vars in prot.vars.itervalues() for v in vars]
-                    print "peptide vars: ", vars_
-                    print "Prot vars: ", expected_vars
-                    print repr(p)
-                    print repr(prot)
+                    vars_ = list(map(str, p.get_variants_by_protein(prot.transcript_id)))
+                    expected_vars = [str(v) for vars in prot.vars.values() for v in vars]
+                    print("peptide vars: ", vars_)
+                    print("Prot vars: ", expected_vars)
+                    print(repr(p))
+                    print(repr(prot))
                     self.assertTrue(all(var in expected_vars for var in vars_))
                 except KeyError:
                     pass

@@ -35,7 +35,7 @@ class TestTranscript(TestCase):
 
     def test_translate(self):
         gcg_var = "A*NADEQSEWEREVICNKNSLFTDEKFILSA*YL*G*TELESI*KQCALVQKYRA*DTEHIKSSQRGLALSSPALFYSTLPEDSRNEKHLLCGWIICNAGTRQLATFPSRHRGEIQIILSFPGRPTQ*S*SDERGQAPFTGHIHQ*LQQVSGLQACPRFCAVVDEYQEEQE*HCQTSR*I*ETC*RDLYQ*CKFLFGRPSCQGIHCLAGERPRKARFPRRGRHC*RTWPQTC*WFFL**DEHHS**SCRQGLYKLVDSDQNH*QEITISLFKIIFTTSPASHVGCLKC*VL*I*EVYSEATLLCMPINKFSFSVV*PKITNGIKFYQNIAKISALKYESARFCYFLLILDEVPQPVYI*R*NYFSMI*FVNVNYSDLTYLHYNNRRIEELVATVVKLERELSS*NLCLKNTQLSMYQRYN*IKFSSFFTIV"
-        self.assertTrue(str(generate_proteins_from_transcripts(self.w_v, to_stop=False).next()) == gcg_var)
+        self.assertTrue(str(next(generate_proteins_from_transcripts(self.w_v, to_stop=False))) == gcg_var)
         # http://stackoverflow.com/questions/3892218/how-to-test-with-pythons-unittest-that-a-warning-has-been-thrown
 
     def test_indexing(self):
@@ -43,5 +43,5 @@ class TestTranscript(TestCase):
 
     def test_transcript_slicing(self):
         new_t = self.w_v[343:]
-        self.assertTrue(new_t.vars.keys()[0] == 0)
+        self.assertTrue(list(new_t.vars.keys())[0] == 0)
 

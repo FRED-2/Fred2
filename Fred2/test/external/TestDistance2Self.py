@@ -37,9 +37,9 @@ class Distance2SelfTest(unittest.TestCase):
         blosum50 = DistanceMatrix(DistanceMatrices.BLOSUM50_distances, "BLOSUM50")
         blosum90 = DistanceMatrix(DistanceMatrices.BLOSUM90_distances, "BLOSUM90")
 
-        print blosum45
-        print blosum50
-        print blosum90
+        print(blosum45)
+        print(blosum50)
+        print(blosum90)
 
     def test_init(self):
         blosum90 = DistanceMatrix(DistanceMatrices.BLOSUM90_distances, "BLOSUM90")
@@ -47,13 +47,13 @@ class Distance2SelfTest(unittest.TestCase):
 
     def test_distance_computation(self):
         import sys
-        print "###", sys.getrecursionlimit()
+        print("###", sys.getrecursionlimit())
         sys.setrecursionlimit(500000000)
 
         blosum90 = DistanceMatrix(DistanceMatrices.BLOSUM90_distances, "BLOSUM90")
         d2s=Distance2Self(blosum90, self.fewselfpeptides, 11)
         result = d2s.calculate_distances(self.peptides)
-        print result
+        print(result)
 
         self.assertTrue(len(result.columns) == 3)
         self.assertTrue(len(result.index) == 11)

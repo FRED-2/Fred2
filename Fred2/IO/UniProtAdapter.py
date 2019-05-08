@@ -64,12 +64,12 @@ class UniProtDB:
             recs = SeqIO.to_dict(sequence_file)
         if recs:
             self.collection.update(recs)
-            self.searchstring = '#'.join([str(x.seq) for x in self.collection.values()]).decode('ascii')
-            self.accs = self.collection.keys()
+            self.searchstring = '#'.join([str(x.seq) for x in list(self.collection.values())]).decode('ascii')
+            self.accs = list(self.collection.keys())
             self.idx = list()
             self.idx.append(0)
             for i, v in enumerate(self.collection.values()):
-                self.idx.append(1 + self.idx[-1] + len(self.collection.values()[i].seq))
+                self.idx.append(1 + self.idx[-1] + len(list(self.collection.values())[i].seq))
         return
 
     def write_seqs(self, name):
@@ -79,7 +79,7 @@ class UniProtDB:
         :param name: the complete path with file name where the fasta is going to be written
         """
         with open(name, "w") as output:
-            SeqIO.write(self.collection.values(), output, "fasta")
+            SeqIO.write(list(self.collection.values()), output, "fasta")
 
     def exists(self, seq):
         """
@@ -120,7 +120,7 @@ class UniProtDB:
                 if index >= 0:
                     j = bisect.bisect(self.idx, index) - 1
                     ids[i] = self.accs[j]
-            return dict(zip(seq, ids))
+            return dict(list(zip(seq, ids)))
         return None
 
     def search_all(self, seq):
@@ -163,5 +163,5 @@ class UniProtDB:
                     else:
                         ids[i] = ids[i] + ',' + self.accs[j]
                     index += searchstring_length
-            return dict(zip(seq, ids))
+            return dict(list(zip(seq, ids)))
         return None

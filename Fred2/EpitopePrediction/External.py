@@ -86,13 +86,13 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
 
         if alleles is None:
             al = [Allele(a) for a in self.supportedAlleles]
-            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            allales_string = {conv_a: a for conv_a, a in zip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
+            allales_string = {conv_a: a for conv_a, a in zip(self.convert_alleles(alleles), alleles)}
 
         result = defaultdict(defaultdict)
 
@@ -109,7 +109,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
         allele_groups = []
         c_a = 0
         allele_group = []
-        for a in allales_string.iterkeys():
+        for a in allales_string.keys():
             if c_a >= _MAX_ALLELES:
                 c_a = 0
                 allele_groups.append(allele_group)
@@ -129,7 +129,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
             allele_groups.append(allele_group)
         # export peptides to peptide list
 
-        pep_groups = pep_seqs.keys()
+        pep_groups = list(pep_seqs.keys())
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
             if length not in self.supportedLength:
@@ -137,7 +137,7 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                                                                                        self.name, length))
                 continue
             peps = list(peps)
-            for i in xrange(0, len(peps), chunksize):
+            for i in range(0, len(peps), chunksize):
                 tmp_out = NamedTemporaryFile(delete=False)
                 tmp_file = NamedTemporaryFile(delete=False)
                 self.prepare_input(peps[i:i+chunksize], tmp_file)
@@ -163,8 +163,8 @@ class AExternalEpitopePrediction(AEpitopePrediction, AExternal):
                         raise RuntimeError(e)
 
                     res_tmp = self.parse_external_result(tmp_out.name)
-                    for al, ep_dict in res_tmp.iteritems():
-                        for p, v in ep_dict.iteritems():
+                    for al, ep_dict in res_tmp.items():
+                        for p, v in ep_dict.items():
                             result[allales_string[al]][pep_seqs[p]] = v
                 os.remove(tmp_file.name)
                 tmp_out.close()
@@ -279,14 +279,14 @@ class NetMHC_3_4(AExternalEpitopePrediction):
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
-        f.next()
-        f.next()
-        alleles = map(lambda x: x.split()[0], f.next()[3:])
+        next(f)
+        next(f)
+        alleles = [x.split()[0] for x in f.next()[3:]]
         for l in f:
             if not l:
                 continue
             pep_seq = l[2]
-            for ic_50, a in itertools.izip(l[3:], alleles):
+            for ic_50, a in zip(l[3:], alleles):
                 sc = 1.0 - math.log(float(ic_50), 50000)
                 result[a][pep_seq] = sc if sc > 0.0 else 0.0
         return dict(result)
@@ -405,12 +405,12 @@ class NetMHC_3_0(NetMHC_3_4):
             next(f, None)  # skip first line with logging stuff
             next(f, None)  # skip first line with nothing
             csvr = csv.reader(f, delimiter='\t')
-            alleles = map(lambda x: x.split()[0], csvr.next()[3:])
+            alleles = [x.split()[0] for x in csvr.next()[3:]]
             for l in csvr:
                 if not l:
                     continue
                 pep_seq = l[2]
-                for ic_50, a in itertools.izip(l[3:], alleles):
+                for ic_50, a in zip(l[3:], alleles):
                     sc = 1.0 - math.log(float(ic_50), 50000)
                     result[a][pep_seq] = sc if sc > 0.0 else 0.0
         if 'Average' in result:
@@ -465,8 +465,8 @@ class NetMHC_4_0(NetMHC_3_4):
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
         pos_factor = 3
-        alleles = map(lambda x: x.split()[0], filter(lambda x: x.strip() != "", f.next()))
-        f.next()
+        alleles = [x.split()[0] for x in [x for x in next(f) if x.strip() != ""]]
+        next(f)
         for l in f:
             if not l:
                 continue
@@ -1391,8 +1391,8 @@ class NetMHCpan_2_8(AExternalEpitopePrediction):
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
-        alleles = list(filter(lambda x: x != "", f.next()))
-        f.next()
+        alleles = list([x for x in next(f) if x != ""])
+        next(f)
         ic_pos = 3
         for row in f:
             pep_seq = row[1]
@@ -1435,8 +1435,8 @@ class NetMHCpan_3_0(NetMHCpan_2_8):
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
-        alleles = list(filter(lambda x: x != "", f.next()))
-        f.next()
+        alleles = list([x for x in next(f) if x != ""])
+        next(f)
         ic_pos = 4
         for row in f:
             pep_seq = row[1]
@@ -1876,17 +1876,17 @@ class NetMHCstabpan_1_0(AExternalEpitopePrediction):
         result = defaultdict(dict)
         with open(file, "r") as f:
             f = csv.reader(f, delimiter='\t')
-            alleles = filter(lambda x: x.strip() != "", f.next())
-            print alleles
+            alleles = [x for x in next(f) if x.strip() != ""]
+            print(alleles)
             ic_pos = 4
             offset = 3
-            header = f.next()
-            print "\t".join(header)
+            header = next(f)
+            print("\t".join(header))
             if "Aff(nM)" in header:
                 ic_pos = 9
                 offset = 8
             for row in f:
-                print "\t".join(row)
+                print("\t".join(row))
                 pep_seq = row[1]
                 for i, a in enumerate(alleles):
                     result[a][pep_seq] = float(row[ic_pos +i*offset])
@@ -3899,8 +3899,8 @@ class NetMHCIIpan_3_0(AExternalEpitopePrediction):
         """
         result = defaultdict(defaultdict)
         f = csv.reader(open(file, "r"), delimiter='\t')
-        alleles = map(lambda x: x.replace("*", "_").replace(":", ""), set(filter(lambda x: x != "", f.next())))
-        f.next()
+        alleles = [x.replace("*", "_").replace(":", "") for x in set([x for x in next(f) if x != ""])]
+        next(f)
         ic_pos = 3
         for row in f:
             pep_seq = row[1]

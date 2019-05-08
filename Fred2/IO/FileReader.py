@@ -41,7 +41,7 @@ def read_fasta(files, in_type=Peptide, id_position=1):
     :raises ValueError: if a file is not readable
     """
 
-    if isinstance(files, basestring):
+    if isinstance(files, str):
             files = [files]
     else:
             if any(not os.path.exists(f) for f in files):
@@ -88,7 +88,7 @@ def read_lines(files, in_type=Peptide):
     :raises IOError: if a file is not readable
     """
 
-    if isinstance(files, basestring):
+    if isinstance(files, str):
             files = [files]
     else:
             if any(not os.path.exists(f) for f in files):
@@ -138,8 +138,7 @@ def read_annovar_exonic(annovar_file, gene_filter=None, experimentalDesig=None):
                    ('frameshift', 'insertion'): VariationType.FSINS}
     with open(annovar_file, "r") as f:
         for line in f:
-            mut_id, mut_type, line, chrom, genome_start, genome_stop, ref, alt, zygos = map(lambda x: x.strip().lower(),
-                                                                                    line.split("\t")[:9])
+            mut_id, mut_type, line, chrom, genome_start, genome_stop, ref, alt, zygos = [x.strip().lower() for x in line.split("\t")[:9]]
             #print ref, alt
 
             #test if its a intersting snp

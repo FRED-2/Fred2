@@ -45,7 +45,7 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
             chunksize = kwargs['chunks']
 
         result = {self.name: {}}
-        pep_groups = pep_seqs.keys()
+        pep_groups = list(pep_seqs.keys())
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
             #load svm model
@@ -54,14 +54,14 @@ class ASVMTAPPrediction(ATAPPrediction, ASVM):
                 continue
 
             peps = list(peps)
-            for i in xrange(0, len(peps), chunksize):
+            for i in range(0, len(peps), chunksize):
                 encoding = self.encode(peps[i:i+chunksize])
 
                 model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s"%self.name, "%s_%i"%(self.name, length))
                 model = svmlight.read_model(model_path)
 
-                pred = svmlight.classify(model, encoding.values())
-                for pep, score in itertools.izip(encoding.keys(), pred):
+                pred = svmlight.classify(model, list(encoding.values()))
+                for pep, score in zip(list(encoding.keys()), pred):
                         result[self.name][pep_seqs[pep]] = score
 
         if not result[self.name]:

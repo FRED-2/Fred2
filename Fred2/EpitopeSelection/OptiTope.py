@@ -24,7 +24,7 @@
 """
 
 
-from __future__ import division
+
 
 import itertools as itr
 import copy
@@ -93,7 +93,7 @@ class OptiTope(object):
             for a in prob:
                 prob_grouped.setdefault(a.locus, []).append(a)
 
-            for g, v in no_prob_grouped.iteritems():
+            for g, v in no_prob_grouped.items():
                 total_loc_a = len(v)
                 if g in prob_grouped:
                     remaining_mass = 1.0 - sum(a.prob for a in prob_grouped[g])
@@ -105,7 +105,7 @@ class OptiTope(object):
         probs = {a.name:a.prob for a in _alleles}
         if verbosity:
             for a in _alleles:
-                print a.name, a.prob
+                print(a.name, a.prob)
 
         #start constructing model
         self.__solver = SolverFactory(solver)
@@ -161,7 +161,7 @@ class OptiTope(object):
         #calculate conservation
         variations = set(variations)
         total = len(variations)
-        for e, v in cons.iteritems():
+        for e, v in cons.items():
             try:
                 cons[e] = v / total
             except ZeroDivisionError:
@@ -173,7 +173,7 @@ class OptiTope(object):
 
         model.E = Set(initialize=set(peps.keys()))
 
-        model.A = Set(initialize=alleles_I.keys())
+        model.A = Set(initialize=list(alleles_I.keys()))
         model.E_var = Set(model.Q, initialize=lambda mode, v: epi_var[v])
         model.A_I = Set(model.A, initialize=lambda model, a: alleles_I[a])
 
@@ -218,7 +218,7 @@ class OptiTope(object):
         #generate instance
         self.instance = model
         if self.__verbosity > 0:
-            print "MODEL INSTANCE"
+            print("MODEL INSTANCE")
             self.instance.pprint()
 
         #constraints

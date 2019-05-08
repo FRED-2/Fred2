@@ -56,17 +56,17 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
 
         if alleles is None:
             al = [Allele(a) for a in self.supportedAlleles]
-            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            allales_string = {conv_a: a for conv_a, a in zip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
+            allales_string = {conv_a: a for conv_a, a in zip(self.convert_alleles(alleles), alleles)}
 
         # group peptides by length and
         result = {}
-        pep_groups = pep_seqs.keys()
+        pep_groups = list(pep_seqs.keys())
         pep_groups.sort(key=len)
         for length, peps in itertools.groupby(pep_groups, key=len):
             # load svm model
@@ -76,10 +76,10 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
                 continue
 
             peps = list(peps)
-            for i in xrange(0, len(peps), chunksize):
+            for i in range(0, len(peps), chunksize):
                 encoding = self.encode(peps[i:i+chunksize])
 
-                for a in allales_string.keys():
+                for a in list(allales_string.keys()):
                     model_path = pkg_resources.resource_filename("Fred2.Data.svms.%s" % self.name, "%s_%i" % (a, length))
                     if not os.path.exists(model_path):
                         warnings.warn("No model exists for peptides of length %i or allele %s." % (length,
@@ -87,10 +87,10 @@ class ASVMEpitopePrediction(AEpitopePrediction, ASVM):
                         continue
 
                     model = svmlight.read_model(model_path)
-                    pred = svmlight.classify(model, encoding.values())
+                    pred = svmlight.classify(model, list(encoding.values()))
                     if allales_string[a] not in result:
                         result[allales_string[a]] = {}
-                    for pep, score in itertools.izip(encoding.keys(), pred):
+                    for pep, score in zip(list(encoding.keys()), pred):
                         result[allales_string[a]][pep_seqs[pep]] = score
 
         if not result:
@@ -484,7 +484,7 @@ class UniTope(ASVMEpitopePrediction):
                 'T': -0.274, 'W': 0.297, 'V': -0.299, 'Y': -0.091}]
 
         def __encode(pep, a):
-            encoding = zip(xrange(1, 46), UniTope_encodedAlleles[a + "_9"])
+            encoding = list(zip(list(range(1, 46)), UniTope_encodedAlleles[a + "_9"]))
             c = 46
             for p in str(pep):
                 for i, pc in enumerate(pca):
@@ -525,13 +525,13 @@ class UniTope(ASVMEpitopePrediction):
 
         if alleles is None:
             al = [Allele(a) for a in self.supportedAlleles]
-            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(al), al)}
+            allales_string = {conv_a: a for conv_a, a in zip(self.convert_alleles(al), al)}
         else:
             if isinstance(alleles, Allele):
                 alleles = [alleles]
             if any(not isinstance(p, Allele) for p in alleles):
                 raise ValueError("Input is not of type Allele")
-            allales_string = {conv_a: a for conv_a, a in itertools.izip(self.convert_alleles(alleles), alleles)}
+            allales_string = {conv_a: a for conv_a, a in zip(self.convert_alleles(alleles), alleles)}
 
         # group peptides by length and
         result = {}
@@ -540,20 +540,20 @@ class UniTope(ASVMEpitopePrediction):
         # model_path = os.path.abspath("../Data/svms/%s/%s"%(self.name, self.name))
         model = svmlight.read_model(model_path)
 
-        for length, peps in itertools.groupby(pep_seqs.iterkeys(), key=lambda x: len(x)):
+        for length, peps in itertools.groupby(iter(pep_seqs.keys()), key=lambda x: len(x)):
             # load svm model
             peps = list(peps)
             if length != 9:
                 warnings.warn("Peptide length of %i is not supported by UniTope" % length)
                 continue
 
-            for a in allales_string.keys():
+            for a in list(allales_string.keys()):
                 if allales_string[a].name in self.supportedAlleles:
-                    for i in xrange(0, len(peps), chunksize):
+                    for i in range(0, len(peps), chunksize):
                         encoding = self.encode(peps[i:i+chunksize], a)
-                        pred = svmlight.classify(model, encoding.values())
+                        pred = svmlight.classify(model, list(encoding.values()))
                         result[allales_string[a]] = {}
-                        for pep, score in itertools.izip(encoding.keys(), pred):
+                        for pep, score in zip(list(encoding.keys()), pred):
                             result[allales_string[a]][pep_seqs[pep]] = score
 
         if not result:

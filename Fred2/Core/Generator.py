@@ -235,11 +235,11 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
 
     transToVar = {}
     for v in vars:
-        for trans_id in v.coding.iterkeys():
+        for trans_id in v.coding.keys():
             transToVar.setdefault(trans_id, []).append(v)
 
     prots = []
-    for tId, vs in transToVar.iteritems():
+    for tId, vs in transToVar.items():
         #print tId
         query = dbadapter.get_transcript_information(tId, type=id_type, _db=db)
         if query is None:
@@ -258,13 +258,13 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
             continue
 
         generate_peptides_from_variants.transOff = 0
-        for start in xrange(0, len(tSeq) + 1 - 3 * length, 3):
+        for start in range(0, len(tSeq) + 1 - 3 * length, 3):
             #supoptimal as it always has to traverse the combination tree for all frameshift mutations.
             end = start + 3 * length
-            vars_fs_hom = filter(lambda x: (x.isHomozygous
+            vars_fs_hom = [x for x in vs if (x.isHomozygous
                                     or x.type in [VariationType.FSINS, VariationType.FSDEL])
-                                    and x.coding[tId].tranPos < start, vs)
-            vars_in_window = filter(lambda x: start <= x.coding[tId].tranPos < end, vs)
+                                    and x.coding[tId].tranPos < start]
+            vars_in_window = [x for x in vs if start <= x.coding[tId].tranPos < end]
 
             if vars_in_window:
                 vars = vars_fs_hom+vars_in_window
@@ -272,7 +272,7 @@ def generate_peptides_from_variants(vars, length, dbadapter, id_type, peptides=N
                     prots = chain(prots, generate_proteins_from_transcripts(Transcript("".join(varSeq), geneid, ttId,
                                                                                        vars=varComb)))
     return [ p for p in generate_peptides_from_proteins(prots, length, peptides=peptides)
-             if any(p.get_variants_by_protein(prot) for prot in p.proteins.iterkeys())]
+             if any(p.get_variants_by_protein(prot) for prot in p.proteins.keys())]
 
 ################################################################################
 #        V A R I A N T S     = = >    T R A N S C R I P T S
@@ -343,10 +343,10 @@ def generate_transcripts_from_variants(vars, dbadapter, id_type, db="hsapiens_ge
 
     transToVar = {}
     for v in vars:
-        for trans_id in v.coding.iterkeys():
+        for trans_id in v.coding.keys():
             transToVar.setdefault(trans_id, []).append(v)
 
-    for tId, vs in transToVar.iteritems():
+    for tId, vs in transToVar.items():
         query = dbadapter.get_transcript_information(tId, type=id_type, _db=db)
         if query is None:
             warnings.warn("Transcript with ID %s not found in DB"%tId)
@@ -414,7 +414,7 @@ def generate_proteins_from_transcripts(transcripts, table='Standard', stop_symbo
             prot_seq = str(t.translate(table=table, stop_symbol=stop_symbol, to_stop=to_stop, cds=cds))
 
             new_vars = dict()
-            for pos, var in t.vars.iteritems():
+            for pos, var in t.vars.items():
                 if not var.isSynonymous:
                     prot_pos = pos // 3
                     new_vars.setdefault(prot_pos, []).append(var)
@@ -450,7 +450,7 @@ def generate_peptides_from_proteins(proteins, window_size, peptides=None):
         res = []
 
         seq = str(protein)
-        for i in xrange(len(protein)+1-window_size):
+        for i in range(len(protein)+1-window_size):
             # generate peptide fragment
             end = i+window_size
             pep_seq = seq[i:end]
@@ -483,4 +483,4 @@ def generate_peptides_from_proteins(proteins, window_size, peptides=None):
                 final_peptides[seq].proteins[t_id] = prot
                 final_peptides[seq].proteinPos[t_id].append(pos)
 
-    return final_peptides.itervalues()
+    return iter(final_peptides.values())
