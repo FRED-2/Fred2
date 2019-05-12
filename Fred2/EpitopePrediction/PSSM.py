@@ -1352,7 +1352,7 @@ class MHCFlurryPredictor(APSSMEpitopePrediction):
             # filter for supported alleles
             alleles = filter(lambda a: a.name in self.supportedAlleles, alleles)
 
-        # test mhcflurry models are available => download if not
+        # test whether mhcflurry models are available => download if not
         p = subprocess.Popen(['mhcflurry-downloads', 'path', 'models_class1'],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if p is not 0:
