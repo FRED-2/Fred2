@@ -1059,7 +1059,7 @@ class MHCNuggetsPredictor_1(APSSMEpitopePrediction):
          "HLA-B51:02", "HLA-B52:01", "HLA-B53:01", "HLA-B54:01", "HLA-B55:01", "HLA-B55:02", "HLA-B56:01",
          "HLA-B57:01", "HLA-B57:02", "HLA-B57:03", "HLA-B58:01", "HLA-B58:02", "HLA-B60:01", "HLA-B61:01",
          "HLA-B62:01", "HLA-B73:01", "HLA-B81:01", "HLA-B83:01"])
-    __supported_length = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+    __supported_length = frozenset([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])
     __name = "mhcnuggets-class-1"
     __version = "2.0"
 
@@ -1199,7 +1199,7 @@ class MHCNuggetsPredictor_2(APSSMEpitopePrediction):
                            "HLA-DRB11501", "HLA-DRB11502", "HLA-DRB11503", "HLA-DRB11601", "HLA-DRB11602",
                            "HLA-DRB30101", "HLA-DRB30202", "HLA-DRB30301", "HLA-DRB40101",
                            "HLA-DRB40103", "HLA-DRB50101", "HLA-DRB50102"])
-    __supported_length = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+    __supported_length = frozenset([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
     __name = "mhcnuggets-class-2"
     __version = "2.0"
 
@@ -1318,7 +1318,7 @@ class MHCFlurryPredictor(APSSMEpitopePrediction):
          "HLA-B*46:01", "HLA-B*48:01", "HLA-B*51:01", "HLA-B*53:01", "HLA-B*54:01", "HLA-B*57:01", "HLA-B*58:01",
          "HLA-B*83:01", "HLA-C*03:03", "HLA-C*04:01", "HLA-C*05:01", "HLA-C*06:02", "HLA-C*07:02", "HLA-C*08:02",
          "HLA-C*12:03", "HLA-C*14:02", "HLA-C*15:02"])
-    __supported_length = [8, 9, 10, 11, 12, 13, 14, 15]
+    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14, 15])
     __name = "mhcflurry"
     __version = "1.2.2"
 
