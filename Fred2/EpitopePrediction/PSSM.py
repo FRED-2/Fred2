@@ -8,7 +8,6 @@
 .. moduleauthor:: schubert
 
 """
-# coding=utf-8
 import itertools
 import warnings
 import math
@@ -1358,7 +1357,6 @@ class MHCNuggetsPredictor_2(APSSMEpitopePrediction):
         else:
             # filter for supported alleles
             alleles = filter(lambda a: a.name in self.supportedAlleles, alleles)
-
 
         # fetch peptides as strings
         peptides = [str(peptide) for peptide in peptides]
