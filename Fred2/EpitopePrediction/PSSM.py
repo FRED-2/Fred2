@@ -1087,15 +1087,10 @@ class MHCNuggetsPredictor_1(APSSMEpitopePrediction):
     # the interface defines a function converting Fred2's HLA allele presentation
     # into an internal presentation used by different methods.
     # for this predictor we won't need it but still have to provide it!
-    # the function consumes a list of alleles and converts them into the internally used presentation
     def convert_alleles(self, alleles):
         # we just use the identity function
         return alleles
 
-    # additionally the interface defines a function `predict`
-    # that consumes a list of peptides or a single peptide and optionally a list
-    # of allele objects
-    #
     # this method implements the complete prediction routine
     def predict(self, peptides, alleles=None, binary=False):
 
@@ -1227,15 +1222,10 @@ class MHCNuggetsPredictor_2(APSSMEpitopePrediction):
     # the interface defines a function converting Fred2's HLA allele presentation
     # into an internal presentation used by different methods.
     # for this predictor we won't need it but still have to provide it!
-    # the function consumes a list of alleles and converts them into the internally used presentation
     def convert_alleles(self, alleles):
         # we just use the identity function
         return alleles
 
-    # additionally the interface defines a function `predict`
-    # that consumes a list of peptides or a single peptide and optionally a list
-    # of allele objects
-    #
     # this method implements the complete prediction routine
     def predict(self, peptides, alleles=None, binary=False):
 
@@ -1346,15 +1336,10 @@ class MHCFlurryPredictor(APSSMEpitopePrediction):
     # the interface defines a function converting Fred2's HLA allele presentation
     # into an internal presentation used by different methods.
     # for this predictor we won't need it but still have to provide it!
-    # the function consumes a list of alleles and converts them into the internally used presentation
     def convert_alleles(self, alleles):
         # we just use the identity function
         return alleles
 
-    # additionally the interface defines a function `predict`
-    # that consumes a list of peptides or a single peptide and optionally a list
-    # of allele objects
-    #
     # this method implements the complete prediction routine
     def predict(self, peptides, alleles=None, binary=False):
 
