@@ -376,7 +376,7 @@ class MHCFlurryPredictor(AANNEpitopePrediction):
          "HLA-B*46:01", "HLA-B*48:01", "HLA-B*51:01", "HLA-B*53:01", "HLA-B*54:01", "HLA-B*57:01", "HLA-B*58:01",
          "HLA-B*83:01", "HLA-C*03:03", "HLA-C*04:01", "HLA-C*05:01", "HLA-C*06:02", "HLA-C*07:02", "HLA-C*08:02",
          "HLA-C*12:03", "HLA-C*14:02", "HLA-C*15:02"])
-    __supported_length = [8, 9, 10, 11, 12, 13, 14, 15]
+    __supported_length = frozenset([8, 9, 10, 11, 12, 13, 14, 15])
     __name = "mhcflurry"
     __version = "1.2.2"
 
@@ -410,10 +410,6 @@ class MHCFlurryPredictor(AANNEpitopePrediction):
         return alleles
 
     # additionally the interface defines a function `predict`
-    # that consumes a list of peptides or a single peptide and optionally a list
-    # of allele objects
-    #
-    # this method implements the complete prediction routine
     def predict(self, peptides, alleles=None, binary=False):
 
         # test whether one peptide or a list
