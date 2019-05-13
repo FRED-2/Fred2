@@ -13,6 +13,7 @@ from Fred2.Core.Base import AEpitopePrediction
 from Fred2.EpitopePrediction.External import *
 from Fred2.EpitopePrediction.PSSM import *
 from Fred2.EpitopePrediction.SVM import *
+from Fred2.EpitopePrediction.ANN import *
 try:
     from fred_plugin import *
 except ImportError:
