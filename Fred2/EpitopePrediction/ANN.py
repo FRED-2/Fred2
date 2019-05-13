@@ -78,9 +78,10 @@ class AANNEpitopePrediction(AEpitopePrediction):
                 if self.supportedAlleles is not None and a not in self.supportedAlleles:
                     warnings.warn("Allele %i is not supported by %s" % (a, self.name))
 
-        if not result:
-            raise ValueError("No predictions could be made with " + self.name + " for given input."
-                             " Check your epitope length and HLA allele combination.")
+        if not self.supportedLength is not None and length not in self.supportedLength and \
+               self.supportedAlleles is not None and a not in self.supportedAlleles:
+            raise ValueError("No predictions could be made with "
+                             + self.name + " for given input. Check your epitope length and HLA allele combination.")
 
         df_result = EpitopePredictionResult.from_dict(result)
         df_result.index = pandas.MultiIndex.from_tuples([tuple((i, self.name)) for i in df_result.index],
