@@ -225,7 +225,7 @@ try:
                                "HLA-DQB1*03:02", "HLA-DQB1*03:19", "HLA-DQB1*04:02", "HLA-DQB1*05:01", "HLA-DQB1*05:02",
                                "HLA-DQB1*05:03", "HLA-DQB1*06:02", "HLA-DQB1*06:03", "HLA-DQB1*06:04",
                                "HLA-DRA0*10:1-DRB1*01:01", "HLA-DRA0*10:1-DRB1*03:01", "HLA-DRA0*10:1-DRB1*04:01",
-                               "HLA-DRA0*10:1-DRB1*04:04", "HLA-DRA01*01-DRB1*07:01", "HLA-DRA0*10:1-DRB1*08:01",
+                               "HLA-DRA0*10:1-DRB1*04:04", "HLA-DRA0*10:1-DRB1*07:01", "HLA-DRA0*10:1-DRB1*08:01",
                                "HLA-DRA0*10:1-DRB1*09:01", "HLA-DRA0*10:1-DRB1*11:01", "HLA-DRA0*10:1-DRB1*13:01",
                                "HLA-DRA0*10:1-DRB1*14:54", "HLA-DRA0*10:1-DRB1*15:01", "HLA-DRA0*10:1-DRB3*01:01",
                                "HLA-DRA0*10:1-DRB3*02:02", "HLA-DRA0*10:1-DRB3*03:01", "HLA-DRA0*10:1-DRB4*01:03",
