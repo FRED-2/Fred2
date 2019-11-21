@@ -80,24 +80,24 @@ try:
         """
         __metaclass__ = SignatureCheckerMeta
         __alleles = frozenset(
-            ["HLA-A01:01", "HLA-A02:01", "HLA-A02:02", "HLA-A02:03", "HLA-A02:04", "HLA-A02:05", "HLA-A02:06",
-             "HLA-A02:07", "HLA-A02:08", "HLA-A02:09", "HLA-A02:10", "HLA-A02:11", "HLA-A02:12", "HLA-A02:14",
-             "HLA-A02:16", "HLA-A02:17", "HLA-A02:19", "HLA-A02:50", "HLA-A03:01", "HLA-A03:02", "HLA-A03:19",
-             "HLA-A11:01", "HLA-A11:02", "HLA-A23:01", "HLA-A24:01", "HLA-A24:02", "HLA-A24:03", "HLA-A25:01",
-             "HLA-A26:01", "HLA-A26:02", "HLA-A26:03", "HLA-A29:01", "HLA-A29:02", "HLA-A30:01", "HLA-A30:02",
-             "HLA-A30:03", "HLA-A30:04", "HLA-A31:01", "HLA-A32:01", "HLA-A32:07", "HLA-A32:15", "HLA-A33:01",
-             "HLA-A33:03", "HLA-A66:01", "HLA-A68:01", "HLA-A68:02", "HLA-A68:23", "HLA-A69:01", "HLA-A74:01",
-             "HLA-A80:01", "HLA-B07:01", "HLA-B07:02", "HLA-B08:01", "HLA-B08:02", "HLA-B08:03", "HLA-B12:01",
-             "HLA-B13:02", "HLA-B14:01", "HLA-B14:02", "HLA-B15:01", "HLA-B15:02", "HLA-B15:03", "HLA-B15:08",
-             "HLA-B15:09", "HLA-B15:10", "HLA-B15:13", "HLA-B15:16", "HLA-B15:17", "HLA-B15:42", "HLA-B18:01",
-             "HLA-B27:01", "HLA-B27:02", "HLA-B27:03", "HLA-B27:04", "HLA-B27:05", "HLA-B27:06", "HLA-B27:09",
-             "HLA-B27:10", "HLA-B27:20", "HLA-B35:01", "HLA-B35:02", "HLA-B35:03", "HLA-B35:08", "HLA-B37:01",
-             "HLA-B38:01", "HLA-B39:01", "HLA-B39:06", "HLA-B39:09", "HLA-B39:10", "HLA-B40:01", "HLA-B40:02",
-             "HLA-B40:13", "HLA-B41:03", "HLA-B41:04", "HLA-B42:01", "HLA-B42:02", "HLA-B44:01", "HLA-B44:02",
-             "HLA-B44:03", "HLA-B44:05", "HLA-B45:01", "HLA-B45:06", "HLA-B46:01", "HLA-B48:01", "HLA-B51:01",
-             "HLA-B51:02", "HLA-B52:01", "HLA-B53:01", "HLA-B54:01", "HLA-B55:01", "HLA-B55:02", "HLA-B56:01",
-             "HLA-B57:01", "HLA-B57:02", "HLA-B57:03", "HLA-B58:01", "HLA-B58:02", "HLA-B60:01", "HLA-B61:01",
-             "HLA-B62:01", "HLA-B73:01", "HLA-B81:01", "HLA-B83:01"])
+            ["HLA-A*01:01", "HLA-A*02:01", "HLA-A*02:02", "HLA-A*02:03", "HLA-A*02:04", "HLA-A*02:05", "HLA-A*02:06",
+             "HLA-A*02:07", "HLA-A*02:08", "HLA-A*02:09", "HLA-A*02:10", "HLA-A*02:11", "HLA-A*02:12", "HLA-A*02:14",
+             "HLA-A*02:16", "HLA-A*02:17", "HLA-A*02:19", "HLA-A*02:50", "HLA-A*03:01", "HLA-A*03:02", "HLA-A*03:19",
+             "HLA-A*11:01", "HLA-A*11:02", "HLA-A*23:01", "HLA-A*24:01", "HLA-A*24:02", "HLA-A*24:03", "HLA-A*25:01",
+             "HLA-A*26:01", "HLA-A*26:02", "HLA-A*26:03", "HLA-A*29:01", "HLA-A*29:02", "HLA-A*30:01", "HLA-A*30:02",
+             "HLA-A*30:03", "HLA-A*30:04", "HLA-A*31:01", "HLA-A*32:01", "HLA-A*32:07", "HLA-A*32:15", "HLA-A*33:01",
+             "HLA-A*33:03", "HLA-A*66:01", "HLA-A*68:01", "HLA-A*68:02", "HLA-A*68:23", "HLA-A*69:01", "HLA-A*74:01",
+             "HLA-A*80:01", "HLA-B*07:01", "HLA-B*07:02", "HLA-B*08:01", "HLA-B*08:02", "HLA-B*08:03", "HLA-B*12:01",
+             "HLA-B*13:02", "HLA-B*14:01", "HLA-B*14:02", "HLA-B*15:01", "HLA-B*15:02", "HLA-B*15:03", "HLA-B*15:08",
+             "HLA-B*15:09", "HLA-B*15:10", "HLA-B*15:13", "HLA-B*15:16", "HLA-B*15:17", "HLA-B*15:42", "HLA-B*18:01",
+             "HLA-B*27:01", "HLA-B*27:02", "HLA-B*27:03", "HLA-B*27:04", "HLA-B*27:05", "HLA-B*27:06", "HLA-B*27:09",
+             "HLA-B*27:10", "HLA-B*27:20", "HLA-B*35:01", "HLA-B*35:02", "HLA-B*35:03", "HLA-B*35:08", "HLA-B*37:01",
+             "HLA-B*38:01", "HLA-B*39:01", "HLA-B*39:06", "HLA-B*39:09", "HLA-B*39:10", "HLA-B*40:01", "HLA-B*40:02",
+             "HLA-B*40:13", "HLA-B*41:03", "HLA-B*41:04", "HLA-B*42:01", "HLA-B*42:02", "HLA-B*44:01", "HLA-B*44:02",
+             "HLA-B*44:03", "HLA-B*44:05", "HLA-B*45:01", "HLA-B*45:06", "HLA-B*46:01", "HLA-B*48:01", "HLA-B*51:01",
+             "HLA-B*51:02", "HLA-B*52:01", "HLA-B*53:01", "HLA-B*54:01", "HLA-B*55:01", "HLA-B*55:02", "HLA-B*56:01",
+             "HLA-B*57:01", "HLA-B*57:02", "HLA-B*57:03", "HLA-B*58:01", "HLA-B*58:02", "HLA-B*60:01", "HLA-B*61:01",
+             "HLA-B*62:01", "HLA-B*73:01", "HLA-B*81:01", "HLA-B*83:01"])
         __supported_length = frozenset([5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])
         __name = "mhcnuggets-class-1"
         __version = "2.0"
@@ -123,31 +123,29 @@ try:
             # returns the version of the predictor
             return self.__version
 
-        # the interface defines a function converting Fred2's HLA allele presentation
-        # into an internal presentation used by different methods.
-        # for this predictor we won't need it but still have to provide it!
-        # the function consumes a list of alleles and converts them into the internally used presentation
+        # Converts FRED2s internal allele representation into the format required by mhcnuggets
         def convert_alleles(self, alleles):
-            # we just use the identity function
-            return alleles
+            return ['HLA-' + allele.name.replace('*', '') for allele in alleles]
 
-        # additionally the interface defines a function `predict`
-        # that consumes a list of peptides or a single peptide and optionally a list of allele objects
-        # this method implements the complete prediction routine
+        # Converts the internal mhcnuggets-class-1 representation back into a FRED2 representation
+        def revert_allele_repr(self, allele):
+            allele = allele.replace('HLA-', '')
+            allele = allele[:1] + '*' + allele[1:]
+            return allele 
+
+        # predicts the binding affinity for a set of peptides and alleles
         def predict(self, peptides, alleles=None, binary=False, **kwargs):
 
             # test whether one peptide or a list
-            if isinstance(peptides, basestring):
-                peptides = list(peptides)
+            if not isinstance(peptides, list):
+                peptides = [peptides]
 
             # if no alleles are specified do predictions for all supported alleles
             if alleles is None:
                 alleles = self.supportedAlleles
             else:
                 # filter for supported alleles
-                alleles = filter(lambda a: a.name in self.supportedAlleles, alleles)
-
-            result = {}
+                alleles = filter(lambda a: a in self.supportedAlleles, alleles)
 
             # fetch peptides as strings
             peptides = [str(peptide) for peptide in peptides]
@@ -158,9 +156,12 @@ try:
                 for peptide in peptides:
                     file.write(peptide + "\n")
 
-            # predict bindings
+            alleles = self.convert_alleles(alleles) 
+            result = {}
+            # predict binding affinities
             for a in alleles:
-                result[a] = {}
+                allele_repr = self.revert_allele_repr(a)
+                result[allele_repr] = {}
                 tmp_output_file = tempfile.NamedTemporaryFile().name
                 mhcnuggets_predict(class_='I',
                                    peptides_path=tmp_input_file,
@@ -173,17 +174,18 @@ try:
                     # skip header
                     reader.next()
 
+                    # assign binding affinities
                     for row in reader:
                         content = row[0].split(',')
                         peptide = content[0]
                         binding_affinity = content[1]
                         if binary:
                             if binding_affinity <= 500:
-                                result[a][peptide] = 1.0
+                                result[allele_repr][peptide] = 1.0
                             else:
-                                result[a][peptide] = 0.0
+                                result[allele_repr][peptide] = 0.0
                         else:
-                            result[a][peptide] = binding_affinity
+                            result[allele_repr][peptide] = binding_affinity
 
             # create EpitopePredictionResult object. This is a multi-indexed DataFrame
             # with Peptide and Method as multi-index and alleles as columns
@@ -264,35 +266,38 @@ try:
             # returns the version of the predictor
             return self.__version
 
-        # the interface defines a function converting Fred2's HLA allele presentation
-        # into an internal presentation used by different methods.
-        # for this predictor we won't need it but still have to provide it!
-        # the function consumes a list of alleles and converts them into the internally used presentation
+        # Converts FRED2s internal allele representation into the format required by mhcnuggets-class-2 
         def convert_alleles(self, alleles):
-            return [allele.replace(':', '').replace('*', '') for allele in alleles]
+            return ['HLA-' + allele.name.replace('*', '') for allele in alleles]
 
-        # additionally the interface defines a function `predict`
-        # that consumes a list of peptides or a single peptide and optionally a list
-        # of allele objects
-        #
-        # this method implements the complete prediction routine
+        # Converts the internal mhcnuggets-class-2 representation back into a FRED2 representation
+        def revert_allele_repr(self, allele):
+            allele = allele.replace('HLA-', '')
+            # since we need to support single and double mhc2 alleles
+            allele_split = allele.split('-')
+            if len(allele_split) > 1:
+                return allele_split[0][:4] + '*' + allele_split[0][4:] + '-' + allele_split[1][:4] + '*' + allele_split[1][4:]
+            else:
+                return allele_split[0][:4] + '*' + allele_split[0][4:]
+
+        # predicts the binding affinity for a set of peptides and alleles
         def predict(self, peptides, alleles=None, binary=False, **kwargs):
 
             # test whether one peptide or a list
-            if isinstance(peptides, basestring):
-                peptides = list(peptides)
+            if not isinstance(peptides, list):
+                peptides = [peptides]
 
             # if no alleles are specified do predictions for all supported alleles
             if alleles is None:
                 alleles = self.supportedAlleles
             else:
                 # filter for supported alleles
-                alleles = filter(lambda a: a.name in self.supportedAlleles, alleles)
-
-            result = {}
+                alleles = filter(lambda a: a in self.supportedAlleles, alleles)
 
             # fetch peptides as strings
             peptides = [str(peptide) for peptide in peptides]
+
+            alleles = self.convert_alleles(alleles)
 
             # write peptides temporarily, new line separated
             tmp_input_file = tempfile.NamedTemporaryFile().name
@@ -300,9 +305,11 @@ try:
                 for peptide in peptides:
                     file.write(peptide + "\n")
 
+            result = {}
             # predict bindings
             for a in alleles:
-                result[a] = {}
+                allele_repr = self.revert_allele_repr(a)
+                result[allele_repr] = {}
                 tmp_output_file = tempfile.NamedTemporaryFile().name
 
                 mhcnuggets_predict(class_='II',
@@ -322,11 +329,11 @@ try:
                         binding_affinity = content[1]
                         if binary:
                             if binding_affinity <= 500:
-                                result[a][peptide] = 1.0
+                                result[allele_repr][peptide] = 1.0
                             else:
-                                result[a][peptide] = 0.0
+                                result[allele_repr][peptide] = 0.0
                         else:
-                            result[a][peptide] = binding_affinity
+                            result[allele_repr][peptide] = binding_affinity
 
             # create EpitopePredictionResult object. This is a multi-indexed DataFrame
             # with Peptide and Method as multi-index and alleles as columns
@@ -386,27 +393,31 @@ try:
             # returns the version of the predictor
             return self.__version
 
-        # the interface defines a function converting Fred2's HLA allele presentation
-        # into an internal presentation used by different methods.
-        # for this predictor we won't need it but still have to provide it!
-        # the function consumes a list of alleles and converts them into the internally used presentation
+        # converts internal FRED2 HLA representations into an internal representation used by MHCFlurry
         def convert_alleles(self, alleles):
-            # we just use the identity function
-            return alleles
+            return ['HLA-' + allele.name.replace(':', '').replace('*', '') for allele in alleles]
 
-        # additionally the interface defines a function `predict`
+        # Converts the internal MHCFlurry representation back into a FRED2 representation
+        def revert_allele_repr(self, allele):
+            allele = allele.replace('HLA-', '')
+            allele = allele[:1] + '*' + allele[1:3] + ':' + allele[3:]
+            return allele 
+                    
+        # predicts the binding affinity for a set of peptides and alleles
         def predict(self, peptides, alleles=None, binary=False, **kwargs):
 
             # test whether one peptide or a list
-            if isinstance(peptides, basestring):
-                peptides = list(peptides)
+            if not isinstance(peptides, list):
+                peptides = [peptides]
 
             # if no alleles are specified do predictions for all supported alleles
             if alleles is None:
                 alleles = self.supportedAlleles
             else:
                 # filter for supported alleles
-                alleles = filter(lambda a: a.name in self.supportedAlleles, alleles)
+                alleles = filter(lambda a: a in self.supportedAlleles, alleles)
+
+            alleles = self.convert_alleles(alleles)
 
             # test mhcflurry models are available => download if not
             p = subprocess.Popen(['mhcflurry-downloads', 'path', 'models_class1'],
@@ -417,20 +428,21 @@ try:
             # load model
             predictor = Class1AffinityPredictor.load()
 
+            # predict and assign binding affinities
             result = {}
-
             for a in alleles:
-                result[a] = {}
+                allele_repr = self.revert_allele_repr(a)
+                result[allele_repr] = {}
                 for p in peptides:
                     seq = p.__str__()
-                    binding_affinity = predictor.predict(allele=a, peptides=[seq])
+                    binding_affinity = predictor.predict(allele=a, peptides=[seq])[0]
                     if binary:
                         if binding_affinity <= 500:
-                            result[a][p] = 1.0
+                            result[allele_repr][p] = 1.0
                         else:
-                            result[a][p] = 0.0
+                            result[allele_repr][p] = 0.0
                     else:
-                        result[a][p] = binding_affinity
+                        result[allele_repr][p] = binding_affinity
 
             # create EpitopePredictionResult object. This is a multi-indexed DataFrame
             # with Peptide and Method as multi-index and alleles as columns
