@@ -147,13 +147,15 @@ try:
                 # filter for supported alleles
                 alleles = filter(lambda a: a in self.supportedAlleles, alleles)
 
-            # fetch peptides as strings
-            peptides = [str(peptide) for peptide in peptides]
+            # keep input peptide objects for later use
+            peptide_objects = {}
+            for peptide in peptides:
+                peptide_objects[str(peptide)] = peptide
 
             # write peptides temporarily, new line separated
             tmp_input_file = tempfile.NamedTemporaryFile().name
             with open(tmp_input_file, 'wb') as file:
-                for peptide in peptides:
+                for peptide in peptide_objects.keys():
                     file.write(peptide + "\n")
 
             alleles = self.convert_alleles(alleles) 
@@ -177,7 +179,8 @@ try:
                     # assign binding affinities
                     for row in reader:
                         content = row[0].split(',')
-                        peptide = content[0]
+                        # get original peptide object
+                        peptide = peptide_objects[content[0]]
                         binding_affinity = content[1]
                         if binary:
                             if binding_affinity <= 500:
@@ -294,15 +297,17 @@ try:
                 # filter for supported alleles
                 alleles = filter(lambda a: a in self.supportedAlleles, alleles)
 
-            # fetch peptides as strings
-            peptides = [str(peptide) for peptide in peptides]
+            # keep input peptide objects for later
+            peptide_objects = {}
+            for peptide in peptides:
+                peptide_objects[str(peptide)] = peptide
 
             alleles = self.convert_alleles(alleles)
 
             # write peptides temporarily, new line separated
             tmp_input_file = tempfile.NamedTemporaryFile().name
             with open(tmp_input_file, 'wb') as file:
-                for peptide in peptides:
+                for peptide in peptide_objects.keys():
                     file.write(peptide + "\n")
 
             result = {}
@@ -325,7 +330,8 @@ try:
 
                     for row in reader:
                         content = row[0].split(',')
-                        peptide = content[0]
+                        # get original peptide object
+                        peptide = peptide_objects[content[0]]
                         binding_affinity = content[1]
                         if binary:
                             if binding_affinity <= 500:
