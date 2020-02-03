@@ -1445,6 +1445,43 @@ class NetMHCpan_3_0(NetMHCpan_2_8):
         return result
 
 
+
+class NetMHCpan_4_0(NetMHCpan_3_0):
+    """
+        Implements the NetMHC binding version 4.0
+        Supported  MHC alleles currently only restricted to HLA alleles.
+    """
+    __version = "4.0"
+    __command = "netMHCpan -p {peptides} -a {alleles} {options} -xls -xlsfile {out}"
+    @property
+    def version(self):
+        return self.__version
+
+    @property
+    def command(self):
+        return self.__command
+
+    def parse_external_result(self, file):
+        """
+        Parses external results and returns the result
+
+        :param str file: The file path or the external prediction results
+        :return: A dictionary containing the prediction results
+        :rtype: dict
+        """
+        result = defaultdict(defaultdict)
+        f = csv.reader(open(file, "r"), delimiter='\t')
+        alleles = list(filter(lambda x: x != "", f.next()))
+        f.next()
+        ic_pos = 5
+        for row in f:
+            pep_seq = row[1]
+            for i, a in enumerate(alleles):
+                result[a][pep_seq] = float(row[ic_pos + i * 5])
+        return result
+
+
+
 class NetMHCstabpan_1_0(AExternalEpitopePrediction):
     """
     Implements a wrapper to NetMHCstabpan 1.0
