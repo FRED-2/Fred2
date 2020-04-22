@@ -149,9 +149,9 @@ try:
             :return: str
             """
             if isinstance(allele, MouseAllele):
-                return "H-2-%s%s%s" % (allele.locus, allele.supertype.upper(), allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype.upper(), allele.subtype)
             else:
-                return "HLA-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
 
         # Converts FRED2s internal allele representation into the format required by mhcnuggets
         def convert_alleles(self, alleles):
@@ -308,9 +308,9 @@ try:
             :return: str
             """
             if isinstance(allele, MouseAllele):
-                return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
             else:
-                return "HLA-%s%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s:%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
 
         # Converts the internal mhcnuggets-class-1 HLA representation back into a FRED2 representation
         def revert_allele_repr(self, name):
@@ -408,12 +408,12 @@ try:
             """
             if isinstance(allele, MouseAllele):
                 # expects H-2-XXx
-                return "H-2-%s%s%s" % (allele.locus, allele.supertype.upper(), allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype.upper(), allele.subtype)
             elif isinstance(allele, CombinedAllele):
-                return "HLA-%s%s%s-%s%s%s" % (allele.alpha_locus, allele.alpha_supertype, allele.alpha_subtype,
+                return "%s-%s%s%s-%s%s%s" % (allele.organism, allele.alpha_locus, allele.alpha_supertype, allele.alpha_subtype,
                                         allele.beta_locus, allele.beta_supertype, allele.beta_subtype)
             else:
-                return "HLA-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
 
         # Converts FRED2s internal allele representation into the format required by mhcnuggets
         def convert_alleles(self, alleles):
@@ -599,12 +599,12 @@ try:
             """
             if isinstance(allele, MouseAllele):
                 # expects H-2-XXx
-                return "H-2-%s%s%s" % (allele.locus, allele.supertype.upper(), allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype.upper(), allele.subtype)
             elif isinstance(allele, CombinedAllele):
-                return "HLA-%s%s:%s-%s%s:%s" % (allele.alpha_locus, allele.alpha_supertype, allele.alpha_subtype,
+                return "%s-%s%s:%s-%s%s:%s" % (allele.organism, allele.alpha_locus, allele.alpha_supertype, allele.alpha_subtype,
                                         allele.beta_locus, allele.beta_supertype, allele.beta_subtype)
             else:
-                return "HLA-%s%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s:%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
 
         # Converts the internal mhcnuggets-class-2 representation back into a FRED2 representation
         def revert_allele_repr(self, name):
@@ -684,9 +684,9 @@ try:
             :return: str
             """
             if isinstance(allele, MouseAllele):
-                return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
             else:
-                return "HLA-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
 
         # Converts FRED2s internal allele representation into the format required by MHCFlurry
         def convert_alleles(self, alleles):
@@ -825,9 +825,9 @@ try:
             :return: str
             """
             if isinstance(allele, MouseAllele):
-                return "H-2-%s%s%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s%s%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
             else:
-                return "HLA-%s*%s:%s" % (allele.locus, allele.supertype, allele.subtype)
+                return "%s-%s*%s:%s" % (allele.organism, allele.locus, allele.supertype, allele.subtype)
 
         # Converts the internal MHCFlurry representation back into a FRED2 representation
         def revert_allele_repr(self, name):
