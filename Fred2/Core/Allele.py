@@ -111,7 +111,7 @@ class MouseAllele(Allele):
         allele = name.split("-")[-1].replace("H-2-", "")
 
         self.organism = "H-2"
-        self.name = allele
+        self.name = allele[0] + allele[1:].lower()
         self.prob = prob
 
     def __repr__(self):
