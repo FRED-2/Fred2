@@ -8,6 +8,8 @@
 .. moduleauthor:: heumos, krakau
 
 """
+import itertools
+import logging
 import subprocess
 import csv
 import sys
@@ -18,6 +20,7 @@ import cStringIO
 from abc import abstractmethod
 
 import pandas
+from collections import defaultdict
 
 from mhcflurry import Class1AffinityPredictor
 from mhcnuggets.src.predict import predict as mhcnuggets_predict
@@ -188,54 +191,69 @@ try:
             else:
                 # filter for supported alleles
                 alleles = filter(lambda a: a in self.supportedAlleles, alleles)
+            alleles = self.convert_alleles(alleles)
+
+            # prepare results dictionary
+            result = defaultdict(defaultdict)
 
             # keep input peptide objects for later use
             peptide_objects = {}
             for peptide in peptides:
                 peptide_objects[str(peptide)] = peptide
 
-            # write peptides temporarily, new line separated
-            tmp_input_file = tempfile.NamedTemporaryFile().name
-            with open(tmp_input_file, 'wb') as file:
-                for peptide in peptide_objects.keys():
-                    file.write(peptide + "\n")
+            # group peptides by length
+            pep_groups = peptide_objects.keys()
+            pep_groups.sort(key=len)
+            for length, peps in itertools.groupby(pep_groups, key=len):
+                if length not in self.supportedLength:
+                    logging.warn("Peptide length must be at least %i or at most %i for %s but is %i" % (min(self.supportedLength), max(self.supportedLength),
+                                                                                        self.name, length))
+                    continue
+                peps = list(peps)
 
-            alleles = self.convert_alleles(alleles)
-            result = {}
-            # predict binding affinities
-            for a in alleles:
-                allele_repr = self.revert_allele_repr(a)
-                result[allele_repr] = {}
+                # write peptides temporarily, new line separated
+                tmp_input_file = tempfile.NamedTemporaryFile().name
+                with open(tmp_input_file, 'wb') as file:
+                    for peptide in peps:
+                        file.write(peptide + "\n")
 
-                # workaround for mhcnuggets file i/o buffer bug
-                mhcnuggets_output = cStringIO.StringIO()
-                with capture_stdout(mhcnuggets_output):
-                    mhcnuggets_predict(class_='I',
-                                        peptides_path=tmp_input_file,
-                                        mhc=a)
+                # predict binding affinities
+                for a in alleles:
+                    allele_repr = self.revert_allele_repr(a)
 
-                # read predicted binding affinities back
-                mhcnuggets_output.seek(0)
-                reader = csv.reader(mhcnuggets_output, delimiter=' ', quotechar='|')
-                # skip log statements from mhcnuggets and header
-                for row in reader:
-                    if row[0] == 'peptide,ic50':
-                        break
-                    print ' '.join(row)
+                    # workaround for mhcnuggets file i/o buffer bug
+                    mhcnuggets_output = cStringIO.StringIO()
+                    with capture_stdout(mhcnuggets_output):
+                        mhcnuggets_predict(class_='I',
+                                            peptides_path=tmp_input_file,
+                                            mhc=a)
 
-                # assign binding affinities
-                for row in reader:
-                    content = row[0].split(',')
-                    # get original peptide object
-                    peptide = peptide_objects[content[0]]
-                    binding_affinity = content[1]
-                    if binary:
-                        if binding_affinity <= 500:
-                            result[allele_repr][peptide] = 1.0
+                    # read predicted binding affinities back
+                    mhcnuggets_output.seek(0)
+                    reader = csv.reader(mhcnuggets_output, delimiter=' ', quotechar='|')
+                    # skip log statements from mhcnuggets and header
+                    for row in reader:
+                        if row[0] == 'peptide,ic50':
+                            break
+                        print ' '.join(row)
+
+                    # assign binding affinities
+                    for row in reader:
+                        content = row[0].split(',')
+                        # get original peptide object
+                        peptide = peptide_objects[content[0]]
+                        binding_affinity = content[1]
+                        if binary:
+                            if binding_affinity <= 500:
+                                result[allele_repr][peptide] = 1.0
+                            else:
+                                result[allele_repr][peptide] = 0.0
                         else:
-                            result[allele_repr][peptide] = 0.0
-                    else:
-                        result[allele_repr][peptide] = binding_affinity
+                            result[allele_repr][peptide] = binding_affinity
+
+            if not result:
+                raise ValueError("No predictions could be made with " + self.name +
+                                " for given input. Check your epitope length and HLA allele combination.")
 
             # create EpitopePredictionResult object. This is a multi-indexed DataFrame
             # with Peptide and Method as multi-index and alleles as columns
@@ -457,54 +475,68 @@ try:
             else:
                 # filter for supported alleles
                 alleles = filter(lambda a: a in self.supportedAlleles, alleles)
+            alleles = self.convert_alleles(alleles)
 
-            # keep input peptide objects for later
+            # prepare results dictionary
+            result = defaultdict(defaultdict)
+
+            # keep input peptide objects for later use
             peptide_objects = {}
             for peptide in peptides:
                 peptide_objects[str(peptide)] = peptide
 
-            alleles = self.convert_alleles(alleles)
+            # group peptides by length
+            pep_groups = peptide_objects.keys()
+            pep_groups.sort(key=len)
+            for length, peps in itertools.groupby(pep_groups, key=len):
+                if length not in self.supportedLength:
+                    logging.warn("Peptide length must be at least %i or at most %i for %s but is %i" % (min(self.supportedLength), max(self.supportedLength),
+                                                                                        self.name, length))
+                    continue
+                peps = list(peps)
 
-            # write peptides temporarily, new line separated
-            tmp_input_file = tempfile.NamedTemporaryFile().name
-            with open(tmp_input_file, 'wb') as file:
-                for peptide in peptide_objects.keys():
-                    file.write(peptide + "\n")
+                # write peptides temporarily, new line separated
+                tmp_input_file = tempfile.NamedTemporaryFile().name
+                with open(tmp_input_file, 'wb') as file:
+                    for peptide in peps:
+                        file.write(peptide + "\n")
 
-            result = {}
-            # predict bindings
-            for a in alleles:
-                allele_repr = self.revert_allele_repr(a)
-                result[allele_repr] = {}
+                # predict bindings
+                for a in alleles:
+                    allele_repr = self.revert_allele_repr(a)
 
-                # workaround for mhcnuggets file i/o buffer bug
-                mhcnuggets_output = cStringIO.StringIO()
-                with capture_stdout(mhcnuggets_output):
-                    mhcnuggets_predict(class_='II',
-                                    peptides_path=tmp_input_file,
-                                    mhc=a)
+                    # workaround for mhcnuggets file i/o buffer bug
+                    mhcnuggets_output = cStringIO.StringIO()
+                    with capture_stdout(mhcnuggets_output):
+                        mhcnuggets_predict(class_='II',
+                                        peptides_path=tmp_input_file,
+                                        mhc=a)
 
-                # read predicted binding affinities back
-                mhcnuggets_output.seek(0)
-                reader = csv.reader(mhcnuggets_output, delimiter=' ', quotechar='|')
-                # skip log statements from mhcnuggets and header
-                for row in reader:
-                    if row[0] == 'peptide,ic50':
-                        break
-                    print ' '.join(row)
+                    # read predicted binding affinities back
+                    mhcnuggets_output.seek(0)
+                    reader = csv.reader(mhcnuggets_output, delimiter=' ', quotechar='|')
+                    # skip log statements from mhcnuggets and header
+                    for row in reader:
+                        if row[0] == 'peptide,ic50':
+                            break
+                        print ' '.join(row)
 
-                for row in reader:
-                    content = row[0].split(',')
-                    # get original peptide object
-                    peptide = peptide_objects[content[0]]
-                    binding_affinity = content[1]
-                    if binary:
-                        if binding_affinity <= 500:
-                            result[allele_repr][peptide] = 1.0
+                    for row in reader:
+                        content = row[0].split(',')
+                        # get original peptide object
+                        peptide = peptide_objects[content[0]]
+                        binding_affinity = content[1]
+                        if binary:
+                            if binding_affinity <= 500:
+                                result[allele_repr][peptide] = 1.0
+                            else:
+                                result[allele_repr][peptide] = 0.0
                         else:
-                            result[allele_repr][peptide] = 0.0
-                    else:
-                        result[allele_repr][peptide] = binding_affinity
+                            result[allele_repr][peptide] = binding_affinity
+
+            if not result:
+                raise ValueError("No predictions could be made with " + self.name +
+                                " for given input. Check your epitope length and HLA allele combination.")
 
             # create EpitopePredictionResult object. This is a multi-indexed DataFrame
             # with Peptide and Method as multi-index and alleles as columns
@@ -722,7 +754,6 @@ try:
             else:
                 # filter for supported alleles
                 alleles = filter(lambda a: a in self.supportedAlleles, alleles)
-
             alleles = self.convert_alleles(alleles)
 
             # test mhcflurry models are available => download if not
@@ -734,21 +765,34 @@ try:
             # load model
             predictor = Class1AffinityPredictor.load()
 
-            # predict and assign binding affinities
-            result = {}
-            for a in alleles:
-                allele_repr = self.revert_allele_repr(a)
-                result[allele_repr] = {}
-                for p in peptides:
-                    seq = p.__str__()
-                    binding_affinity = predictor.predict(allele=a, peptides=[seq])[0]
-                    if binary:
-                        if binding_affinity <= 500:
-                            result[allele_repr][p] = 1.0
+            # prepare results dictionary
+            result = defaultdict(defaultdict)
+
+            # group peptides by length
+            peptides.sort(key=len)
+            for length, peps in itertools.groupby(peptides, key=len):
+                if length not in self.supportedLength:
+                    logging.warn("Peptide length must be at least %i or at most %i for %s but is %i" % (min(self.supportedLength), max(self.supportedLength),
+                                                                                        self.name, length))
+                    continue
+                peps = list(peps)
+
+                # predict and assign binding affinities
+                for a in alleles:
+                    allele_repr = self.revert_allele_repr(a)
+                    for p in peps:
+                        binding_affinity = predictor.predict(allele=a, peptides=[str(p)])[0]
+                        if binary:
+                            if binding_affinity <= 500:
+                                result[allele_repr][p] = 1.0
+                            else:
+                                result[allele_repr][p] = 0.0
                         else:
-                            result[allele_repr][p] = 0.0
-                    else:
-                        result[allele_repr][p] = binding_affinity
+                            result[allele_repr][p] = binding_affinity
+
+            if not result:
+                raise ValueError("No predictions could be made with " + self.name +
+                                " for given input. Check your epitope length and HLA allele combination.")
 
             # create EpitopePredictionResult object. This is a multi-indexed DataFrame
             # with Peptide and Method as multi-index and alleles as columns
