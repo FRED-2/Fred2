@@ -1,0 +1,39 @@
+name: Testing
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  run-nosetests:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 2.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 2.7
+    - name: Set conda package directory
+      run: |
+        mkdir /tmp/condapkgs
+        echo "CONDA_PKGS_DIRS=/tmp/condapkgs" >> $GITHUB_ENV
+    - name: Install test dependencies and dependencies that pip would build from source
+      run: |
+        $CONDA/bin/conda create -p /tmp/condaenv -c conda-forge -c bioconda 'python<3' biopython svmlight==6.02 'tensorflow<2.0.0,>=1.1.0' 'markdown<=3.1' coincbc
+        export PATH="/tmp/condaenv/bin:$PATH"
+    - name: Activate conda environment
+      run: |
+        echo "/tmp/condaenv/bin" >> $GITHUB_PATH
+    - name: Install FRED
+      run: |
+        pip install keras==2.3.1 .
+    - name: Run Tests
+      run: |
+        conda install -p /tmp/condaenv -c conda-forge -c bioconda nose nose-exclude
+        nosetests --exclude-dir=Fred2/test/external Fred2
