@@ -1,4 +1,4 @@
-name: Unit tests without external tools
+name: Unit tests external tools
 
 on:
   push:
@@ -14,7 +14,19 @@ jobs:
     runs-on: ${{ matrix.platform }}
 
     steps:
+    - name: Debug Secret
+      env:
+        test_sec: ${{ secrets.TEST_SECRET }}
+      run: |
+        echo "test_sec=$test_sec"
     - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+      with:
+        repository: kohlbacherlab/fred-tools
+        token: ${{ secrets.FRED_CI_PAT }}
+    - name: Debug
+      run: |
+        find .
     - name: Set up Python 2.7
       uses: actions/setup-python@v2
       with:
